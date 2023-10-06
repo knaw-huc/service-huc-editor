@@ -1,4 +1,5 @@
-from flask import Flask, request, jsonify, send_file, jsonify, abort
+from flask import Flask, request, jsonify, send_file, jsonify, abort, Response
+from config import config
 import json
 import requests
 import random
@@ -43,10 +44,63 @@ def before_first_request():
 
 @app.route("/")
 def hello_world():
-    retStruc = {"app": "Huc Editor service", "version": "0.1"}
+    retStruc = {"app": "Huc Editor server", "version": "0.1"}
     # jsonHeaders(response)
     return jsonify(retStruc)
 
+def save_profile(id):
+    prof = requests.get(f"{config['CMDI_CR']}/1.x/profiles/{id}/xml")
+    if prof.status_code == 404:
+        return None
+    path = f"{config['DATA_DIR']}/profiles"
+    if not exists(path):
+        os.makedirs(path)
+    path = f"{path}/{id}.xml"
+    with open(path,"wb") as localfile:
+        localfile.write(prof.content)
+    return id
+
+def has_profile(id):
+    path = f"{config['DATA_DIR']}/profiles/{id}.xml"
+    return exists(path)        
+
+def read_profile(id):
+    path = f"{config['DATA_DIR']}/profiles/{id}.xml"
+    if not exists(path):
+        save_prof(id)
+    if exists(path):
+        with open(path,"rb") as localfile:
+            return localfile.read()
+    return None
+
+@app.route("/profile/<id>", methods=['POST'])
+def post_profile(id):
+    if save_profile(id):
+        return get_profile(id)
+    response = jsonify({'error' : f"profile[{id}] not found!"})
+    response.status_code = 404
+    return response
+
+@app.route("/profile/<id>", methods=['GET'])
+def get_profile(id):
+    if has_profile(id):
+        format = request.accept_mimetypes.best_match(['application/xml','application/json'],'application/xml')
+        if format == 'application/json':
+            response = jsonify({'content' : f"profile[{id}]"})
+            response.content_type = 'application/json'
+            return response
+        return Response(response=read_profile(id), mimetype='application/xml')
+    response = jsonify({'error' : f"profile[{id}] not found!"})
+    response.content_type = 'application/json'
+    response.status_code = 404
+    return response
+    
+        
+
+#@app.route("/profile/<id>", methods=['DELETE'])
+#def del_profile(id):
+
+###### ROB
 
 @app.route("/get_cmdi", methods=['POST'])
 def get_cmdi():

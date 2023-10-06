@@ -1,6 +1,7 @@
 config = {
     "CMDI_API" : "http://localhost/",
-    "DATA_DIR" : "/Users/robzeeman/Documents/DI_code/DATA/huc-editor/",
+    "DATA_DIR" : "./data",
     "DB_DIR" : "data/",
-    "DB_NAME" : "cmdi_records.db"
+    "DB_NAME" : "cmdi_records.db",
+    "CMDI_CR" : "https://catalog.clarin.eu/ds/ComponentRegistry/rest/registry"
 }
