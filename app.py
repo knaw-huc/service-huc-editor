@@ -1,4 +1,6 @@
 from flask import Flask, request, jsonify, send_file, jsonify, abort, Response
+from saxonche import * 
+from pathlib import Path
 from config import config
 import json
 import requests
@@ -67,10 +69,9 @@ def has_profile(id):
 def read_profile(id):
     path = f"{config['DATA_DIR']}/profiles/{id}.xml"
     if not exists(path):
-        save_prof(id)
+        save_profile(id)
     if exists(path):
-        with open(path,"rb") as localfile:
-            return localfile.read()
+        return Path(path).read_text()
     return None
 
 @app.route("/profile/<id>", methods=['POST'])
@@ -86,7 +87,14 @@ def get_profile(id):
     if has_profile(id):
         format = request.accept_mimetypes.best_match(['application/xml','application/json'],'application/xml')
         if format == 'application/json':
-            response = jsonify({'content' : f"profile[{id}]"})
+            proc = PySaxonProcessor(license=False)
+            print(proc.version)
+            xsltproc = proc.new_xslt30_processor()
+            document = proc.parse_xml(xml_text=read_profile(id))
+            executable = xsltproc.compile_stylesheet(stylesheet_file="test.xsl")
+            output = executable.transform_to_string(xdm_node=document)
+            print(output)
+            response = jsonify({'content':f"profile[{id}]"})
             response.content_type = 'application/json'
             return response
         return Response(response=read_profile(id), mimetype='application/xml')
