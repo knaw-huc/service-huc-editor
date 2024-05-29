@@ -1,2 +1,1 @@
- rm -rf dist;  poetry install; poetry update; poetry build; docker rm -f huc-editor-service; docker rmi ekoindarto/huc_=-editor-service:0.1.0; docker build --platform
- linux/amd64 --no-cache -t ekoindarto/huc-editor-service:0.1.0 -f Dockerfile . ; docker run -v ./conf:/home/dans/huc-editor-service/conf -d -p 1210:1210 --name huc-editor-service ekoindarto/huc-editor-service:0.1.0; docker exec -it huc-editor-service /bin/bash
+# HuC Editor API Service
