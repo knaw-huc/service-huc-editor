@@ -1,0 +1,32 @@
+[tool.poetry]
+name = "huc-editor-service"
+version = "0.1.4"
+description = ""
+authors = ["ekoi <eko.indarto@dans.knaw.nl>"]
+readme = "README.md"
+include = ["resources/*", "logs/*", "data/*", "conf/*"]
+packages = [
+    { include = "src" }
+]
+
+
+[project.urls]
+Homepage = ""
+Documentation = "https://readthedocs.org"
+Repository = "https://github.com/knaw-huc/service-huc-editor"
+Issues = "https://github.com/knaw-huc/service-huc-editor/issues"
+Changelog = "https://github.com/knaw-huc/service-huc-editor/master/CHANGELOG.md"
+
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = "^0.111.0"
+uvicorn = "^0.29.0"
+dynaconf = "^3.2.5"
+lxml = "^5.2.2"
+emoji = "^2.12.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
