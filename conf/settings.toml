@@ -14,3 +14,8 @@ xslt_dir = "@format {env[BASE_DIR]}/resources/xslt"
 log_file = "@format {env[BASE_DIR]}/logs/hec.log"
 log_level = 10
 log_format = "%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s"
+
+[default.keycloak]
+    url="http://localhost:9090"
+    realms="huc_editor"
+    client_id="huc-auth"
