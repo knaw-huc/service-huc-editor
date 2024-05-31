@@ -27,7 +27,7 @@ def get_profile(request: Request, id: str):
 
     if request.headers["Accept"] == "application/xml":
         # Reading data from the xml file
-        with open(os.path.join(profile_path, f'{clarin_id}_1.xml'), 'r') as file:
+        with open(os.path.join(profile_path, f'{clarin_id}.xml'), 'r') as file:
             return file.read()
     elif request.headers["Accept"] == "application/json":
         return HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED)

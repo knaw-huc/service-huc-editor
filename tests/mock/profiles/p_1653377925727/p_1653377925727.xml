@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ComponentSpec isProfile="true" CMDVersion="1.2" CMDOriginalVersion="1.2" xsi:noNamespaceSchemaLocation="https://infra.clarin.eu/CMDI/1.x/xsd/cmd-component.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <Header>
+        <ID>clarin.eu:cr1:p_1653377925727</ID>
+        <Name>Vragenlijst</Name>
+        <Description>Voor de curatie van de vragenlijsten</Description>
+        <Status>development</Status>
+    </Header>
+    <Component name="Vragenlijst" CardinalityMin="1" CardinalityMax="1">
+        <Element name="identifier" ValueScheme="string" CardinalityMin="1" CardinalityMax="1" cue:DisplayPriority="1" xmlns:cue="http://www.clarin.eu/cmd/cues/1"/>
+        <Element name="commentaarLijst" ValueScheme="string" CardinalityMin="0" CardinalityMax="1"/>
+        <Element name="aantalPaginas" ValueScheme="int" CardinalityMin="1" CardinalityMax="1"/>
+        <Element name="Status" CardinalityMin="1" CardinalityMax="1">
+            <ValueScheme>
+                <Vocabulary>
+                    <enumeration>
+                        <item>nog te doen</item>
+                        <item>bezig</item>
+                        <item>gedaan</item>
+                    </enumeration>
+                </Vocabulary>
+            </ValueScheme>
+        </Element>
+        <Component name="Scan" CardinalityMin="1" CardinalityMax="1">
+            <Element name="id" ValueScheme="string" CardinalityMin="1" CardinalityMax="1" cue:DisplayPriority="1" xmlns:cue="http://www.clarin.eu/cmd/cues/1"/>
+            <Element name="commentaarScan" ValueScheme="string" CardinalityMin="0" CardinalityMax="1"/>
+            <Element name="commentaarFile" ValueScheme="string" CardinalityMin="0" CardinalityMax="1"/>
+            <Element name="aantalPaginas" ValueScheme="int" CardinalityMin="1" CardinalityMax="1"/>
+            <Component name="Pagina" CardinalityMin="1" CardinalityMax="unbounded">
+                <Element name="id" ValueScheme="string" CardinalityMin="1" CardinalityMax="1" cue:DisplayPriority="1" xmlns:cue="http://www.clarin.eu/cmd/cues/1"/>
+                <Element name="nr" ValueScheme="int" CardinalityMin="1" CardinalityMax="1"/>
+                <Element name="kloekeCode" ValueScheme="string" CardinalityMin="0" CardinalityMax="1"/>
+                <Element name="inzending" ValueScheme="int" CardinalityMin="1" CardinalityMax="1"/>
+                <Element name="volgorde" ValueScheme="string" CardinalityMin="1" CardinalityMax="1"/>
+                <Element name="type" CardinalityMin="1" CardinalityMax="1">
+                    <ValueScheme>
+                        <Vocabulary>
+                            <enumeration>
+                                <item>als verwacht</item>
+                                <item>losse aanvulling</item>
+                                <item>probleem</item>
+                                <item>verwijderen</item>
+                            </enumeration>
+                        </Vocabulary>
+                    </ValueScheme>
+                </Element>
+                <Element name="commentaarPagina" ValueScheme="string" CardinalityMin="0" CardinalityMax="1"/>
+            </Component>
+        </Component>
+    </Component>
+</ComponentSpec>

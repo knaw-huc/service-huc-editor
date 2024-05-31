@@ -25,7 +25,7 @@ async def create_profile(id: str):
         os.makedirs(profile_path)
         profile_xml = await get_profile_from_clarin(id)
 
-        with open(os.path.join(profile_path, f'{clarin_id}_1.xml'), 'wb') as file:
+        with open(os.path.join(profile_path, f'{clarin_id}.xml'), 'wb') as file:
             file.write(profile_xml)
         return {"message": "Profile is created"}
     else:

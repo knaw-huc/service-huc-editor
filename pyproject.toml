@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "huc-editor-service"
-version = "0.1.4"
+version = "0.1.6"
 description = ""
 authors = ["ekoi <eko.indarto@dans.knaw.nl>"]
 readme = "README.md"
@@ -28,6 +28,7 @@ emoji = "^2.12.1"
 
 
 requests = "^2.32.2"
+pytest = "^8.2.1"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
