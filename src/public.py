@@ -1,9 +1,11 @@
 import logging
+import os
 
 from fastapi import APIRouter, HTTPException
 from starlette import status
+from starlette.requests import Request
 
-from src.commons import data
+from src.commons import data, settings
 
 router = APIRouter()
 
@@ -16,9 +18,21 @@ def info():
 
 
 @router.get('/profile/{id}')
-def get_profile(id: str):
+def get_profile(request: Request, id: str):
     logging.info(f"profile {id}")
-    return HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED)
+    clarin_id = id.rsplit(':', 1)[-1]
+    profile_path = f"{settings.URL_DATA_PROFILES}/{clarin_id}"
+    if not os.path.isdir(profile_path):
+        return HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+    if request.headers["Accept"] == "application/xml":
+        # Reading data from the xml file
+        with open(os.path.join(profile_path, f'{clarin_id}_1.xml'), 'r') as file:
+            return file.read()
+    elif request.headers["Accept"] == "application/json":
+        return HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED)
+
+    return HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not supported")
 
 @router.get('/profile/{id}/tweak')
 def get_profile_tweak(id: str):

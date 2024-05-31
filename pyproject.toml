@@ -27,6 +27,7 @@ lxml = "^5.2.2"
 emoji = "^2.12.1"
 
 
+requests = "^2.32.2"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
