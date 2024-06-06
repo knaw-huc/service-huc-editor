@@ -1,5 +1,6 @@
 import logging
 import os.path
+import shutil
 
 import requests as req
 
@@ -48,7 +49,11 @@ async def get_profile_from_clarin(id):
 @router.delete("/profile/{id}")
 async def delete_profile(request: Request, id: str):
     logging.info(f"Deleting profile {id}")
-    return HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED)
+    if not os.path.isdir(f"{settings.URL_DATA_PROFILES}/{id}"):
+        return HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+    shutil.rmtree(f"{settings.URL_DATA_PROFILES}/{id}")
+    return {"message": f"Profile {id} deleted"}
 
 
 @router.put("/profile/{id}/tweak")
@@ -65,6 +70,13 @@ async def create_profile_tweak(request: Request, id: str, tweak_id: str):
 
 @router.delete("/profile/{id}/tweak/{tweak_id}")
 async def delete_profile_tweak(request: Request, id: str, tweak_id: str):
+    logging.info(f"Deleting profile {id} tweak {tweak_id}")
+    if not os.path.isdir(f"{settings.URL_DATA_PROFILES}/{id}/{tweak_id}"):
+        logging.info("Not found")
+        return HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+    shutil.rmtree(f"{settings.URL_DATA_PROFILES}/{id}/{tweak_id}")
+
     return HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED)
 
 
@@ -84,7 +96,11 @@ async def create_record(request: Request, id: str):
 @router.delete("/record/{id}")
 async def delete_record(request: Request, id: str):
     logging.info(f"Deleting record {id}")
-    return HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED)
+    if not os.path.isdir(f"{settings.URL_DATA_PROFILES}/{id}"):
+        logging.info("Not found")
+        return HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    shutil.rmtree(f"{settings.URL_DATA_PROFILES}/{id}")
+    return {"message": f"Record {id} deleted"}
 
 
 @router.put("/record/{id}/resource")
@@ -102,4 +118,10 @@ async def create_record_resource(request: Request, id: str, resource_id: str):
 @router.delete("/record/{id}/resource/{resource_id}")
 async def delete_record_resource(request: Request, id: str, resource_id: str):
     logging.info(f"Deleting record {id} resource {resource_id}")
-    return HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED)
+    if not os.path.isdir(f"{settings.URL_DATA_PROFILES}/{id}/{resource_id}"):
+        logging.info("Not found")
+        return HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+    shutil.rmtree(f"{settings.URL_DATA_PROFILES}/{id}/{resource_id}")
+
+    return {"message": f"Resource {resource_id} deleted"}
