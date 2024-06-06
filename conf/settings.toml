@@ -8,6 +8,8 @@ fastapi_description = ""
 url_clarin_component_registry = "https://catalog.clarin.eu/ds/ComponentRegistry/rest/registry/1.x/profiles/%s/xml"
 url_data_profiles = "@format ///{env[BASE_DIR]}/data/profiles"
 
+disable_authentication = false
+
 
 xslt_dir = "@format {env[BASE_DIR]}/resources/xslt"
 
