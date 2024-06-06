@@ -34,21 +34,31 @@ def get_profile(request: Request, id: str):
 
     return HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not supported")
 
+
 @router.get('/profile/{id}/tweak')
 def get_profile_tweak(id: str):
     logging.info(f"profile tweak id: {id}")
+    if not os.path.isdir(f"{settings.URL_DATA_PROFILES}/{id}"):
+        return HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
     return HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED)
 
 
 @router.get('/record/{id}')
 def get_record(id: str):
     logging.info(f"record {id}")
+    if not os.path.exists(f"{settings.URL_DATA_PROFILES}/{id}.json"):
+        return HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
     return HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED)
 
 
 @router.get('/record/{id}/resource/{resource_id}')
 def get_record_resource(id: str, resource_id: str):
     logging.info(f"record {id} resource {resource_id}")
+    if not os.path.exists(f"{settings.URL_DATA_PROFILES}/{id}/{resource_id}.json"):
+        return HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
     return HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED)
 
 

@@ -2,14 +2,12 @@ import logging
 import os.path
 import shutil
 
-import requests as req
 
 from fastapi import APIRouter, HTTPException, Request, Response
-from fastapi.openapi.models import Response
 from starlette import status
 from starlette.responses import JSONResponse
 
-from src.commons import data, settings
+from src.commons import data, settings, get_profile_from_clarin
 
 router = APIRouter()
 
@@ -36,14 +34,6 @@ async def create_profile(id: str):
     return HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED)
 
 
-async def get_profile_from_clarin(id):
-    clarin_url = settings.URL_CLARIN_COMPONENT_REGISTRY % id
-    logging.debug(f"{clarin_url}")
-    clarin_profile = req.get(clarin_url)
-    if clarin_profile.status_code != status.HTTP_200_OK:
-        return HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    else:
-        return clarin_profile.content
 
 
 @router.delete("/profile/{id}")
@@ -59,12 +49,28 @@ async def delete_profile(request: Request, id: str):
 @router.put("/profile/{id}/tweak")
 async def modify_profile_tweak(request: Request, id: str):
     logging.info(f"Modifying profile {id}")
+    tweak_dir = f"{settings.URL_DATA_PROFILES}/{id}/tweak"
+    if not os.path.isdir(f"{settings.URL_DATA_PROFILES}/{id}"):
+        logging.debug(f"profile {id} doesn't exists")
+        return HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    if not os.path.exists(tweak_dir):
+        logging.debug(f"{tweak_dir} doesn't exists")
+        os.makedirs(tweak_dir)
+    if request.headers['Content-Type'] != 'application/xml':
+        return HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Content-Type must be application/xml")
+
+    tweak_body = await request.body()
+
     return HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED)
 
 
 @router.post("/profile/{id}/tweak/{tweak_id}")
 async def create_profile_tweak(request: Request, id: str, tweak_id: str):
-    logging.info(f"Creating profile tweak {id}")
+    logging.info(f"Creating profile {id} tweak {tweak_id}")
+    if not os.path.exists(f"{settings.URL_DATA_PROFILES}/{id}/tweak"):
+        logging.debug(f"{settings.URL_DATA_PROFILES}/{id}/tweak doesn't exists")
+        return HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
     return HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED)
 
 
