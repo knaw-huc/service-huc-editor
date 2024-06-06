@@ -24,7 +24,6 @@ from starlette.middleware.cors import CORSMiddleware
 
 from src import public, protected
 
-
 api_keys = [
     settings.SERVICE_HUC_EDITOR_API_KEY
 ]  # Todo: This is encrypted in the .secrets.toml
@@ -33,6 +32,7 @@ api_keys = [
 #See: https://fastapi.tiangolo.com/tutorial/security/first-steps/
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")  # use token authentication
 
+
 def api_key_auth(api_key: str = Depends(oauth2_scheme)):
     if api_key not in api_keys:
         raise HTTPException(
@@ -40,17 +40,15 @@ def api_key_auth(api_key: str = Depends(oauth2_scheme)):
             detail="Forbidden"
         )
 
+
 @asynccontextmanager
 async def lifespan(application: FastAPI):
     print('start up')
-    print(f'Available repositories configurations: {sorted(list(data.keys()))}')
-
     print(emoji.emojize(':thumbs_up:'))
+
 
 app = FastAPI(title=settings.FASTAPI_TITLE, description=settings.FASTAPI_DESCRIPTION,
               version=__version__)
-
-
 
 app.add_middleware(
     CORSMiddleware,
@@ -59,8 +57,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
 
 app.include_router(
     public.router,
@@ -75,11 +71,8 @@ app.include_router(
     dependencies=[Depends(api_key_auth)]
 )
 
-
 if __name__ == "__main__":
     logging.info("Start")
     print(emoji.emojize(':thumbs_up:'))
 
     uvicorn.run("src.main:app", host="0.0.0.0", port=12104, reload=False)
-
-
