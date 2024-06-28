@@ -15,6 +15,10 @@ router = APIRouter()
 # example id: clarin.eu:cr1:p_1653377925727
 @router.post("/profile/{id}", status_code=status.HTTP_201_CREATED)
 async def create_profile(id: str):
+    """
+    Endpoint to create a profile based on its ID.
+    If the profile already exists, it returns a message indicating that the profile already exists.
+    """
     logging.info(f"Creating profile {id}")
     # TODO: don't use hard coded e.g. split(":")[2]
     clarin_id = id.rsplit(':', 1)[-1]
@@ -34,6 +38,10 @@ async def create_profile(id: str):
 
 @router.delete("/profile/{id}")
 async def delete_profile(request: Request, id: str):
+    """
+    Endpoint to create a profile based on its ID.
+    If the profile already exists, it returns a message indicating that the profile already exists.
+    """
     logging.info(f"Deleting profile {id}")
     if not os.path.isdir(f"{settings.URL_DATA_PROFILES}/{id}"):
         return HTTPException(status_code=status.HTTP_404_NOT_FOUND)
@@ -44,6 +52,10 @@ async def delete_profile(request: Request, id: str):
 
 @router.put("/profile/{id}/tweak")
 async def modify_profile_tweak(request: Request, id: str):
+    """
+   Endpoint to modify a profile tweak based on its ID.
+   If the profile does not exist, it returns a 404 error.
+   """
     logging.info(f"Modifying profile {id}")
     tweak_dir = f"{settings.URL_DATA_PROFILES}/{id}/tweak"
     if not os.path.isdir(f"{settings.URL_DATA_PROFILES}/{id}"):
@@ -63,6 +75,10 @@ async def modify_profile_tweak(request: Request, id: str):
 
 @router.post("/profile/{id}/tweak/{tweak_id}")
 async def create_profile_tweak(request: Request, id: str, tweak_id: str):
+    """
+    Endpoint to create a profile tweak based on its ID and tweak ID.
+    If the profile tweak does not exist, it returns a 404 error.
+    """
     logging.info(f"Creating profile {id} tweak {tweak_id}")
     if not os.path.exists(f"{settings.URL_DATA_PROFILES}/{id}/tweak"):
         logging.debug(f"{settings.URL_DATA_PROFILES}/{id}/tweak doesn't exists")
@@ -74,6 +90,10 @@ async def create_profile_tweak(request: Request, id: str, tweak_id: str):
 
 @router.delete("/profile/{id}/tweak/{tweak_id}")
 async def delete_profile_tweak(request: Request, id: str, tweak_id: str):
+    """
+    Endpoint to delete a profile tweak based on its ID and tweak ID.
+    If the profile tweak does not exist, it returns a 404 error.
+    """
     logging.info(f"Deleting profile {id} tweak {tweak_id}")
     if not os.path.isdir(f"{settings.URL_DATA_PROFILES}/{id}/{tweak_id}"):
         logging.info("Not found")
@@ -86,6 +106,10 @@ async def delete_profile_tweak(request: Request, id: str, tweak_id: str):
 
 @router.post("/{app_name}")
 async def create_app(app_name: str):
+    """
+    Endpoint to create an application based on its name.
+    If the application already exists, it returns a message indicating that the application already exists.
+    """
     logging.info(f"Creating app {app_name}")
     if not os.path.isdir(f"{settings.URL_DATA_APPS}/{app_name}"):
         logging.debug(f"{settings.URL_DATA_APPS}/{app_name} doesn't exists")
@@ -97,6 +121,10 @@ async def create_app(app_name: str):
 
 @router.put("/{app_name}/record")
 async def modify_record(request: Request, app_name: str):
+    """
+    Endpoint to modify a record of an application based on its name.
+    If the record does not exist, it returns a 400 error.
+    """
     logging.info(f"Modifying record")
     if not os.path.isdir(f"{settings.URL_DATA_APPS}/{app_name}/record"):
         logging.debug(f"{settings.URL_DATA_APPS}/{app_name}/record doesn't exists")
@@ -110,6 +138,10 @@ async def modify_record(request: Request, app_name: str):
 
 @router.post("{app_name}/record/{id}")
 async def create_record(request: Request, app_name: str, id: str):
+    """
+    Endpoint to create a record for an application based on its name and the record's ID.
+    If the record already exists, it returns a message indicating that the record already exists.
+    """
     logging.info(f"Creating record {id}")
     if not os.path.isdir(f"{settings.URL_DATA_APPS}/{app_name}/record/{id}"):
         logging.debug(f"{settings.URL_DATA_APPS}/{id}/record doesn't exists")
@@ -122,6 +154,10 @@ async def create_record(request: Request, app_name: str, id: str):
 
 @router.delete("/record/{id}")
 async def delete_record(request: Request, id: str):
+    """
+    Endpoint to delete a record based on its ID.
+    If the record does not exist, it returns a 404 error.
+    """
     logging.info(f"Deleting record {id}")
     if not os.path.isdir(f"{settings.URL_DATA_PROFILES}/{id}"):
         logging.info("Not found")
@@ -132,6 +168,10 @@ async def delete_record(request: Request, id: str):
 
 @router.put("{app_name}/record/{id}/resource")
 async def create_record_resource(request: Request, app_name: str, id: str):
+    """
+    Endpoint to create a resource for a record of an application based on the application's name, the record's ID.
+    If the resource already exists, it returns a message indicating that the resource already exists.
+    """
     logging.info(f"Creating record resource {id}")
     if not os.path.isdir(f"{settings.URL_DATA_APPS}/{app_name}/record/{id}/resource"):
         logging.info("Not found")
@@ -142,12 +182,20 @@ async def create_record_resource(request: Request, app_name: str, id: str):
 
 @router.post("/record/{id}/resource/{resource_id}")
 async def create_record_resource(request: Request, id: str, resource_id: str):
+    """
+    Endpoint to create a resource for a record based on the record's ID and the resource's ID.
+    If the resource already exists, it returns a message indicating that the resource already exists.
+    """
     logging.info(f"Creating record {id} resource {resource_id}")
     return HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED)
 
 
 @router.delete("/record/{id}/resource/{resource_id}")
 async def delete_record_resource(request: Request, id: str, resource_id: str):
+    """
+    Endpoint to delete a resource of a record based on the record's ID and the resource's ID.
+    If the resource does not exist, it returns a 404 error.
+    """
     logging.info(f"Deleting record {id} resource {resource_id}")
     if not os.path.isdir(f"{settings.URL_DATA_PROFILES}/{id}/{resource_id}"):
         logging.info("Not found")

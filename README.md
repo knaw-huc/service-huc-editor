@@ -86,8 +86,130 @@ The OpenAPI Specification for the HuC Editor Service can be found at the followi
 * http://localhost:1210/redocs
 
 
+
 Testing
 -------
+
+## CURL Examples for Endpoints
+
+This section provides examples of `curl` commands that can be used to interact with the endpoints.
+
+* `/info` endpoint:
+    This endpoint returns the service name and version.
+    ```bash
+    curl -X GET https://huc-editor-service.labs.dansdemo.nl/info
+    ```
+
+* `/profile/{id}` endpoint:
+    This endpoint returns a profile based on its ID in XML format.
+    ```bash
+    curl -X GET -H "Accept: application/xml" https://huc-editor-service.labs.dansdemo.nl/profile/clarin.eu:cr1:p_1653377925727
+    ```
+
+* `/profile/{id}/tweak` endpoint:
+    This endpoint is used to tweak a profile based on its ID.
+    ```bash
+    curl -X GET https://huc-editor-service.labs.dansdemo.nl/profile/clarin.eu:cr1:p_1653377925727/tweak
+    ```
+
+* `/{app_name}` endpoint:
+    This endpoint is used to read an application based on its name.
+    ```bash
+    curl -X GET https://huc-editor-service.labs.dansdemo.nl/vlb
+    ```
+
+* `/{app_name}/record/{id}` endpoint:
+    This endpoint is used to get a record of an application based on the application's name and the record's ID.
+    ```bash
+    curl -X GET https://huc-editor-service.labs.dansdemo.nl/vlb/record/your_record_id
+    ```
+
+* `/{app_name}/record/{id}/resource/{resource_id}` endpoint:
+    This endpoint is used to get a resource of a record of an application based on the application's name, the record's ID, and the resource's ID.
+    ```bash
+    curl -X GET https://huc-editor-service.labs.dansdemo.nl/vlb/record/your_record_id/resource/your_resource_id
+    ```
+
+* `/cdn/huc-editor/{version}` endpoint:
+    This endpoint is used to get the CDN of the HuC Editor based on its version.
+    ```bash
+    curl -X GET https://huc-editor-service.labs.dansdemo.nl/cdn/huc-editor/your_version
+    ```
+
+## CURL Examples for Endpoints in `protected.py`
+
+* `/profile/{id}` POST endpoint:
+    This endpoint is used to create a profile based on its ID.
+    ```bash
+    curl -X POST -H 'accept: application/json' -H 'Authorization: Bearer YOUR_API_KEY' https://huc-editor-service.labs.dansdemo.nl/profile/clarin.eu:cr1:p_1653377925727
+    ```
+
+* `/profile/{id}` DELETE endpoint:
+    This endpoint is used to delete a profile based on its ID.
+    ```bash
+    curl -X DELETE -H 'accept: application/json' -H 'Authorization: Bearer YOUR_API_KEY' https://huc-editor-service.labs.dansdemo.nl/profile/clarin.eu:cr1:p_1653377925727
+    ```
+
+* `/profile/{id}/tweak` PUT endpoint:
+    This endpoint is used to modify a profile tweak based on its ID.
+    ```bash
+    curl -X PUT -H 'accept: application/json' -H 'Authorization: Bearer YOUR_API_KEY' https://huc-editor-service.labs.dansdemo.nl/profile/clarin.eu:cr1:p_1653377925727/tweak
+    ```
+
+* `/profile/{id}/tweak/{tweak_id}` POST endpoint:
+    This endpoint is used to create a profile tweak based on its ID and tweak ID.
+    ```bash
+    curl -X POST -H 'accept: application/json' -H 'Authorization: Bearer YOUR_API_KEY' https://huc-editor-service.labs.dansdemo.nl/profile/clarin.eu:cr1:p_1653377925727/tweak/your_tweak_id
+    ```
+
+* `/profile/{id}/tweak/{tweak_id}` DELETE endpoint:
+    This endpoint is used to delete a profile tweak based on its ID and tweak ID.
+    ```bash
+    curl -X DELETE -H 'accept: application/json' -H 'Authorization: Bearer YOUR_API_KEY' https://huc-editor-service.labs.dansdemo.nl/profile/clarin.eu:cr1:p_1653377925727/tweak/your_tweak_id
+    ```
+
+* `/{app_name}` POST endpoint:
+    This endpoint is used to create an application based on its name.
+    ```bash
+    curl -X POST -H 'accept: application/json' -H 'Authorization: Bearer YOUR_API_KEY' https://huc-editor-service.labs.dansdemo.nl/vlb
+    ```
+
+* `/{app_name}/record` PUT endpoint:
+    This endpoint is used to modify a record of an application based on its name.
+    ```bash
+    curl -X PUT -H 'accept: application/json' -H 'Authorization: Bearer YOUR_API_KEY' https://huc-editor-service.labs.dansdemo.nl/vlb/record
+    ```
+
+* `/{app_name}/record/{id}` POST endpoint:
+    This endpoint is used to create a record of an application based on the application's name and the record's ID.
+    ```bash
+    curl -X POST -H 'accept: application/json' -H 'Authorization: Bearer YOUR_API_KEY' https://huc-editor-service.labs.dansdemo.nl/vlb/record/your_record_id
+    ```
+
+* `/record/{id}` DELETE endpoint:
+    This endpoint is used to delete a record based on its ID.
+    ```bash
+    curl -X DELETE -H 'accept: application/json' -H 'Authorization: Bearer YOUR_API_KEY' https://huc-editor-service.labs.dansdemo.nl/record/your_record_id
+    ```
+
+* `/{app_name}/record/{id}/resource` PUT endpoint:
+    This endpoint is used to create a resource of a record of an application based on the application's name and the record's ID.
+    ```bash
+    curl -X PUT -H 'accept: application/json' -H 'Authorization: Bearer YOUR_API_KEY' https://huc-editor-service.labs.dansdemo.nl/vlb/record/your_record_id/resource
+    ```
+
+* `/record/{id}/resource/{resource_id}` POST endpoint:
+    This endpoint is used to create a resource of a record based on the record's ID and the resource's ID.
+    ```bash
+    curl -X POST -H 'accept: application/json' -H 'Authorization: Bearer YOUR_API_KEY' https://huc-editor-service.labs.dansdemo.nl/record/your_record_id/resource/your_resource_id
+    ```
+
+* `/record/{id}/resource/{resource_id}` DELETE endpoint:
+    This endpoint is used to delete a resource of a record based on the record's ID and the resource's ID.
+    ```bash
+    curl -X DELETE -H 'accept: application/json' -H 'Authorization: Bearer YOUR_API_KEY' https://huc-editor-service.labs.dansdemo.nl/record/your_record_id/resource/your_resource_id
+    ```
+
 
 **…/profile/\<id>**
 
