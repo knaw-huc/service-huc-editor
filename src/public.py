@@ -12,6 +12,10 @@ router = APIRouter()
 
 @router.get('/info')
 def info():
+    """
+    Endpoint to get the information about the HuC Editor API Service.
+    This endpoint does not require any parameters and returns a JSON object containing the name and version of the service.
+    """
     logging.info("HuC Editor API Service")
     logging.debug("info")
     return {"name": "HuC Editor API Service", "version": data["service-version"]}
@@ -19,6 +23,14 @@ def info():
 
 @router.get('/profile/{id}')
 def get_profile(request: Request, id: str):
+    """
+    Endpoint to get a profile based on its ID.
+    This endpoint accepts the ID as a path parameter and the 'Accept' header to determine the response format.
+    If the profile does not exist, it returns a 404 error.
+    If the 'Accept' header is 'application/xml', it returns the profile data in XML format.
+    If the 'Accept' header is 'application/json', it returns a 501 error as this functionality is not implemented yet.
+    If the 'Accept' header is not 'application/xml' or 'application/json', it returns a 400 error.
+    """
     logging.info(f"profile {id}")
     clarin_id = id.rsplit(':', 1)[-1]
     profile_path = f"{settings.URL_DATA_PROFILES}/{clarin_id}"
@@ -37,6 +49,12 @@ def get_profile(request: Request, id: str):
 
 @router.get('/profile/{id}/tweak')
 def get_profile_tweak(id: str):
+    """
+    Endpoint to get a tweak of a profile based on its ID.
+    This endpoint accepts the ID as a path parameter.
+    If the profile does not exist, it returns a 404 error.
+    If the profile exists but the tweak is not implemented yet, it returns a 501 error.
+    """
     logging.info(f"profile tweak id: {id}")
     if not os.path.isdir(f"{settings.URL_DATA_PROFILES}/{id}"):
         return HTTPException(status_code=status.HTTP_404_NOT_FOUND)
@@ -46,6 +64,12 @@ def get_profile_tweak(id: str):
 
 @router.get("/{app_name}")
 async def read_app(app_name: str):
+    """
+    Endpoint to read an application based on its name.
+    This endpoint accepts the application name as a path parameter.
+    If the application does not exist, it returns a 404 error.
+    If the application exists but the reading functionality is not implemented yet, it returns a 501 error.
+    """
     logging.info(f"Reading {app_name}")
     if not os.path.isdir(f"{settings.URL_DATA_APPS}/{app_name}"):
         logging.debug(f"{settings.URL_DATA_APPS}/{app_name} doesn't exists")
@@ -53,9 +77,14 @@ async def read_app(app_name: str):
 
     return HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED)
 
-
 @router.get('/{app_name}/record/{id}')
 def get_record(app_name: str, id: str):
+    """
+    Endpoint to get a record based on its ID and the application name.
+    This endpoint accepts the application name and the ID as path parameters.
+    If the record does not exist, it returns a 404 error.
+    If the record exists but the reading functionality is not implemented yet, it returns a 501 error.
+    """
     logging.info(f"record {id}")
     if not os.path.exists(f"{settings.URL_DATA_PROFILES}/{app_name}/record/{id}"):
         return HTTPException(status_code=status.HTTP_404_NOT_FOUND)
@@ -65,6 +94,12 @@ def get_record(app_name: str, id: str):
 
 @router.get('/{app_name}/record/{id}/resource/{resource_id}')
 def get_record_resource(app_name: str, id: str, resource_id: str):
+    """
+    Endpoint to get a resource of a record based on its ID, the application name, and the resource ID.
+    This endpoint accepts the application name, the record ID, and the resource ID as path parameters.
+    If the resource does not exist, it returns a 404 error.
+    If the resource exists but the reading functionality is not implemented yet, it returns a 501 error.
+    """
     logging.info(f"record {id} resource {resource_id}")
     if not os.path.exists(f"{settings.URL_DATA_PROFILES}/{app_name}/record/{id}/resource/{resource_id}"):
         return HTTPException(status_code=status.HTTP_404_NOT_FOUND)
@@ -74,6 +109,11 @@ def get_record_resource(app_name: str, id: str, resource_id: str):
 
 @router.get('/cdn/huc-editor/{version}')
 def get_cdn(version: str):
+    """
+    Endpoint to get the CDN (Content Delivery Network) for the HuC Editor based on its version.
+    This endpoint accepts the version as a path parameter.
+    Currently, this functionality is not implemented and returns a 501 error.
+    """
     logging.info(f"cdn huc-editor {version}")
     # TODO: Waiting for Rob Zeeman's work.
     return HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED)
