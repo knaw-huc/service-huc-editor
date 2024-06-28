@@ -90,7 +90,7 @@ The OpenAPI Specification for the HuC Editor Service can be found at the followi
 Testing
 -------
 
-## CURL Examples for Endpoints
+## CURL Examples for Public endpoints.
 
 This section provides examples of `curl` commands that can be used to interact with the endpoints.
 
@@ -136,7 +136,7 @@ This section provides examples of `curl` commands that can be used to interact w
     curl -X GET https://huc-editor-service.labs.dansdemo.nl/cdn/huc-editor/your_version
     ```
 
-## CURL Examples for Endpoints in `protected.py`
+## CURL Examples for Protected endpoints with API Key
 
 * `/profile/{id}` POST endpoint:
     This endpoint is used to create a profile based on its ID.
