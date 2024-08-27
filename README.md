@@ -82,7 +82,7 @@ OpenAPI Specification
 The OpenAPI Specification for the HuC Editor Service can be found at the following URLs:
 * https://huc-editor-service.labs.dansdemo.nl/docs
 * https://huc-editor-service.labs.dansdemo.nl/redoc
-* http://localhot:1210/docs
+* http://localhost:1210/docs
 * http://localhost:1210/redocs
 
 
