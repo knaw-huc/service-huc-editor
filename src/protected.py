@@ -11,7 +11,6 @@ from src.commons import data, settings, get_profile_from_clarin
 
 router = APIRouter()
 
-
 # example id: clarin.eu:cr1:p_1653377925727
 @router.post("/profile/{id}", status_code=status.HTTP_201_CREATED)
 async def create_profile(id: str):
@@ -20,35 +19,36 @@ async def create_profile(id: str):
     If the profile already exists, it returns a message indicating that the profile already exists.
     """
     logging.info(f"Creating profile {id}")
-    # TODO: don't use hard coded e.g. split(":")[2]
-    clarin_id = id.rsplit(':', 1)[-1]
-    profile_path = f"{settings.URL_DATA_PROFILES}/{clarin_id}"
+    profile_path = f"{settings.URL_DATA_PROFILES}/{id}"
+    profile_xml = await get_profile_from_clarin(id)
     if not os.path.isdir(profile_path):
-        logging.debug(f"{profile_path} doesn't exists")
         os.makedirs(profile_path)
-        profile_xml = await get_profile_from_clarin(id)
 
-        with open(os.path.join(profile_path, f'{clarin_id}.xml'), 'wb') as file:
+        with open(os.path.join(profile_path, f'{id}.xml'), 'wb') as file:
             file.write(profile_xml)
-        return {"message": "Profile is created"}
+        return {"message": f"Profile[{id}] is created"}
     else:
-        print(f"{profile_path} exists")
-        return JSONResponse({"message": "Profile already exists"}, status_code=status.HTTP_200_OK)
+        with open(os.path.join(profile_path, f'{id}.xml'), 'wb') as file:
+            file.write(profile_xml)
+        return JSONResponse({"message": f"Profile[{id}] is refreshed"}, status_code=status.HTTP_200_OK)
 
 
 @router.delete("/profile/{id}")
 async def delete_profile(request: Request, id: str):
     """
-    Endpoint to create a profile based on its ID.
-    If the profile already exists, it returns a message indicating that the profile already exists.
+    Endpoint to mark a profile as deleted based on its ID.
     """
-    logging.info(f"Deleting profile {id}")
+    logging.info(f"Deleting profile[{id}]")
+    
     if not os.path.isdir(f"{settings.URL_DATA_PROFILES}/{id}"):
         return HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
-    shutil.rmtree(f"{settings.URL_DATA_PROFILES}/{id}")
-    return {"message": f"Profile {id} deleted"}
+    if os.path.isdir(f"{settings.URL_DATA_PROFILES}/{id}.deleted"):
+        shutil.rmtree(f"{settings.URL_DATA_PROFILES}/{id}.deleted")
 
+    shutil.move(f"{settings.URL_DATA_PROFILES}/{id}", f"{settings.URL_DATA_PROFILES}/{clarin_id}.deleted")
+
+    return {"message": f"Profile[{id}] is marked as deleted"}
 
 @router.put("/profile/{id}/tweak")
 async def modify_profile_tweak(request: Request, id: str):
