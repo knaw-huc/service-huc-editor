@@ -1,9 +1,15 @@
 import logging
 import os
+import json
 
 from fastapi import APIRouter, HTTPException
 from starlette import status
 from starlette.requests import Request
+from starlette.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
+
+from saxonche import PySaxonProcessor, PyXdmValue, PySaxonApiError
+
 
 from src.commons import data, settings
 
@@ -31,19 +37,24 @@ def get_profile(request: Request, id: str):
     If the 'Accept' header is 'application/json', it returns a 501 error as this functionality is not implemented yet.
     If the 'Accept' header is not 'application/xml' or 'application/json', it returns a 400 error.
     """
-    logging.info(f"profile {id}")
-    clarin_id = id.rsplit(':', 1)[-1]
-    profile_path = f"{settings.URL_DATA_PROFILES}/{clarin_id}"
+    logging.info(f"profile[{id}]")
+    profile_path = f"{settings.URL_DATA_PROFILES}/{id}"
     if not os.path.isdir(profile_path):
         return HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
-    if request.headers["Accept"] == "application/xml":
-        # Reading data from the xml file
-        with open(os.path.join(profile_path, f'{clarin_id}.xml'), 'r') as file:
+    with open(os.path.join(profile_path, f'{id}.xml'), 'r') as file:
+        if request.headers["Accept"] == "application/xml":
+            # Reading data from the xml file
             return file.read()
-    elif request.headers["Accept"] == "application/json":
-        return HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED)
-
+        elif request.headers["Accept"] == "application/json":
+            prof = file.read()
+            with PySaxonProcessor(license=False) as proc:
+                xsltproc = proc.new_xslt30_processor()
+                xsltproc.set_cwd(os.getcwd())
+                executable = xsltproc.compile_stylesheet(stylesheet_file=f"{settings.xslt_dir}/prof2json.xsl")
+                node = proc.parse_xml(xml_text=prof)
+                result = executable.transform_to_string(xdm_node=node)
+                return JSONResponse(content=jsonable_encoder(json.loads(result)))
     return HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not supported")
 
 
