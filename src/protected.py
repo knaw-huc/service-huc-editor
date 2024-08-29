@@ -5,7 +5,7 @@ import uuid
 
 from fastapi import APIRouter, HTTPException, Request, Response
 from starlette import status
-from starlette.responses import JSONResponse
+from starlette.responses import JSONResponse, RedirectResponse
 
 from src.commons import data, settings, get_profile_from_clarin
 
@@ -51,57 +51,61 @@ async def delete_profile(request: Request, id: str):
     return {"message": f"Profile[{id}] is marked as deleted"}
 
 @router.put("/profile/{id}/tweak")
-async def modify_profile_tweak(request: Request, id: str):
+async def create_profile_tweak(request: Request, id: str):
     """
-   Endpoint to modify a profile tweak based on its ID.
-   If the profile does not exist, it returns a 404 error.
-   """
-    logging.info(f"Modifying profile {id}")
-    tweak_dir = f"{settings.URL_DATA_PROFILES}/{id}/tweak"
+    Endpoint to create a profile tweak.
+    If the profile does not exist, it returns a 404 error.
+    """
+    logging.info(f"Modifying profile[{id}]")
+    tweak_dir = f"{settings.URL_DATA_PROFILES}/{id}/tweaks"
     if not os.path.isdir(f"{settings.URL_DATA_PROFILES}/{id}"):
-        logging.debug(f"profile {id} doesn't exists")
+        logging.debug(f"profile[{id}] doesn't exist")
         return HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     if not os.path.exists(tweak_dir):
-        logging.debug(f"{tweak_dir} doesn't exists")
+        logging.debug(f"{tweak_dir} doesn't exist")
         os.makedirs(tweak_dir)
+    nr = 1
+    tweak_file = f"{tweak_dir}/tweak-{nr}.xml"
+    while os.path.exists(tweak_file):
+        nr = nr + 1
+        tweak_file = f"{tweak_dir}/tweak-{nr}.xml"
     if request.headers['Content-Type'] != 'application/xml':
         return HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Content-Type must be application/xml")
 
     tweak_body = await request.body()
-    # TODO: Waiting for Menzo's xslt implementation
+    with open(tweak_file, 'wb') as file:
+        file.write(tweak_body)
+    return RedirectResponse(url=f"./{nr}", status_code=302) 
 
-    return HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED)
-
-
-@router.post("/profile/{id}/tweak/{tweak_id}")
-async def create_profile_tweak(request: Request, id: str, tweak_id: str):
+@router.post("/profile/{id}/tweak/{nr}")
+async def modify_profile_tweak(request: Request, id: str, nr: str):
     """
-    Endpoint to create a profile tweak based on its ID and tweak ID.
-    If the profile tweak does not exist, it returns a 404 error.
+    Endpoint to modify a profile tweak based on its ID and tweak NR.
+    If the profile or tweak does not exist, it returns a 404 error.
     """
-    logging.info(f"Creating profile {id} tweak {tweak_id}")
-    if not os.path.exists(f"{settings.URL_DATA_PROFILES}/{id}/tweak"):
-        logging.debug(f"{settings.URL_DATA_PROFILES}/{id}/tweak doesn't exists")
+    logging.info(f"Modifying profile[{id}] tweak{nr}")
+    if not os.path.exists(f"{settings.URL_DATA_PROFILES}/{id}/tweaks"):
+        logging.debug(f"{settings.URL_DATA_PROFILES}/{id}/tweaks doesn't exists")
         return HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
     # TODO: Waiting for Menzo's xslt implementation
     return HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED)
 
 
-@router.delete("/profile/{id}/tweak/{tweak_id}")
-async def delete_profile_tweak(request: Request, id: str, tweak_id: str):
+@router.delete("/profile/{id}/tweak/{nr}")
+async def delete_profile_tweak(request: Request, id: str, nr: str):
     """
-    Endpoint to delete a profile tweak based on its ID and tweak ID.
+    Endpoint to delete a profile tweak based on its ID and tweak NR.
     If the profile tweak does not exist, it returns a 404 error.
     """
-    logging.info(f"Deleting profile {id} tweak {tweak_id}")
-    if not os.path.isdir(f"{settings.URL_DATA_PROFILES}/{id}/{tweak_id}"):
+    logging.info(f"Deleting profile[{id}] tweak[{nr}]")
+    if not os.path.isdir(f"{settings.URL_DATA_PROFILES}/{id}/tweaks/tweak-{nr}.xml"):
         logging.info("Not found")
         return HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
-    shutil.rmtree(f"{settings.URL_DATA_PROFILES}/{id}/{tweak_id}")
+    shutil.rmtree(f"{settings.URL_DATA_PROFILES}/{id}/tweaks/{nr}")
 
-    return JSONResponse({"message": f"Profile {id} tweak {tweak_id} deleted"})
+    return JSONResponse({"message": f"Profile[{id}] tweak[{nr}] deleted"})
 
 
 @router.post("/{app_name}")

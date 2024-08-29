@@ -1,17 +1,18 @@
 import logging
 import os
 import json
+import pathlib
 
 from fastapi import APIRouter, HTTPException
 from starlette import status
 from starlette.requests import Request
-from starlette.responses import JSONResponse
+from starlette.responses import JSONResponse, Response
 from fastapi.encoders import jsonable_encoder
 
 from saxonche import PySaxonProcessor, PyXdmValue, PySaxonApiError
 
 
-from src.commons import data, settings
+from src.commons import data, settings, tweak_nr
 
 router = APIRouter()
 
@@ -43,11 +44,26 @@ def get_profile(request: Request, id: str):
         return HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
     with open(os.path.join(profile_path, f'{id}.xml'), 'r') as file:
+        # Reading data from the xml file
+        prof = file.read()
+
+        tweaks = [t for t in pathlib.Path(f"{profile_path}/tweaks/").glob("tweak-*.xml")]
+        tweaks.sort(key=tweak_nr)
+        with PySaxonProcessor(license=False) as proc:
+            xsltproc = proc.new_xslt30_processor()
+            xsltproc.set_cwd(os.getcwd())
+            executable = xsltproc.compile_stylesheet(stylesheet_file=f"{settings.xslt_dir}/mergeTweak.xsl")
+            for tf in tweaks:
+                with open(tf, 'r') as file:
+                    logging.info(f"profile[{id}] apply tweak[{tf}]")
+                    executable.set_parameter("tweakFile", proc.make_string_value(str(tf)))
+                    pnode = proc.parse_xml(xml_text=prof)
+                    prof = executable.transform_to_string(xdm_node=pnode)
+
         if request.headers["Accept"] == "application/xml":
-            # Reading data from the xml file
-            return file.read()
+            return Response(content=prof, media_type="application/xml")
         elif request.headers["Accept"] == "application/json":
-            prof = file.read()
+            
             with PySaxonProcessor(license=False) as proc:
                 xsltproc = proc.new_xslt30_processor()
                 xsltproc.set_cwd(os.getcwd())

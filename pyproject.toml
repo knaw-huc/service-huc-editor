@@ -25,10 +25,10 @@ uvicorn = "^0.29.0"
 dynaconf = "^3.2.5"
 lxml = "^5.2.2"
 emoji = "^2.12.1"
-
-
+saxonche = "^12.4.2"
 requests = "^2.32.2"
 pytest = "^8.2.1"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

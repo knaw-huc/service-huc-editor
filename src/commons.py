@@ -1,5 +1,6 @@
 import importlib.metadata
 import logging
+import re
 
 from dynaconf import Dynaconf
 import requests as req
@@ -25,3 +26,8 @@ async def get_profile_from_clarin(id):
         return HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     else:
         return clarin_profile.content
+
+def tweak_nr(tf):
+    nr = re.sub('.*/tweak-([0-9]+).xml','\\1',str(tf))
+    logging.info(f"tweak[{tf}] nr[{nr}]")
+    return int(nr)
