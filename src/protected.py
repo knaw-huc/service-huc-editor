@@ -84,13 +84,19 @@ async def modify_profile_tweak(request: Request, id: str, nr: str):
     If the profile or tweak does not exist, it returns a 404 error.
     """
     logging.info(f"Modifying profile[{id}] tweak{nr}")
-    if not os.path.exists(f"{settings.URL_DATA_PROFILES}/{id}/tweaks"):
-        logging.debug(f"{settings.URL_DATA_PROFILES}/{id}/tweaks doesn't exists")
+    tweak_file = f"{settings.URL_DATA_PROFILES}/{id}/tweaks/tweak-{nr}.xml"
+    if not os.path.exists(tweak_file):
+        logging.debug(f"{tweak_file} doesn't exists")
         return HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
-    # TODO: Waiting for Menzo's xslt implementation
-    return HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED)
+    if request.headers['Content-Type'] != 'application/xml':
+        return HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Content-Type must be application/xml")
 
+    tweak_body = await request.body()
+    with open(tweak_file, 'wb') as file:
+        file.write(tweak_body)
+
+    return JSONResponse({"message": f"Profile[{id}] tweak[{nr}] modified"})
 
 @router.delete("/profile/{id}/tweak/{nr}")
 async def delete_profile_tweak(request: Request, id: str, nr: str):
@@ -99,11 +105,14 @@ async def delete_profile_tweak(request: Request, id: str, nr: str):
     If the profile tweak does not exist, it returns a 404 error.
     """
     logging.info(f"Deleting profile[{id}] tweak[{nr}]")
-    if not os.path.isdir(f"{settings.URL_DATA_PROFILES}/{id}/tweaks/tweak-{nr}.xml"):
-        logging.info("Not found")
+    tweak_file = f"{settings.URL_DATA_PROFILES}/{id}/tweaks/tweak-{nr}.xml"
+    if not os.path.exists(tweak_file):
+        logging.info(f"{tweak_file} not found!")
         return HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
-    shutil.rmtree(f"{settings.URL_DATA_PROFILES}/{id}/tweaks/{nr}")
+    if os.path.exists(f"{tweak_file}.deleted"):
+        os.remove(f"{tweak_file}.deleted")
+    os.rename(tweak_file,f"{tweak_file}.deleted")
 
     return JSONResponse({"message": f"Profile[{id}] tweak[{nr}] deleted"})
 
