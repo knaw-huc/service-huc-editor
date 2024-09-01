@@ -12,7 +12,7 @@ from src.commons import data, settings, get_profile_from_clarin
 router = APIRouter()
 
 # example id: clarin.eu:cr1:p_1653377925727
-@router.post("/profile/{id}", status_code=status.HTTP_201_CREATED)
+@router.put("/profile/{id}", status_code=status.HTTP_201_CREATED)
 async def create_profile(id: str):
     """
     Endpoint to create a profile based on its ID.
@@ -50,7 +50,7 @@ async def delete_profile(request: Request, id: str):
 
     return {"message": f"Profile[{id}] is marked as deleted"}
 
-@router.put("/profile/{id}/tweak")
+@router.post("/profile/{id}/tweak", status_code=status.HTTP_201_CREATED)
 async def create_profile_tweak(request: Request, id: str):
     """
     Endpoint to create a profile tweak.
@@ -75,9 +75,9 @@ async def create_profile_tweak(request: Request, id: str):
     tweak_body = await request.body()
     with open(tweak_file, 'wb') as file:
         file.write(tweak_body)
-    return RedirectResponse(url=f"./{nr}", status_code=302) 
+    return RedirectResponse(url=f"./{nr}") 
 
-@router.post("/profile/{id}/tweak/{nr}")
+@router.put("/profile/{id}/tweak/{nr}")
 async def modify_profile_tweak(request: Request, id: str, nr: str):
     """
     Endpoint to modify a profile tweak based on its ID and tweak NR.
@@ -117,45 +117,63 @@ async def delete_profile_tweak(request: Request, id: str, nr: str):
     return JSONResponse({"message": f"Profile[{id}] tweak[{nr}] deleted"})
 
 
-@router.post("/{app_name}")
-async def create_app(app_name: str):
+@router.put("/app/{app}", status_code=status.HTTP_201_CREATED)
+async def create_app(app: str):
     """
     Endpoint to create an application based on its name.
     If the application already exists, it returns a message indicating that the application already exists.
     """
-    logging.info(f"Creating app {app_name}")
-    if not os.path.isdir(f"{settings.URL_DATA_APPS}/{app_name}"):
-        logging.debug(f"{settings.URL_DATA_APPS}/{app_name} doesn't exists")
-        os.makedirs(f"{settings.URL_DATA_APPS}/{app_name}")
-        return JSONResponse({"message": f"App {app_name} is created"}, status_code=status.HTTP_201_CREATED)
+    logging.info(f"Creating app[{app}]")
+    if not os.path.isdir(f"{settings.URL_DATA_APPS}/{app}"):
+        logging.debug(f"{settings.URL_DATA_APPS}/{app} doesn't exists")
+        os.makedirs(f"{settings.URL_DATA_APPS}/{app}")
+        return JSONResponse({"message": f"App[{app}] is created"}, status_code=status.HTTP_201_CREATED)
 
-    return JSONResponse({"message": f"App {app_name} is already exist."}, status_code=status.HTTP_200_OK)
+    return JSONResponse({"message": f"App[{app}] already exist."}, status_code=status.HTTP_200_OK)
 
 
-@router.put("/{app_name}/record")
-async def modify_record(request: Request, app_name: str):
+@router.post("/app/{app}/record", status_code=status.HTTP_201_CREATED)
+async def create_record(request: Request, app: str):
     """
-    Endpoint to modify a record of an application based on its name.
-    If the record does not exist, it returns a 400 error.
+    Endpoint to create a record for an application.
+    If the app does not exist, it returns a 400 error.
     """
-    logging.info(f"Modifying record")
-    if not os.path.isdir(f"{settings.URL_DATA_APPS}/{app_name}/record"):
-        logging.debug(f"{settings.URL_DATA_APPS}/{app_name}/record doesn't exists")
-        return HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+    logging.info(f"Modifying app[{app}]")
+    record_dir = f"{settings.URL_DATA_APPS}/{app}/records"
+    if not os.path.isdir(f"{settings.URL_DATA_APPS}/{app}"):
+        logging.debug(f"app[{app}] doesn't exist")
+        return HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    if not os.path.exists(record_dir):
+        logging.debug(f"{record_dir} doesn't exist")
+        os.makedirs(record_dir)
+
+    nr = 1
+    record_file = f"{record_dir}/record-{nr}.xml"
+    while os.path.exists(record_file) or os.path.exists(f"{record_file}.deleted"):
+        nr = nr + 1
+        record_file = f"{record_dir}/record-{nr}.xml"
+
+    if request.headers['Content-Type'] != 'application/xml' and request.headers['Content-Type'] != 'application/json':
+        return HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Content-Type must be application/xml or application/json")
+
+    record_body = await request.body()
 
 
-    # TODO: Waiting for Menzo's xslt implementation
+    if request.headers['Content-Type'] == 'application/json':
+        # TODO: conversion json -> xml
+        foobar
 
-    return HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED)
+    with open(record_file, 'wb') as file:
+        file.write(record_body)
+    return RedirectResponse(url=f"./{nr}") 
 
-
-@router.post("{app_name}/record/{id}")
-async def create_record(request: Request, app_name: str, id: str):
+@router.post("/app/{app}/record/{nr}")
+async def modify_record(request: Request, app: str, nr: str):
     """
     Endpoint to create a record for an application based on its name and the record's ID.
     If the record already exists, it returns a message indicating that the record already exists.
     """
-    logging.info(f"Creating record {id}")
+    logging.info(f"Modifying app[{app}] record[{nr}]")
     if not os.path.isdir(f"{settings.URL_DATA_APPS}/{app_name}/record/{id}"):
         logging.debug(f"{settings.URL_DATA_APPS}/{id}/record doesn't exists")
         return HTTPException(status_code=status.HTTP_404_NOT_FOUND)
