@@ -1,9 +1,11 @@
 import logging
 import os.path
 import shutil
+import time
 import uuid
 
 from fastapi import APIRouter, HTTPException, Request, Response
+from saxonche import PySaxonProcessor
 from starlette import status
 from starlette.responses import JSONResponse, RedirectResponse
 
@@ -46,7 +48,7 @@ async def delete_profile(request: Request, id: str):
     if os.path.isdir(f"{settings.URL_DATA_PROFILES}/{id}.deleted"):
         shutil.rmtree(f"{settings.URL_DATA_PROFILES}/{id}.deleted")
 
-    shutil.move(f"{settings.URL_DATA_PROFILES}/{id}", f"{settings.URL_DATA_PROFILES}/{clarin_id}.deleted")
+    shutil.move(f"{settings.URL_DATA_PROFILES}/{id}", f"{settings.URL_DATA_PROFILES}/{id}.deleted")
 
     return {"message": f"Profile[{id}] is marked as deleted"}
 
@@ -174,13 +176,33 @@ async def modify_record(request: Request, app: str, nr: str):
     If the record already exists, it returns a message indicating that the record already exists.
     """
     logging.info(f"Modifying app[{app}] record[{nr}]")
-    if not os.path.isdir(f"{settings.URL_DATA_APPS}/{app_name}/record/{id}"):
-        logging.debug(f"{settings.URL_DATA_APPS}/{id}/record doesn't exists")
+    record_file = f"{settings.URL_DATA_APPS}/{app}/record/{id}.xml"
+    if not os.path.exists(record_file):
+        logging.debug(f"{record_file} doesn't exists")
         return HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
     # TODO: Waiting for Menzo's xslt implementation
+    # Execute xslt transformation
+    with PySaxonProcessor(license=False) as proc:
+        xsltproc = proc.new_xslt30_processor()
+        xsltproc.set_cwd(os.getcwd())
+        executable = xsltproc.compile_stylesheet(stylesheet_file=f"{settings.xslt_dir}/menzo.xslt")
+        with open(record_file, 'rb') as file:
+            prof = file.read()
+        node = proc.parse_xml(xml_text=prof)
+        result = executable.transform_to_string(xdm_node=node)
+        # TODO: validate result
+        # if not valid:
+        #   return HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid XML")
+        # If no error:
+        #   Rename the previous record file to record-{nr}.xml.<epoch>
+        epoch_time = int(time.time())
+        os.rename(record_file, f"{record_file}.{epoch_time}")
+        #   Write the new record file to record-{nr}.xml
+        with open(record_file, 'wb') as file:
+            file.write(result)
 
-    return HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED)
+    return JSONResponse({"message": f"App[{app}] record[{nr}] modified"})
 
 
 @router.delete("/record/{id}")
