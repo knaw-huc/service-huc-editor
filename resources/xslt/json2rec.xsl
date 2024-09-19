@@ -6,11 +6,11 @@
     exclude-result-prefixes="xs math"
     version="3.0">
     
-    <xsl:param name="js-uri" select="'file:/Users/menzowi/Documents/Projects/huc-cmdi-editor/service/tests/Untitled2.json'"/>
+    <xsl:param name="js-uri" select="'file:/Users/menzowi/Documents/Projects/huc-cmdi-editor/service/tests/record-fromEditor.json'"/>
     <xsl:param name="js-doc" select="if (js:unparsed-text-available($js-uri)) then (unparsed-text($js-uri)) else ()"/>
     <xsl:param name="js-xml" select="js:json-to-xml($js-doc)"/>
     
-    <xsl:param name="prof" select="'clarin.eu:cr1:p_1721373443933'"/>
+    <xsl:param name="prof" select="'unknown'"/>
     <xsl:param name="user" select="'test'"/>
     <xsl:param name="self" select="'unl://1'"/>
     
@@ -33,16 +33,20 @@
             </cmd:Resources>
             <cmd:Components>
                 <xsl:apply-templates select="$js-xml/js:array/js:map">
-                    <xsl:sort select="*[@key='sortOrder']" data-type="number"></xsl:sort>
+                    <xsl:sort select="*[@key='sortOrder']" data-type="number"/>
                 </xsl:apply-templates>
             </cmd:Components>
         </cmd:CMD>
     </xsl:template>
     
+    <xsl:template match="/">
+        <xsl:call-template name="main"/>
+    </xsl:template>
+    
     <xsl:template match="js:map[js:string[@key='type']='component']">
         <xsl:element name="cmd:{js:string[@key='name']}" namespace="{$cmd-ns}">
             <xsl:apply-templates select="js:array[@key='content']/js:map">
-                <xsl:sort select="*[@key='sortOrder']" data-type="number"></xsl:sort>
+                <xsl:sort select="*[@key='sortOrder']" data-type="number"/>
             </xsl:apply-templates>
         </xsl:element>
     </xsl:template>

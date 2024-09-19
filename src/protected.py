@@ -135,7 +135,7 @@ async def create_app(app: str):
 
 
 @router.post("/app/{app}/record", status_code=status.HTTP_201_CREATED)
-async def create_record(request: Request, app: str):
+async def create_record(request: Request, app: str, prof: str):
     """
     Endpoint to create a record for an application.
     If the app does not exist, it returns a 400 error.
@@ -157,14 +157,21 @@ async def create_record(request: Request, app: str):
 
     if request.headers['Content-Type'] != 'application/xml' and request.headers['Content-Type'] != 'application/json':
         return HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Content-Type must be application/xml or application/json")
-
+    
     record_body = await request.body()
 
-
     if request.headers['Content-Type'] == 'application/json':
-        # TODO: conversion json -> xml
-        foobar
-
+        with PySaxonProcessor(license=False) as proc:
+            xsltproc = proc.new_xslt30_processor()
+            xsltproc.set_cwd(os.getcwd())
+            executable = xsltproc.compile_stylesheet(stylesheet_file=f"{settings.xslt_dir}/json2rec.xsl")
+            logging.info(f"record[{nr}] JSON to XML]")
+            executable.set_parameter("js-doc", proc.make_string_value(str(record_body)))
+            executable.set_parameter("user", proc.make_string_value("service"))
+            executable.set_parameter("prof", proc.make_string_value(prof))
+            executable.set_parameter("self", proc.make_string_value(f"unl://{nr}"))
+            null = proc.parse_xml(xml_text="<null/>")
+            record_body = executable.transform_to_string(xdm_node=null)
     with open(record_file, 'wb') as file:
         file.write(record_body)
     return RedirectResponse(url=f"./{nr}") 
