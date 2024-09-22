@@ -137,7 +137,7 @@ async def create_app(app: str):
 
 
 @router.post("/app/{app}/record", status_code=status.HTTP_201_CREATED)
-async def create_record(request: Request, app: str, prof: str | None = None):
+async def create_record(request: Request, app: str, prof: str | None = None, redir: str | None = "yes"):
     """
     Endpoint to create a record for an application.
     If the app does not exist, it returns a 400 error.
@@ -189,7 +189,9 @@ async def create_record(request: Request, app: str, prof: str | None = None):
             return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Initial record[{nr}] version was not saved!")
         elif (err.strip() != "OK"):
             return HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=err)
-    return RedirectResponse(url=f"./{nr}")
+        if redir.strip() != "no":
+            return RedirectResponse(url=f"./{nr}")
+    return JSONResponse({"message": f"App[{app}] record[{nr}] created","nr": nr})
 
 def update_record(app: str, nr: str, rec: str) -> str:
     logging.info(f"Updating app[{app}] record[{nr}]")
