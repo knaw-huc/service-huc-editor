@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 import uvicorn
 from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.security import OAuth2PasswordBearer
+from fastapi.staticfiles import StaticFiles
 import emoji
 import importlib.metadata
 from src.commons import settings, data
@@ -52,6 +53,8 @@ async def lifespan(application: FastAPI):
 
 app = FastAPI(title=settings.FASTAPI_TITLE, description=settings.FASTAPI_DESCRIPTION,
               version=__version__)
+
+app.mount("/static", StaticFiles(directory=settings.static_dir), name="static")
 
 app.add_middleware(
     CORSMiddleware,

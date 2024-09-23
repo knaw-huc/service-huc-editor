@@ -1,0 +1,132 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : 31-okt-2017, 14:17:20
+    Author     : robzeeman
+*/
+
+.component{
+border:1px solid #000;
+padding: 12px;
+}
+
+.component:first-child{
+width: 80%;
+float:left;
+}
+
+input[type="file"]{
+margin-left: 20px;
+}
+
+#ccform{
+display: block;
+}
+
+#btnFrame{
+display: inline-block;
+width: 18%;
+margin-left: 16px;
+position: fixed;
+/* //position: -webkit-sticky; */
+top:67px;
+border: 1px solid #000;
+border-radius: 6px;
+background-color: #ddd;
+}
+
+.componentHeader{
+color:#fff;
+background-color: #777;
+font-weight: bold;
+padding: 4px 6px;
+}
+
+.label{
+margin-top:6px;
+}
+
+.resourceFileList{
+display:inline-block;
+border: 1px solid #bbb;
+min-height: 20px;
+min-width: 200px;
+}
+
+.errorMsg{
+color: #b00;
+font-weight: bold;
+display: inline;
+margin-left: 10px;
+}
+
+.btn, .compBtn, .optionalCompBtn, .resetUploadBtn{
+color:#fff;
+background-color: #777;
+font-weight: bold;
+height:20px;
+margin: 0 6px;
+width: 30px;
+border-radius: 4px;
+}
+
+.btn{
+border: 1px solid #666;
+}
+
+.compBtn, .optionalCompBtn, .resetUploadBtn{
+border: 1px solid #ccc;
+}
+
+#OKbtn, #saveBtn, #resetBtn{
+color:#fff;
+background-color: #777;
+font-weight: bold;
+border: 1px solid #666;
+margin: 10px;
+font-size: 10px;
+padding: 6px 10px;
+border-radius: 4px;
+width: 54px;
+}
+
+.disabledComponent, .disabledElement{
+display: none;
+}
+
+.filename{
+display: block;
+margin: 4px 0 0 0;
+}
+
+.headerMsg{
+display: inline-block;
+font-size: 10px;
+margin-left: 10px;
+font-weight: normal;
+color:#deb9ac;
+}
+
+.fileForm{
+display: inline-block;
+}
+
+.hidden_element{
+display:none;
+}
+
+
+#errorSpace p{
+margin-left: 10px;
+font-weight: bold;
+color:#b00;
+}
+
+/* input[data-auto]::after {
+    content: "vocub";
+    color: green;
+} */
+
