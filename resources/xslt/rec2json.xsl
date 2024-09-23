@@ -8,13 +8,36 @@
     
     <xsl:output method="text" encoding="UTF-8"/>
     
+    
+    
+    <xsl:param name="prof-doc" select="()"/>
+    <xsl:param name="prof-xml" select="js:json-to-xml($js-doc)"/>
+    
     <xsl:template match="text()"/>
+    
+    <xsl:template match="node() | @*" mode="prof">
+        <xsl:copy>
+            <xsl:apply-templates select="node() | @*" mode="#current"/>
+        </xsl:copy>
+    </xsl:template>
+    
+    <xsl:template match="/js:map" mode="prof">
+        <xsl:copy>
+            <xsl:attribute name="key" select="'content'"/>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+        </xsl:copy>
+    </xsl:template>
     
     <xsl:template match="/*:CMD">
         <xsl:variable name="rec">
-            <js:array>
+            <js:map>
+            <xsl:apply-templates select="$prof-xml" mode="prof"/>
+            <js:array key="record">
                 <xsl:apply-templates/>
+                <!-- resources -->
+                <js:array/>
             </js:array>
+            </js:map>
         </xsl:variable>
         <!--<xsl:copy-of select="$rec"/>-->
         <xsl:value-of select="js:xml-to-json($rec)"/>
