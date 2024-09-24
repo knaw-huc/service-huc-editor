@@ -3,6 +3,7 @@ import os
 import json
 import pathlib
 
+from enum import Enum
 from fastapi import APIRouter, HTTPException
 from starlette import status
 from starlette.requests import Request
@@ -139,15 +140,22 @@ async def read_app(request: Request, app: str):
             
     return HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED)
 
+class RecForm(str, Enum):
+    json = "json"
+    xml = "xml"
+    html = "html"
+    pdf = "pdf"
+
 @router.get('/app/{app}/record/{nr}')
-def get_record(request: Request, app: str, nr: str):
+@router.get('/app/{app}/record/{nr}/{form}')
+def get_record(request: Request, app: str, nr: int, form: RecForm | None = RecForm.xml):
     """
     Endpoint to get a record based on its ID and the application name.
     This endpoint accepts the application name and the ID as path parameters.
     If the record does not exist, it returns a 404 error.
     If the record exists but the reading functionality is not implemented yet, it returns a 501 error.
     """
-    logging.info(f"app[{app}] record[{nr}]")
+    logging.info(f"app[{app}] record[{nr}] form[{form}]")
     record_file = f"{settings.URL_DATA_APPS}/{app}/records/record-{nr}.xml"
 
     if not os.path.exists(record_file):
@@ -157,9 +165,7 @@ def get_record(request: Request, app: str, nr: str):
     with open(record_file, 'r') as file:
         rec = file.read()
 
-        if "application/xml" in request.headers.get("accept", ""):
-            return Response(content=rec, media_type="application/xml")
-        elif "application/json" in request.headers.get("accept", ""):
+        if form == RecForm.json or "application/json" in request.headers.get("accept", ""):
             with PySaxonProcessor(license=False) as proc:
                 node = proc.parse_xml(xml_text=rec)
                 xpproc = proc.new_xpath_processor()
@@ -176,7 +182,9 @@ def get_record(request: Request, app: str, nr: str):
                 node = proc.parse_xml(xml_text=rec)
                 result = executable.transform_to_string(xdm_node=node)
                 return JSONResponse(content=jsonable_encoder(json.loads(result)))
-            
+        elif form == RecForm.xml or "application/xml" in request.headers.get("accept", ""):
+            return Response(content=rec, media_type="application/xml")
+    
     return HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not supported")
 
 @router.get('/app/{app}/record/{nr}/editor')
