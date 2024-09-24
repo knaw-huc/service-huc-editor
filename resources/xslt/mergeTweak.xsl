@@ -3,14 +3,14 @@
     xmlns:clariah="http://www.clariah.eu/" 
     xmlns:cue="http://www.clarin.eu/cmd/cues/1"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-    xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="3.0">
     
-    <xsl:param name="tweakFile"/>
+    <xsl:param name="tweakFile" select="'file:/Users/menzowi/Documents/Projects/huc-cmdi-editor/service/data/profiles/clarin.eu:cr1:p_1721373443933/tweaks/tweak-1.xml'"/>
     <xsl:variable name="tweak" select="document($tweakFile)"/>
     
-    <xsl:template match="node() | @*">
+    <xsl:template match="node() | @*" mode="#all">
         <xsl:copy>
-            <xsl:apply-templates select="@* | node()"/>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
         </xsl:copy>
     </xsl:template>
     
@@ -28,104 +28,119 @@
         </xsl:if>
         <ComponentSpec xmlns:clariah="http://www.clariah.eu/">
             <xsl:apply-templates select="node() | @*">
-                <xsl:with-param name="tweak" select="$tweak/ComponentSpec"></xsl:with-param>
+                <xsl:with-param name="tweak" select="$tweak/ComponentSpec" tunnel="yes"/>
             </xsl:apply-templates>
         </ComponentSpec>
     </xsl:template>
     
     <xsl:template match="Header">
-        <xsl:param name="tweak"/>
+        <xsl:param name="tweak" tunnel="yes"/>
         <xsl:variable name="myTweak" select="$tweak/Header"/>
         <xsl:copy>
             <xsl:apply-templates select="node() | @*">
-                <xsl:with-param name="tweak" select="$myTweak"></xsl:with-param>
+                <xsl:with-param name="tweak" select="$myTweak" tunnel="yes"/>
             </xsl:apply-templates>
             <xsl:apply-templates select="$myTweak/clariah:*" mode="copy"/>
         </xsl:copy>
     </xsl:template>
     
     <xsl:template match="ID">
-        <xsl:param name="tweak"/>
+        <xsl:param name="tweak" tunnel="yes"/>
         <xsl:variable name="myTweak" select="$tweak/ID"/>
         <xsl:if test=".!=$myTweak">
             <xsl:message terminate="yes">ERR: the tweak is for another profile! (<xsl:value-of select="$myTweak"/>!=<xsl:value-of select="."/>)</xsl:message>
         </xsl:if>
         <xsl:copy>
             <xsl:apply-templates select="node() | @*">
-                <xsl:with-param name="tweak" select="$myTweak"/>
+                <xsl:with-param name="tweak" select="$myTweak" tunnel="yes"/>
             </xsl:apply-templates>
         </xsl:copy>
     </xsl:template>
     
     <xsl:template match="Component">
-        <xsl:param name="tweak"/>
+        <xsl:param name="tweak" tunnel="yes"/>
         <xsl:variable name="myTweak" select="$tweak/Component[@name=current()/@name]"/>
         <xsl:copy>
-            <xsl:apply-templates select="@*" mode="cmd">
-                <xsl:with-param name="tweak" select="$myTweak"/>
+            <xsl:apply-templates select="@* " mode="cmd">
+                <xsl:with-param name="tweak" select="$myTweak" tunnel="yes"/>
             </xsl:apply-templates>
             <xsl:apply-templates select="@cue:*" mode="cue">
-                <xsl:with-param name="tweak" select="$myTweak"/>
+                <xsl:with-param name="tweak" select="$myTweak" tunnel="yes"/>
             </xsl:apply-templates>
             <xsl:apply-templates select="$myTweak/@cue:*" mode="tweak-cue">
-                <xsl:with-param name="prof" select="."/>
+                <xsl:with-param name="prof" select="." tunnel="yes"/>
             </xsl:apply-templates>
-            <xsl:apply-templates select="$myTweak/clariah:*" mode="copy"/>
-            <xsl:apply-templates select="node()">
-                <xsl:with-param name="tweak" select="$myTweak"/>
+            <xsl:apply-templates select="clariah:*" mode="cue">
+                <xsl:with-param name="tweak" select="$myTweak" tunnel="yes"/>
+            </xsl:apply-templates>
+            <xsl:apply-templates select="$myTweak/clariah:*" mode="tweak-cue">
+                <xsl:with-param name="prof" select="." tunnel="yes"/>
+            </xsl:apply-templates>
+            <xsl:apply-templates select="* except clariah:*">
+                <xsl:with-param name="tweak" select="$myTweak" tunnel="yes"/>
             </xsl:apply-templates>
         </xsl:copy>
     </xsl:template>
     
     <xsl:template match="Element">
-        <xsl:param name="tweak"/>
+        <xsl:param name="tweak" tunnel="yes"/>
         <xsl:variable name="myTweak" select="$tweak/Element[@name=current()/@name]"/>
         <xsl:copy>
             <xsl:apply-templates select="@*" mode="cmd">
-                <xsl:with-param name="tweak" select="$myTweak"/>
+                <xsl:with-param name="tweak" select="$myTweak" tunnel="yes"/>
             </xsl:apply-templates>
             <xsl:apply-templates select="@cue:*" mode="cue">
-                <xsl:with-param name="tweak" select="$myTweak"/>
+                <xsl:with-param name="tweak" select="$myTweak" tunnel="yes"/>
             </xsl:apply-templates>
             <xsl:apply-templates select="$myTweak/@cue:*" mode="tweak-cue">
-                <xsl:with-param name="prof" select="."/>
+                <xsl:with-param name="prof" select="." tunnel="yes"/>
             </xsl:apply-templates>
-            <xsl:apply-templates select="$myTweak/clariah:*" mode="copy"/>
+            <xsl:apply-templates select="clariah:*" mode="cue">
+                <xsl:with-param name="tweak" select="$myTweak" tunnel="yes"/>
+            </xsl:apply-templates>
+            <xsl:apply-templates select="$myTweak/clariah:*" mode="tweak-cue">
+                <xsl:with-param name="prof" select="." tunnel="yes"/>
+            </xsl:apply-templates>
             <xsl:apply-templates select="$myTweak/AutoValue" mode="copy"/>
-            <xsl:if test="@ValueScheme='string' or normalize-space(@ValueScheme='') and not(ValueScheme) and $myTweak/ValueScheme">
+            <xsl:if test="@ValueScheme='string' or normalize-space(@ValueScheme)='' and not(ValueScheme) and $myTweak/ValueScheme">
                 <xsl:apply-templates select="$myTweak/ValueScheme" mode="copy"/>
             </xsl:if>
-            <xsl:apply-templates select="node()">
-                <xsl:with-param name="tweak" select="$myTweak"/>
+            <xsl:apply-templates select="* except clariah:*">
+                <xsl:with-param name="tweak" select="$myTweak" tunnel="yes"/>
             </xsl:apply-templates>
         </xsl:copy>
     </xsl:template>
     
     <xsl:template match="Attribute">
-        <xsl:param name="tweak"/>
+        <xsl:param name="tweak" tunnel="yes"/>
         <xsl:variable name="myTweak" select="$tweak/Attribute[@name=current()/@name]"/>
         <xsl:copy>
             <xsl:apply-templates select="@*" mode="cmd">
-                <xsl:with-param name="tweak" select="$myTweak"/>
+                <xsl:with-param name="tweak" select="$myTweak" tunnel="yes"/>
             </xsl:apply-templates>
             <xsl:apply-templates select="@cue:*" mode="cue">
-                <xsl:with-param name="tweak" select="$myTweak"/>
+                <xsl:with-param name="tweak" select="$myTweak" tunnel="yes"/>
             </xsl:apply-templates>
             <xsl:apply-templates select="$myTweak/@cue:*" mode="tweak-cue">
-                <xsl:with-param name="prof" select="."/>
+                <xsl:with-param name="prof" select="." tunnel="yes"/>
             </xsl:apply-templates>
-            <xsl:apply-templates select="$myTweak/clariah:*" mode="copy"/>
-            <xsl:if test="@ValueScheme='string' or normalize-space(@ValueScheme='') and not(ValueScheme) and $myTweak/ValueScheme">
+            <xsl:apply-templates select="clariah:*" mode="cue">
+                <xsl:with-param name="tweak" select="$myTweak" tunnel="yes"/>
+            </xsl:apply-templates>
+            <xsl:apply-templates select="$myTweak/clariah:*" mode="tweak-cue">
+                <xsl:with-param name="prof" select="." tunnel="yes"/>
+            </xsl:apply-templates>
+            <xsl:if test="@ValueScheme='string' or normalize-space(@ValueScheme)='' and not(ValueScheme) and $myTweak/ValueScheme">
                 <xsl:apply-templates select="$myTweak/ValueScheme" mode="copy"/>
             </xsl:if>
-            <xsl:apply-templates select="node()">
-                <xsl:with-param name="tweak" select="$myTweak"/>
+            <xsl:apply-templates select="* except clariah:*">
+                <xsl:with-param name="tweak" select="$myTweak" tunnel="yes"/>
             </xsl:apply-templates>
         </xsl:copy>
     </xsl:template>
     
     <xsl:template match="ValueScheme">
-        <xsl:param name="tweak"/>
+        <xsl:param name="tweak" tunnel="yes"/>
         <xsl:variable name="myTweak" select="$tweak/ValueScheme"/>
         <xsl:choose>
             <xsl:when test="$myTweak">
@@ -138,10 +153,7 @@
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
-    
-
-    
-    
+       
     <!-- add clariah:value wrapper to items from the profile -->
     <xsl:template match="item">
         <xsl:copy>
@@ -152,49 +164,98 @@
         </xsl:copy>
     </xsl:template>    
         
-    <!-- HANDLE cue attributes -->
+    <!-- HANDLE cue attributes/elements -->
     
-    <!-- cues in the profile -->
+    <!-- cues in the PROFILE -->
     
-    <xsl:template match="text()" mode="cue"/>
-    
+    <xsl:template match="node() | @*" mode="cue">
+        <xsl:copy>
+            <xsl:apply-templates select="node() | @*" mode="cue"/>
+        </xsl:copy>
+    </xsl:template>
+        
     <xsl:template match="@cue:*" mode="cue">
-        <xsl:param name="tweak"/>
+        <xsl:param name="tweak" tunnel="yes"/>
         <xsl:variable name="cue" select="local-name()"/>
         <xsl:variable name="myTweak" select="$tweak/@cue:*[local-name()=$cue]"/>
         <xsl:message>DBG: cue[<xsl:value-of select="$cue"/>] tweak[<xsl:value-of select="$myTweak"/>]</xsl:message>
         <xsl:choose>
             <xsl:when test="$myTweak">
                 <!-- keep the tweak cue -->
-                <xsl:message>DBG: tweak cue[<xsl:value-of select="$cue"/>]=[<xsl:value-of select="$myTweak"/>]</xsl:message>
+                <xsl:message>DBG: keep tweak cue[<xsl:value-of select="$cue"/>]=[<xsl:value-of select="$myTweak"/>]</xsl:message>
                 <xsl:apply-templates select="$myTweak" mode="copy"/>
             </xsl:when>
             <xsl:otherwise>
                 <!-- keep the profile cue -->
-                <xsl:message>DBG: profile cue[<xsl:value-of select="$cue"/>]=[<xsl:value-of select="."/>]</xsl:message>
+                <xsl:message>DBG: keep prof cue[<xsl:value-of select="$cue"/>]=[<xsl:value-of select="."/>]</xsl:message>
                 <xsl:copy/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
     
-    <!-- cues in the tweak -->
+    <xsl:template match="clariah:*" mode="cue">
+        <xsl:param name="tweak" tunnel="yes"/>
+        <xsl:variable name="cue" select="local-name()"/>
+        <xsl:variable name="myTweak" select="$tweak/clariah:*[local-name()=$cue]"/>
+        <xsl:message>DBG: clariah cue[<xsl:value-of select="$cue"/>] tweak[<xsl:value-of select="$myTweak"/>]</xsl:message>
+        <xsl:choose>
+            <xsl:when test="$myTweak">
+                <!-- keep the tweak cue -->
+                <xsl:message>DBG: keep tweak clariah cue[<xsl:value-of select="$cue"/>]=[<xsl:value-of select="$myTweak"/>]</xsl:message>
+                <xsl:apply-templates select="$myTweak" mode="copy"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <!-- keep the profile cue -->
+                <xsl:message>DBG: keep prof clariah cue[<xsl:value-of select="$cue"/>]=[<xsl:value-of select="."/>]</xsl:message>
+                <xsl:copy>
+                    <xsl:apply-templates select="node() | @*" mode="copy"/>
+                </xsl:copy>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+
+    <!-- cues in the TWEAK -->
     
-    <xsl:template match="text()" mode="tweak-cue"/>
+    <xsl:template match="node() | @*" mode="tweak-cue">
+        <xsl:copy>
+            <xsl:apply-templates select="node() | @*" mode="tweak-cue"/>
+        </xsl:copy>
+    </xsl:template>
     
     <xsl:template match="@cue:*" mode="tweak-cue">
-        <xsl:param name="prof"/>
+        <xsl:param name="prof" tunnel="yes"/>
         <xsl:variable name="cue" select="local-name()"/>
         <xsl:variable name="myProf" select="$prof/@cue:*[local-name()=$cue]"/>
         <xsl:message>DBG: cue[<xsl:value-of select="$cue"/>] prof[<xsl:value-of select="$myProf"/>]</xsl:message>
         <xsl:choose>
             <xsl:when test="$myProf">
                 <!-- will have been overwritten in the cue run -->
-                <xsl:message>DBG: cue[<xsl:value-of select="$cue"/>] already overwritten</xsl:message>
+                <xsl:message>DBG: keep prof cue[<xsl:value-of select="$cue"/>] already overwritten</xsl:message>
             </xsl:when>
             <xsl:otherwise>
                 <!-- keep the tweak cue -->
-                <xsl:message>DBG: tweak cue[<xsl:value-of select="$cue"/>]=[<xsl:value-of select="."/>]</xsl:message>
+                <xsl:message>DBG: keep tweak cue[<xsl:value-of select="$cue"/>]=[<xsl:value-of select="."/>]</xsl:message>
                 <xsl:copy/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+    
+    <xsl:template match="clariah:*" mode="tweak-cue">
+        <xsl:param name="prof" tunnel="yes"/>
+        <xsl:variable name="cue" select="local-name()"/>
+        <xsl:variable name="myProf" select="$prof/clariah:*[local-name()=$cue]"/>
+        <xsl:message>DBG: clariah cue[<xsl:value-of select="$cue"/>] prof[<xsl:value-of select="$myProf"/>]</xsl:message>
+        <xsl:choose>
+            <xsl:when test="$myProf">
+                <!-- will have been overwritten in the cue run -->
+                <xsl:message>DBG: profile clariah cue[<xsl:value-of select="$cue"/>] already overwritten</xsl:message>
+            </xsl:when>
+            <xsl:otherwise>
+                <!-- keep the tweak cue -->
+                <xsl:message>DBG: tweak clariah cue[<xsl:value-of select="$cue"/>]=[<xsl:value-of select="."/>]</xsl:message>
+                <xsl:copy>
+                    <xsl:apply-templates select="node() | @*" mode="copy"/>
+                </xsl:copy>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
@@ -214,7 +275,7 @@
     <!-- value schemes -->
     
     <xsl:template match="@ValueScheme">
-        <xsl:param name="tweak"/>
+        <xsl:param name="tweak" tunnel="yes"/>
         <xsl:variable name="myTweak" select="$tweak/@ValueScheme"/>
         <xsl:choose>
             <xsl:when test=".!='string' and normalize-space($myTweak)!='' and $myTweak!='string'">
@@ -236,7 +297,7 @@
     <!-- attribute required -->
     
     <xsl:template match="@Required">
-        <xsl:param name="tweak"/>
+        <xsl:param name="tweak" tunnel="yes"/>
         <xsl:variable name="myTweak" select="$tweak/@Required"/>
         <xsl:choose>
             <xsl:when test=".='true' and $myTweak='false'">
@@ -254,7 +315,7 @@
     <!-- tweak cardinalities -->
 
     <xsl:template match="@CardinalityMin" mode="cmd">
-        <xsl:param name="tweak"/>
+        <xsl:param name="tweak" tunnel="yes"/>
         <xsl:variable name="myTweak" select="$tweak/@CardinalityMin"/>
         <xsl:choose>
             <xsl:when test="normalize-space($myTweak)!=''">
@@ -292,7 +353,7 @@
     </xsl:template>
     
     <xsl:template match="@CardinalityMax" mode="cmd">
-        <xsl:param name="tweak"/>
+        <xsl:param name="tweak" tunnel="yes"/>
         <xsl:variable name="myTweak" select="$tweak/@CardinalityMax"/>
         <xsl:choose>
             <xsl:when test="normalize-space($myTweak)!=''">
@@ -330,7 +391,8 @@
         </xsl:choose>
     </xsl:template>
 
-    <!-- identity copy -->
+
+    <!-- identity COPY -->
     <xsl:template match="node() | @*" mode="copy">
         <xsl:copy>
             <xsl:apply-templates select="node() | @*" mode="copy"/>
