@@ -148,7 +148,7 @@ class RecForm(str, Enum):
 
 @router.get('/app/{app}/record/{nr}')
 @router.get('/app/{app}/record/{nr}/{form}')
-def get_record(request: Request, app: str, nr: int, form: RecForm | None = RecForm.xml):
+def get_record(request: Request, app: str, nr: str, form: RecForm | None = RecForm.xml):
     """
     Endpoint to get a record based on its ID and the application name.
     This endpoint accepts the application name and the ID as path parameters.
@@ -182,9 +182,23 @@ def get_record(request: Request, app: str, nr: int, form: RecForm | None = RecFo
                 node = proc.parse_xml(xml_text=rec)
                 result = executable.transform_to_string(xdm_node=node)
                 return JSONResponse(content=jsonable_encoder(json.loads(result)))
+        elif form == RecForm.html or "text/html" in request.headers.get("accept", ""):
+            with PySaxonProcessor(license=False) as proc:
+                xsltproc = proc.new_xslt30_processor()
+                xsltproc.set_cwd(os.getcwd())
+                executable = xsltproc.compile_stylesheet(stylesheet_file=f"{settings.xslt_dir}/toHTML.xsl")
+                executable.set_parameter("cwd", proc.make_string_value(os.getcwd()))
+                executable.set_parameter("base", proc.make_string_value("http://localhost:1210"))
+                executable.set_parameter("app", proc.make_string_value(app))
+                executable.set_parameter("nr", proc.make_string_value(nr))
+                config = proc.parse_xml(xml_file_name=f"{settings.URL_DATA_APPS}/{app}/config.xml")
+                executable.set_parameter("config", config)
+                null = proc.parse_xml(xml_text=rec)
+                result = executable.transform_to_string(xdm_node=null)
+                return HTMLResponse(content=result)
         elif form == RecForm.xml or "application/xml" in request.headers.get("accept", ""):
             return Response(content=rec, media_type="application/xml")
-    
+
     return HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not supported")
 
 @router.get('/app/{app}/record/{nr}/editor')
