@@ -16,15 +16,15 @@
             <head>
                 <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
                 <title>{$config/app/title}</title>
-                <link rel="stylesheet" href="css/style.css" type="text/css"/>
+                <link rel="stylesheet" href="{$base}/static/css/style.css" type="text/css"/>
                 <link rel="stylesheet" href="https://cmdicdn.sd.di.huc.knaw.nl/css/ccfstyle.css" type="text/css"/>
                 <link rel="stylesheet" href="https://cmdicdn.sd.di.huc.knaw.nl/css/autocomplete.css" type="text/css"/>
                 <link rel="stylesheet" href="https://cmdicdn.sd.di.huc.knaw.nl/css/jquery-ui.css" type="text/css"/>
                 <script type="text/javascript" src="https://cmdicdn.sd.di.huc.knaw.nl/js/jquery-3.2.1.min.js"><xsl:comment>keep alive</xsl:comment></script>
                 <script type="text/javascript" src="https://cmdicdn.sd.di.huc.knaw.nl/js/jquery.autocomplete.js"><xsl:comment>keep alive</xsl:comment></script>
                 <script type="text/javascript" src="https://cmdicdn.sd.di.huc.knaw.nl/js/jquery-ui/jquery-ui.js"><xsl:comment>keep alive</xsl:comment></script>
-                <script type="text/javascript" src="/js/ccf_config_en.js"><xsl:comment>keep alive</xsl:comment></script>
-                <script type="text/javascript" src="/js/ccfparser.js"><xsl:comment>keep alive</xsl:comment></script>
+                <script type="text/javascript" src="{$base}/static/js/ccf_config_en.js"><xsl:comment>keep alive</xsl:comment></script>
+                <script type="text/javascript" src="https://cmdicdn.sd.di.huc.knaw.nl/js/ccfparser.js"><xsl:comment>keep alive</xsl:comment></script>
 
                 <script>
                     $('document').ready(
@@ -38,7 +38,7 @@
                                 success: function (json) {{
                                     obj = json;
                                     console.log(obj);
-                                    //formBuilder.start(obj);
+                                    formBuilder.start(obj);
                                 }},
                                 error: function (err) {{
                                     obj = {{"error": err}};

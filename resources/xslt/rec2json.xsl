@@ -11,7 +11,7 @@
     
     
     <xsl:param name="prof-doc" select="()"/>
-    <xsl:param name="prof-xml" select="js:json-to-xml($js-doc)"/>
+    <xsl:param name="prof-xml" select="js:json-to-xml($prof-doc)"/>
     
     <xsl:template match="text()"/>
     
