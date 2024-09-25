@@ -70,11 +70,16 @@ app.include_router(
     prefix=""
 )
 
+#app.include_router(
+#    protected.router,
+#    tags=["Protected"],
+#    prefix="",
+#    dependencies=[Depends(api_key_auth)]
+#)
 app.include_router(
     protected.router,
-    tags=["Protected"],
-    prefix="",
-    dependencies=[Depends(api_key_auth)]
+    tags=["unProtected"],
+    prefix=""
 )
 
 if __name__ == "__main__":

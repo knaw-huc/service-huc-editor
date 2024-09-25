@@ -6,9 +6,9 @@
     <xsl:param name="cwd" select="'file:/Users/menzowi/Documents/Projects/huc-cmdi-editor/service/'"/>
     <xsl:param name="base" select="'http://localhost:1210'"/>
     <xsl:param name="app" select="'adoptie'"/>
-    <xsl:param name="config" select="doc(concat($cwd,'/data/apps/',$app,'/config.xml'))"/>
-    <xsl:param name="recs" select="concat($cwd,'/data/apps/',$app,'/records')"/>
-    
+    <xsl:param name="config" select="doc(concat($cwd, '/data/apps/', $app, '/config.xml'))"/>
+    <xsl:param name="recs" select="concat($cwd, '/data/apps/', $app, '/records')"/>
+
 
     <xsl:template name="main">
         <html lang="en" xsl:expand-text="yes">
@@ -24,9 +24,32 @@
                 <script type="text/javascript" src="{$base}/static/js/lib/jquery-ui/jquery-ui.js"><xsl:comment>keep alive</xsl:comment></script>
                 <script type="text/javascript" src="{$base}/static/js/lib/datatable.min.js"><xsl:comment>keep alive</xsl:comment></script>
                 <script>
-                        $('document').ready(function(){{
-                        setEvents();}});
-                    </script>
+                        //$('document').ready(function(){{
+                        //    setEvents();
+                        //}});
+                        
+                        function deleteRecord(rec) {{
+                            var answer = confirm('Dit record wordt verwijderd! This record will be removed! OK?');
+                            if (answer){{
+                                console.log("delete record["+rec+"]");
+                                $.ajax(
+                                    {{
+                                        type: "DELETE",
+                                        url: rec,
+                                        dataType: "json",
+                                        success: function (json) {{
+                                            obj = json;
+                                            console.log(obj);
+                                        }},
+                                        error: function (err) {{
+                                            obj = {{"error": err}};
+                                            console.log(obj);
+                                        }}
+                                    }}
+                                );
+                            }}
+                        }}                                                    
+                 </script>
             </head>
             <body>
                 <div id="wrapper">
@@ -56,12 +79,12 @@
                             </thead>
                             <tbody>
                                 <xsl:for-each select="collection(concat($recs,'?match=record-\d+\.xml&amp;on-error=warning'))">
-                                    <xsl:sort select="replace(base-uri(.),'.*/record-(\d+)\.xml','$1')" data-type="number"></xsl:sort>
+                                    <xsl:sort select="replace(base-uri(.), '.*/record-(\d+)\.xml', '$1')" data-type="number"/>
                                     <xsl:variable name="rec" select="."/>
-                                    <xsl:variable name="nr" select="replace(base-uri($rec),'.*/record-(\d+)\.xml','$1')"/>
-                                    <xsl:variable name="url" select="concat($base,'/app/',$app,'/record/',$nr)"/>
+                                    <xsl:variable name="nr" select="replace(base-uri($rec), '.*/record-(\d+)\.xml', '$1')"/>
+                                    <xsl:variable name="url" select="concat($base, '/app/', $app, '/record/', $nr)"/>
                                     <xsl:comment>[{base-uri($rec)}][{$url}]</xsl:comment>
-                                    
+
                                     <tr>
                                         <xsl:for-each select="$config//app/list/(* except ns)">
                                             <td>
@@ -81,7 +104,7 @@
                                             </a>
                                         </td>-->
                                         <td>
-                                            <a href="delRec('{$nr}')" title="Delete" class="myBtn delete" id="myBtn1" onclick="deleteRecord(1, 1);">
+                                            <a title="Delete" class="myBtn delete" id="myBtn1" onclick="deleteRecord('{$url}');">
                                                 <img src="{$base}/static/img/bin.png" height="16px" width="16px"/>
                                             </a>
                                         </td>
@@ -100,39 +123,15 @@
                         </table>
                         <div id="paging-resultTable"/>
                         <script>
-                            
-                            
                             var datatable = new DataTable(document.querySelector('#resultTable'), {{
-                            pageSize: 25,
-                            sort: [{string-join($config/app/list/(* except ns)/sort,', ')}, true],
-                            filters: [{string-join($config/app/list/(* except ns)/filter,', ')}, 'select'],
-                            filterText: 'Type to filter... ',
-                            pagingDivSelector: "#paging-resultTable"
-                            }});
+                                pageSize: 25,
+                                sort: [{string-join($config/app/list/(* except ns)/sort,', ')}, true],
+                                filters: [{string-join($config/app/list/(* except ns)/filter,', ')}, 'select'],
+                                filterText: 'Type to filter... ',
+                                pagingDivSelector: "#paging-resultTable"}}
+                            );
                         </script>
-
-
-                        <div id="dialog-confirm" title="Record Deletion Confirmation" style="display: none;">
-                            <p><span class="ui-icon ui-icon-alert" style="float:left; margin:12px 12px 20px 0;"/>This record will be permanently deleted and cannot be recovered. Are you sure?</p>
-                        </div>
-
-
-                        <script>
-                            
-                            $(document).ready(function ()
-                            {{
-                            $('.delete').click(function () {{
-                            var answer = confirm('Dit record wordt verwijderd! This record will be removed! OK?');
-                            return answer; // answer is a boolean
-                            }});
-                            }});
-                        </script>
-
-
                         <script type="text/javascript" src="{$base}/static/js/src/sorttable.js"/>
-
-
-
                     </div>
                 </div>
             </body>
