@@ -48,6 +48,7 @@
                                         </a>
                                     </th>
                                     <th/>
+                                    <!--<th/>-->
                                     <th/>
                                     <th/>
                                     <th/>
@@ -58,7 +59,9 @@
                                     <xsl:sort select="replace(base-uri(.),'.*/record-(\d+)\.xml','$1')" data-type="number"></xsl:sort>
                                     <xsl:variable name="rec" select="."/>
                                     <xsl:variable name="nr" select="replace(base-uri($rec),'.*/record-(\d+)\.xml','$1')"/>
-                                    <xsl:comment>{base-uri($rec)}</xsl:comment>
+                                    <xsl:variable name="url" select="concat($base,'/app/',$app,'/record/',$nr)"/>
+                                    <xsl:comment>[{base-uri($rec)}][{$url}]</xsl:comment>
+                                    
                                     <tr>
                                         <xsl:for-each select="$config//app/list/(* except ns)">
                                             <td>
@@ -68,25 +71,28 @@
                                         </xsl:for-each>
                                         <td>{/cmd:CMD/cmd:Header/cmd:MdCreationDate}</td>
                                         <td>
-                                            <a href="editRec('{$nr}')" title="Edit metadata">
+                                            <a href="{$url}/editor" title="Edit metadata">
                                                 <img src="{$base}/static/img/edit.png" height="16px" width="16px"/>
                                             </a>
                                         </td>
-                                        <td>
+                                        <!--<td>
                                             <a href="dwnldRec('{$nr}')" title="Download">
                                                 <img src="{$base}/static/img/download.png" height="16px" width="16px"/>
                                             </a>
-                                        </td>
+                                        </td>-->
                                         <td>
                                             <a href="delRec('{$nr}')" title="Delete" class="myBtn delete" id="myBtn1" onclick="deleteRecord(1, 1);">
                                                 <img src="{$base}/static/img/bin.png" height="16px" width="16px"/>
                                             </a>
                                         </td>
                                         <td>
-                                            <a href="dwnldRec('{$nr}','cmdi')" title="Show CMDI">CMDI</a>
+                                            <a href="{$url}/xml" title="Show CMDI" target="_blank">CMDI</a>
                                         </td>
                                         <td>
-                                            <a href="dwnldRec('{$nr}','html')" title="Show HTML" target="_blank">HTML</a>
+                                            <a href="{$url}/html" title="Show HTML" target="_blank">HTML</a>
+                                        </td>
+                                        <td>
+                                            <a href="{$url}/pdf" title="Show PDF" target="_blank">PDF</a>
                                         </td>
                                     </tr>
                                 </xsl:for-each>
