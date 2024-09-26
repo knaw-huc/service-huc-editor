@@ -84,7 +84,7 @@ def get_profile(request: Request, id: str):
             return Response(content=prof, media_type="application/xml")
         else:
             return HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    elif request.headers["Accept"] == "application/json":
+    elif "application/json" in request.headers.get("accept", ""):
         prof = prof_json(id)
         if (prof):
             return JSONResponse(content=jsonable_encoder(json.loads(prof)))
@@ -167,25 +167,41 @@ def rec_html(app,nr):
             executable.set_parameter("config", config)
             return executable.transform_to_string(xdm_node=rec)
 
-@router.get('/app/{app}/record/{nr}/editor')
-def get_editor(request: Request, app: str, nr: str):
-    logging.info(f"app[{app}] record[{nr}] editor")
-    record_file = f"{settings.URL_DATA_APPS}/{app}/records/record-{nr}.xml"
-    if "text/html" in request.headers.get("accept", ""):
-        with PySaxonProcessor(license=False) as proc:
-            xsltproc = proc.new_xslt30_processor()
-            xsltproc.set_cwd(os.getcwd())
-            executable = xsltproc.compile_stylesheet(stylesheet_file=f"{settings.xslt_dir}/editor.xsl")
-            executable.set_parameter("cwd", proc.make_string_value(os.getcwd()))
-            executable.set_parameter("base", proc.make_string_value("http://localhost:1210"))
-            executable.set_parameter("app", proc.make_string_value(app))
+def rec_editor(app,nr):
+    if nr:
+        logging.info(f"app[{app}] record[{nr}] editor")
+    else:
+        logging.info(f"app[{app}] new record editor")
+    with PySaxonProcessor(license=False) as proc:
+        xsltproc = proc.new_xslt30_processor()
+        xsltproc.set_cwd(os.getcwd())
+        executable = xsltproc.compile_stylesheet(stylesheet_file=f"{settings.xslt_dir}/editor.xsl")
+        executable.set_parameter("cwd", proc.make_string_value(os.getcwd()))
+        executable.set_parameter("base", proc.make_string_value("http://localhost:1210"))
+        executable.set_parameter("app", proc.make_string_value(app))
+        if nr:
             executable.set_parameter("nr", proc.make_string_value(nr))
-            config = proc.parse_xml(xml_file_name=f"{settings.URL_DATA_APPS}/{app}/config.xml")
-            executable.set_parameter("config", config)
-            null = proc.parse_xml(xml_text="<null/>")
-            result = executable.transform_to_string(xdm_node=null)
-            return HTMLResponse(content=result)
- 
+        config = proc.parse_xml(xml_file_name=f"{settings.URL_DATA_APPS}/{app}/config.xml")
+        executable.set_parameter("config", config)
+        null = proc.parse_xml(xml_text="<null/>")
+        return executable.transform_to_string(xdm_node=null)
+
+@router.get('/app/{app}/record/editor')
+@router.get('/app/{app}/record/{nr}/editor')
+def get_editor(request: Request, app: str, nr: str | None=None):
+    if nr:
+        logging.info(f"app[{app}] record[{nr}] editor")
+        record_file = f"{settings.URL_DATA_APPS}/{app}/records/record-{nr}.xml"
+        if not os.path.exists(record_file):
+            logging.debug(f"{record_file} doesn't exist")
+            return HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    else:
+        logging.info(f"app[{app}] new record editor")        
+    
+    if "text/html" in request.headers.get("accept", ""):
+        editor = rec_editor(app,nr)
+        return HTMLResponse(content=editor)
+
 class RecForm(str, Enum):
     json = "json"
     xml = "xml"

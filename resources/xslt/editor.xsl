@@ -7,9 +7,10 @@
     <xsl:param name="cwd" select="'file:/Users/menzowi/Documents/Projects/huc-cmdi-editor/service/'"/>
     <xsl:param name="base" select="'http://localhost:1210'"/>
     <xsl:param name="app" select="'adoptie'"/>
-    <xsl:param name="nr" select="'1'"/>
+    <xsl:param name="nr" select="()"/>
     <xsl:param name="config" select="doc(concat($cwd, '/data/apps/', $app, '/config.xml'))"/>
     <xsl:param name="rec" select="concat($base, '/app/', $app, '/record/', $nr)"/>
+    <xsl:param name="prof" select="concat($base, '/profile/', $config/app/prof)"/>
 
     <xsl:template name="main">
         <html lang="en" xsl:expand-text="yes">
@@ -26,29 +27,59 @@
                 <script type="text/javascript" src="{$base}/static/js/ccf_config_en.js"><xsl:comment>keep alive</xsl:comment></script>
                 <script type="text/javascript" src="https://cmdicdn.sd.di.huc.knaw.nl/js/ccfparser.js"><xsl:comment>keep alive</xsl:comment></script>
 
-                <script>
-                    $('document').ready(
-                        function () {{
-                            var rec = "{$rec}";
-                            $.ajax(
-                            {{
-                                type: "GET",
-                                url: rec,
-                                dataType: "json",
-                                success: function (json) {{
-                                    obj = json;
-                                    console.log(obj);
-                                    formBuilder.start(obj);
-                                }},
-                                error: function (err) {{
-                                    obj = {{"error": err}};
-                                    console.log(obj);
+                <xsl:choose>
+                    <xsl:when test="normalize-space($nr)!=''">
+                        <script>
+                            $('document').ready(
+                                function () {{
+                                    var url = "{$rec}";
+                                    $.ajax(
+                                        {{
+                                            type: "GET",
+                                            url: url,
+                                            dataType: "json",
+                                            success: function (json) {{
+                                                rec = json;
+                                                console.log(rec);
+                                                formBuilder.start(rec);
+                                            }},
+                                            error: function (err) {{
+                                                obj = {{"error": err}};
+                                                console.log(obj);
+                                            }}
+                                        }}
+                                    );
                                 }}
-                            }}
-                            );
-                        }}
-                    )
-                </script>
+                            )
+                        </script>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <script>
+                            $('document').ready(
+                                function () {{
+                                    var url = "{$prof}";
+                                    $.ajax(
+                                    {{
+                                        type: "GET",
+                                        url: url,
+                                        dataType: "json",
+                                        success: function (json) {{
+                                            prof = json;
+                                            console.log(prof);
+                                            rec = {{id:"{$config/app/prof}", content: prof}}
+                                            formBuilder.start(rec);
+                                        }},
+                                        error: function (err) {{
+                                            obj = {{"error": err}};
+                                            console.log(obj);
+                                        }}
+                                    }}
+                                    );
+                                }}
+                            )
+                        </script>
+                    </xsl:otherwise>
+                </xsl:choose>
             </head>
             <body>
                 <div id="wrapper">

@@ -3,13 +3,12 @@
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
     xmlns:math="http://www.w3.org/2005/xpath-functions/math"
     xmlns:js="http://www.w3.org/2005/xpath-functions"
+    xmlns:cmd="http://www.clarin.eu/cmd/"
     exclude-result-prefixes="xs math js"
     version="3.0">
     
     <xsl:output method="text" encoding="UTF-8"/>
-    
-    
-    
+        
     <xsl:param name="prof-doc" select="()"/>
     <xsl:param name="prof-xml" select="js:json-to-xml($prof-doc)"/>
     
@@ -28,9 +27,10 @@
         </xsl:copy>
     </xsl:template>
     
-    <xsl:template match="/*:CMD">
+    <xsl:template match="/cmd:CMD">
         <xsl:variable name="rec">
             <js:map>
+                <js:string key="id" xsl:expand-text="yes">{cmd:Header/cmd:MdProfile}</js:string>
             <xsl:apply-templates select="$prof-xml" mode="prof"/>
             <js:array key="record">
                 <xsl:apply-templates/>

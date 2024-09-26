@@ -40,6 +40,7 @@
                                         success: function (json) {{
                                             obj = json;
                                             console.log(obj);
+                                            location.reload();
                                         }},
                                         error: function (err) {{
                                             obj = {{"error": err}};
@@ -66,7 +67,7 @@
                                     </xsl:for-each>
                                     <th>Creation date</th>
                                     <th>
-                                        <a href="addRec('{$config/app/prof}')" id="addRec">
+                                        <a href="{concat($base, '/app/', $app, '/record/editor')}" id="addRec">
                                             <img src="{$base}/static/img/add.ico" height="16px" width="16px"/>
                                         </a>
                                     </th>
