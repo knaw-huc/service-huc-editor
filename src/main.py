@@ -3,8 +3,9 @@ from contextlib import asynccontextmanager
 
 import uvicorn
 from fastapi import FastAPI, HTTPException, Depends, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordBearer, HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
+from typing import Annotated
 import emoji
 import importlib.metadata
 from src.commons import settings, data
@@ -14,7 +15,7 @@ from contextlib import asynccontextmanager
 
 import emoji
 import uvicorn
-from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi import FastAPI, Request, HTTPException, Depends, status
 from fastapi.security import OAuth2PasswordBearer
 
 from src.commons import settings, data
@@ -29,16 +30,16 @@ api_keys = [
     settings.SERVICE_HUC_EDITOR_API_KEY
 ]  # Todo: This is encrypted in the .secrets.toml
 
-#Authorization Form: It doesn't matter what you type in the form, it won't work yet. But we'll get there.
-#See: https://fastapi.tiangolo.com/tutorial/security/first-steps/
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")  # use token authentication
+
+security = HTTPBearer()
 
 
-def api_key_auth(api_key: str = Depends(oauth2_scheme)):
+def auth_header(request: Request, auth_cred: Annotated[HTTPAuthorizationCredentials, Depends(security)]):
+
     if settings.DISABLE_AUTHENTICATION:
         return
 
-    if api_key not in api_keys:
+    if not auth_cred or auth_cred.credentials not in api_keys:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Forbidden"
