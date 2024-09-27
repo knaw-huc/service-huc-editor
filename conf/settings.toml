@@ -18,6 +18,8 @@ log_file = "@format {env[BASE_DIR]}/logs/hec.log"
 log_level = 10
 log_format = "%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s"
 
+static_dir = "@format {env[BASE_DIR]}/resources/static"
+
 [default.keycloak]
     url="http://localhost:9090"
     realms="huc_editor"
