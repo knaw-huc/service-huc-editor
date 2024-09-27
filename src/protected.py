@@ -295,6 +295,13 @@ async def modify_record(request: Request, app: str, nr: str, prof: str | None = 
                 when = xpproc.evaluate_single("string((/cmd:CMD/cmd:Header/cmd:MdCreationDate/@clariah:epoch,/cmd:CMD/cmd:Header/cmd:MdCreationDate,'unknown')[1])").get_string_value()
             null = proc.parse_xml(xml_text="<null/>")
             record_body = executable.transform_to_string(xdm_node=null)
+            # keep the history
+            modification_time = os.path.getmtime(record_file)
+            os.rename(record_file, f"{record_file}.{modification_time}")
+
+            # Write the new result of the transformation to the record file
+            with open(record_file, 'wb') as file:
+                file.write(record_body)
     else:
         record_body = record_body.decode()
 
