@@ -217,6 +217,7 @@ def get_record(request: Request, app: str, nr: str, form: RecForm | None = RecFo
     If the record does not exist, it returns a 404 error.
     If the record exists but the reading functionality is not implemented yet, it returns a 501 error.
     """
+    #?is er iemand ingelogd of is er een gast?
     logging.info(f"app[{app}] record[{nr}] form[{form}] accept[{request.headers.get("accept", "")}]")
     record_file = f"{settings.URL_DATA_APPS}/{app}/records/record-{nr}.xml"
 
@@ -238,6 +239,7 @@ def get_record(request: Request, app: str, nr: str, form: RecForm | None = RecFo
             xsltproc.set_cwd(os.getcwd())
             executable = xsltproc.compile_stylesheet(stylesheet_file=f"{settings.xslt_dir}/rec2json.xsl")
             executable.set_parameter("prof-doc", proc.make_string_value(prof_doc))
+            executable.set_parameter("rec-nr", proc.make_string_value(nr))
             result = executable.transform_to_string(xdm_node=rec)
             return JSONResponse(content=jsonable_encoder(json.loads(result)))
     elif form == RecForm.pdf or "application/pdf" in request.headers.get("accept", ""):

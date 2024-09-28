@@ -171,8 +171,13 @@ async def create_record(request: Request, app: str, prof: str | None = None, red
             xsltproc.set_cwd(os.getcwd())
             executable = xsltproc.compile_stylesheet(stylesheet_file=f"{settings.xslt_dir}/json2rec.xsl")
             logging.info(f"record[{nr}] JSON to XML]")
-            logging.info(f"- JSON[{json.dumps(json.loads(record_body))}]")
-            executable.set_parameter("js-doc", proc.make_string_value(json.dumps(json.loads(record_body))))
+            logging.info(f"- body JSON[{json.dumps(json.loads(record_body))}]")
+            js = json.loads(record_body)
+            rec = js
+            if js.record != null:
+                rec = js.record
+            logging.info(f"- record JSON[{json.dumps(json.loads(rec))}]")
+            executable.set_parameter("js-doc", proc.make_string_value(json.dumps(json.loads(rec))))
             executable.set_parameter("user", proc.make_string_value("service"))
             executable.set_parameter("self", proc.make_string_value(f"unl://{nr}"))
             executable.set_parameter("prof", proc.make_string_value(prof.strip()))
@@ -270,21 +275,28 @@ async def modify_record(request: Request, app: str, nr: str, prof: str | None = 
     record_body = await request.body()
 
     if request.headers['Content-Type'] == 'application/json':
-        if (prof == None or prof.strip() == ""):
-            return HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="When using application/json the prof query parameter should be filled!")
         with PySaxonProcessor(license=False) as proc:
             xsltproc = proc.new_xslt30_processor()
             xsltproc.set_cwd(os.getcwd())
             executable = xsltproc.compile_stylesheet(stylesheet_file=f"{settings.xslt_dir}/json2rec.xsl")
             logging.info(f"record[{nr}] JSON to XML]")
-            logging.info(f"- JSON[{record_body}]")
-            logging.info(f"- JSON[{json.dumps(json.loads(record_body))}]")
-            executable.set_parameter("js-doc", proc.make_string_value(json.dumps(json.loads(record_body))))
+            logging.info(f"- body JSON[{record_body}]")
+            js = json.loads(record_body)
+            rec = js
+            if js.record != null:
+                rec = js.record
+            logging.info(f"- record JSON[{json.dumps(js.record)}]")
+            executable.set_parameter("js-doc", proc.make_string_value(json.dumps(rec)))
             executable.set_parameter("user", proc.make_string_value("service"))
             executable.set_parameter("self", proc.make_string_value(f"unl://{nr}"))
-            executable.set_parameter("prof", proc.make_string_value(prof.strip()))
+            if (prof!=None):
+                executable.set_parameter("prof", proc.make_string_value(prof.strip()))
+            elif (js.prof!=None):
+                executable.set_parameter("prof", proc.make_string_value(js.prof.strip()))
             if (when!=None):
-                executable.set_parameter("when", proc.make_string_value(when))
+                executable.set_parameter("when", proc.make_string_value(when.strip()))
+            elif (js.when!=None):
+                executable.set_parameter("when", proc.make_string_value(js.when.strip()))
             else:
                 old = proc.parse_xml(xml_file_name=record_file)
                 xpproc = proc.new_xpath_processor()
@@ -295,13 +307,6 @@ async def modify_record(request: Request, app: str, nr: str, prof: str | None = 
                 when = xpproc.evaluate_single("string((/cmd:CMD/cmd:Header/cmd:MdCreationDate/@clariah:epoch,/cmd:CMD/cmd:Header/cmd:MdCreationDate,'unknown')[1])").get_string_value()
             null = proc.parse_xml(xml_text="<null/>")
             record_body = executable.transform_to_string(xdm_node=null)
-            # keep the history
-            modification_time = os.path.getmtime(record_file)
-            os.rename(record_file, f"{record_file}.{modification_time}")
-
-            # Write the new result of the transformation to the record file
-            with open(record_file, 'wb') as file:
-                file.write(record_body)
     else:
         record_body = record_body.decode()
 

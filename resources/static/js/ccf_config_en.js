@@ -13,7 +13,7 @@ var ccfOptions = {
         label: 'Submit'
     },
     saveButton: {
-        actionURI: 'create_record.php',
+        actionURI: 'javascript:saveRec()',
         label: 'Save'  
     },
     resetButton: {

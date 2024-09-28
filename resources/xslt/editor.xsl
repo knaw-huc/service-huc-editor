@@ -27,59 +27,129 @@
                 <script type="text/javascript" src="{$base}/static/js/ccf_config_en.js"><xsl:comment>keep alive</xsl:comment></script>
                 <script type="text/javascript" src="https://cmdicdn.sd.di.huc.knaw.nl/js/ccfparser.js"><xsl:comment>keep alive</xsl:comment></script>
 
-                <xsl:choose>
-                    <xsl:when test="normalize-space($nr)!=''">
-                        <script>
-                            $('document').ready(
-                                function () {{
-                                    var url = "{$rec}";
-                                    $.ajax(
+                <script>
+                    <xsl:text>
+                        var inRec = null;
+                        var outRec = null;
+
+                        function saveRec() {{
+                            var rec = [];
+                            $(".clonedComponent").each(function () {{
+                                $(this).attr("class", "component");
+                            }});
+                            $(".hidden_element").each(function () {{
+                                $(this).removeClass("hidden_element");
+                            }});
+                            $("#ccform").children().each(function () {{
+                                if ($(this).attr("class") === "component") {{
+                                    var element = {{}};
+                                    element.name = $(this).attr("data-name");
+                                    element.type = 'component';
+                                    element.sortOrder = 0;
+                                    element.content = parseComponent(this);
+                                    rec.push(element);
+                                }}
+                            }});
+                            outRec = {{prof: inRec.id, record: rec}};
+                            if (inRec.when!==undefined)
+                                outRec.when = inRec.when;
+                            console.log(outRec);
+                            //TODO: keep the record in local store
+                            url="{$rec}";
+                            if (inRec.nr !==undefined) {{
+                                alert("save de update voor record["+inRec.nr+"] to ["+url+"]!");
+                                $.ajax(
+                                {{
+                                    type: "PUT",
+                                    url: url,
+                                    dataType: "json",
+                                    data: outRec,
+                                    success: function (msg) {{
+                                        alert ("TODO: relad the editor! ["+msg+"]");
+                                    }},
+                                    error: function (err) {{
+                                        alert ("ERR: the save failed! ["+err+"]");
+                                        obj = {{"error": err}};
+                                        console.log(obj);
+                                    }}
+                                }}
+                                );
+                           }} else {{
+                                alert("save het (nieuwe) record to ["+url+"]!");
+                                $.ajax(
+                                {{
+                                    type: "POST",
+                                    url: url,
+                                    dataType: "json",
+                                    data: outRec,
+                                    success: function (msg) {{
+                                        alert ("TODO: reload the editor! ["+msg+"]");
+                                    }},
+                                    error: function (err) {{
+                                        alert ("ERR: the save failed! ["+err+"]");
+                                        obj = {{"error": err}};
+                                        console.log(obj);
+                                    }}
+                                }}
+                                );
+                            }}
+                        }}
+
+                    </xsl:text>
+                    <xsl:choose>
+                        <xsl:when test="normalize-space($nr)!=''">
+                            <xsl:text>
+                                $('document').ready(
+                                    function () {{
+                                        var url = "{$rec}";
+                                        $.ajax(
+                                            {{
+                                                type: "GET",
+                                                url: url,
+                                                dataType: "json",
+                                                success: function (json) {{
+                                                    inRec = json;
+                                                    console.log(inRec);
+                                                    formBuilder.start(inRec);
+                                                }},
+                                                error: function (err) {{
+                                                    obj = {{"error": err}};
+                                                    console.log(obj);
+                                                }}
+                                            }}
+                                        );
+                                    }}
+                                )
+                            </xsl:text>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:text>
+                                $('document').ready(
+                                    function () {{
+                                        var url = "{$prof}";
+                                        $.ajax(
                                         {{
                                             type: "GET",
                                             url: url,
                                             dataType: "json",
                                             success: function (json) {{
-                                                rec = json;
-                                                console.log(rec);
-                                                formBuilder.start(rec);
+                                                prof = json;
+                                                inRec = {{id:"{$config/app/prof}", content: prof}}
+                                                console.log(inRec);
+                                                formBuilder.start(inRec);
                                             }},
                                             error: function (err) {{
                                                 obj = {{"error": err}};
                                                 console.log(obj);
                                             }}
                                         }}
-                                    );
-                                }}
-                            )
-                        </script>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <script>
-                            $('document').ready(
-                                function () {{
-                                    var url = "{$prof}";
-                                    $.ajax(
-                                    {{
-                                        type: "GET",
-                                        url: url,
-                                        dataType: "json",
-                                        success: function (json) {{
-                                            prof = json;
-                                            console.log(prof);
-                                            rec = {{id:"{$config/app/prof}", content: prof}}
-                                            formBuilder.start(rec);
-                                        }},
-                                        error: function (err) {{
-                                            obj = {{"error": err}};
-                                            console.log(obj);
-                                        }}
+                                        );
                                     }}
-                                    );
-                                }}
-                            )
-                        </script>
-                    </xsl:otherwise>
-                </xsl:choose>
+                                )
+                            </xsl:text>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </script>
             </head>
             <body>
                 <div id="wrapper">
