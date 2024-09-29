@@ -72,7 +72,6 @@
                         <cmd:MdCreationDate clariah:epoch="{floor((current-dateTime() - xs:dateTime('1970-01-01T00:00:00')) div xs:dayTimeDuration('PT1S'))}" xsl:expand-text="yes">{format-date(current-date(),'[Y0001]-[M01]-[D01]')}</cmd:MdCreationDate>
                     </xsl:otherwise>
                 </xsl:choose>
-                <cmd:MdCreationDate clariah:epoch="{floor((current-dateTime() - xs:dateTime('1970-01-01T00:00:00')) div xs:dayTimeDuration('PT1S'))}" xsl:expand-text="yes">{format-date(current-date(),'[Y0001]-[M01]-[D01]')}</cmd:MdCreationDate>
                 <cmd:MdSelfLink xsl:expand-text="yes">{$self}</cmd:MdSelfLink>
                 <cmd:MdProfile xsl:expand-text="yes">{$prof}</cmd:MdProfile>
             </cmd:Header>

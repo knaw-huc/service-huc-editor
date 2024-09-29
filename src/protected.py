@@ -158,26 +158,28 @@ async def create_record(request: Request, app: str, prof: str | None = None, red
         record_file = f"{record_dir}/record-{nr}.xml"
     logging.info(f"Modifying app[{app}]: creating record[{nr}]")
 
-    if request.headers['Content-Type'] != 'application/xml' and request.headers['Content-Type'] != 'application/json':
+    if not('application/xml' in request.headers['Content-Type'] or 'application/json' in request.headers['Content-Type']):
         return HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Content-Type must be application/xml or application/json!")
     
     record_body = await request.body()
 
-    if request.headers['Content-Type'] == 'application/json':
+    if 'application/json' in request.headers['Content-Type']:
+        logging.info(f"record[{nr}] JSON to XML]")
+        logging.info(f"- body JSON[{json.dumps(json.loads(record_body))}]")
+        js = json.loads(record_body)
+        rec = js
+        if js["record"] != None:
+            rec = js["record"]
+        logging.info(f"- record JSON[{json.dumps(rec)}]")
+        if prof == None and js["prof"] != None:
+            prof = js["prof"]
         if (prof == None or prof.strip() == ""):
             return HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="When using application/json the prof query parameter should be filled!")
         with PySaxonProcessor(license=False) as proc:
             xsltproc = proc.new_xslt30_processor()
             xsltproc.set_cwd(os.getcwd())
             executable = xsltproc.compile_stylesheet(stylesheet_file=f"{settings.xslt_dir}/json2rec.xsl")
-            logging.info(f"record[{nr}] JSON to XML]")
-            logging.info(f"- body JSON[{json.dumps(json.loads(record_body))}]")
-            js = json.loads(record_body)
-            rec = js
-            if js.record != null:
-                rec = js.record
-            logging.info(f"- record JSON[{json.dumps(json.loads(rec))}]")
-            executable.set_parameter("js-doc", proc.make_string_value(json.dumps(json.loads(rec))))
+            executable.set_parameter("js-doc", proc.make_string_value(json.dumps(rec)))
             executable.set_parameter("user", proc.make_string_value("service"))
             executable.set_parameter("self", proc.make_string_value(f"unl://{nr}"))
             executable.set_parameter("prof", proc.make_string_value(prof.strip()))
@@ -257,7 +259,7 @@ def update_record(app: str, nr: str, rec: str) -> str:
         return "OK"
 
 
-@router.post("/app/{app}/record/{nr}")
+@router.put("/app/{app}/record/{nr}")
 async def modify_record(request: Request, app: str, nr: str, prof: str | None = None, when: str | None = None):
     """
     Endpoint to create a record for an application based on its name and the record's ID.
@@ -269,12 +271,12 @@ async def modify_record(request: Request, app: str, nr: str, prof: str | None = 
         logging.debug(f"{record_file} doesn't exist")
         return HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
-    if request.headers['Content-Type'] != 'application/xml' and request.headers['Content-Type'] != 'application/json':
+    if not('application/xml' in request.headers['Content-Type'] or 'application/json' in request.headers['Content-Type']):
         return HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Content-Type must be application/xml or application/json!")
     
     record_body = await request.body()
 
-    if request.headers['Content-Type'] == 'application/json':
+    if 'application/json' in request.headers['Content-Type']:
         with PySaxonProcessor(license=False) as proc:
             xsltproc = proc.new_xslt30_processor()
             xsltproc.set_cwd(os.getcwd())
@@ -283,20 +285,20 @@ async def modify_record(request: Request, app: str, nr: str, prof: str | None = 
             logging.info(f"- body JSON[{record_body}]")
             js = json.loads(record_body)
             rec = js
-            if js.record != null:
-                rec = js.record
-            logging.info(f"- record JSON[{json.dumps(js.record)}]")
+            if js['record'] != None:
+                rec = js['record']
+            logging.info(f"- record JSON[{json.dumps(rec)}]")
             executable.set_parameter("js-doc", proc.make_string_value(json.dumps(rec)))
             executable.set_parameter("user", proc.make_string_value("service"))
             executable.set_parameter("self", proc.make_string_value(f"unl://{nr}"))
             if (prof!=None):
                 executable.set_parameter("prof", proc.make_string_value(prof.strip()))
-            elif (js.prof!=None):
-                executable.set_parameter("prof", proc.make_string_value(js.prof.strip()))
+            elif (js['prof']!=None):
+                executable.set_parameter("prof", proc.make_string_value(js['prof'].strip()))
             if (when!=None):
                 executable.set_parameter("when", proc.make_string_value(when.strip()))
-            elif (js.when!=None):
-                executable.set_parameter("when", proc.make_string_value(js.when.strip()))
+            elif (js['when']!=None):
+                executable.set_parameter("when", proc.make_string_value(js['when'].strip()))
             else:
                 old = proc.parse_xml(xml_file_name=record_file)
                 xpproc = proc.new_xpath_processor()

@@ -58,14 +58,18 @@
                             url="{$rec}";
                             if (inRec.nr !==undefined) {{
                                 alert("save de update voor record["+inRec.nr+"] to ["+url+"]!");
+                                out = JSON.stringify(outRec);
+                                console.log(out);
                                 $.ajax(
                                 {{
                                     type: "PUT",
                                     url: url,
+                                    contentType: 'application/json; charset=utf-8"',
                                     dataType: "json",
-                                    data: outRec,
+                                    processData: false,
+                                    data: out,
                                     success: function (msg) {{
-                                        alert ("TODO: relad the editor! ["+msg+"]");
+                                        alert ("TODO: reload the editor!");
                                     }},
                                     error: function (err) {{
                                         alert ("ERR: the save failed! ["+err+"]");
@@ -75,15 +79,20 @@
                                 }}
                                 );
                            }} else {{
-                                alert("save het (nieuwe) record to ["+url+"]!");
+                                alert("save het nieuwe record to ["+url+"]!");
+                                out = JSON.stringify(outRec);
+                                console.log(out);
                                 $.ajax(
                                 {{
                                     type: "POST",
                                     url: url,
+                                    contentType: 'application/json; charset=utf-8"',
                                     dataType: "json",
-                                    data: outRec,
+                                    processData: false,
+                                    data: out,
                                     success: function (msg) {{
-                                        alert ("TODO: reload the editor! ["+msg+"]");
+                                        alert ("TODO: reload the editor! ["+msg+"] record["+msg.nr+"]");
+                                        console.log(msg);
                                     }},
                                     error: function (err) {{
                                         alert ("ERR: the save failed! ["+err+"]");
