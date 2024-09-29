@@ -5,19 +5,19 @@ let server = 'http://localhost/ccf/'
 // console.log('server: ', server);
 
 var ccfOptions = {
-    uploadButton: {
-        actionURI: server + 'upload.php'
-    },
+    //uploadButton: {
+    //    actionURI: server + 'upload.php'
+    //},
     submitButton: {
-        actionURI: 'create_record.php',
+        actionURI: 'javascript:submitRec()',
         label: 'Submit'
     },
     saveButton: {
-        actionURI: 'javascript:saveRec()',
+        actionURI: 'javascript:saveRec("save")',
         label: 'Save'  
     },
     resetButton: {
-        actionURI: 'javascript:history.back()',
+        actionURI: 'javascript:history.recBrowser()',
         label: 'Back'
     },
     language: 'en',

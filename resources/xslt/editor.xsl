@@ -12,6 +12,8 @@
     <xsl:param name="rec" select="concat($base, '/app/', $app, '/record/', $nr)"/>
     <xsl:param name="prof" select="concat($base, '/profile/', $config/app/prof)"/>
 
+    <xsl:variable name="epoch" select="floor((current-dateTime() - xs:dateTime('1970-01-01T00:00:00')) div xs:dayTimeDuration('PT1S'))"/>
+
     <xsl:template name="main">
         <html lang="en" xsl:expand-text="yes">
             <head>
@@ -31,8 +33,40 @@
                     <xsl:text>
                         var inRec = null;
                         var outRec = null;
+                        
+                        function recBrowser() {{
+                            window.location.href = "{concat($base, '/app/', $app,"?refresh=",$epoch)}";
+                        }}
+                        
+                        function submitRec() {{
+                            $("#errorSpace").html("");
+                            panelError = document.createElement("div");
+                            inputOK = true;
+                            for (var key in validationProfiles) {{
+                                switch (getInputType($("#" + key))) {{
+                                    case "input":
+                                        validateInput(key);
+                                        break;
+                                    case "textarea":
+                                        validateTextArea(key);
+                                        break;
+                                    case "select":
+                                        validateSelect(key);
+                                        break;
+                                    default:
+                                        alert("Error: unknown input type!");
+                                        inputOK = false;
+                                        break;
+                                }}
+                            }}
+                            if (inputOK) {{
+                                saveRec("submit");
+                             }} else {{
+                                $("#errorSpace").append(errorSpace);
+                             }}
+                        }}
 
-                        function saveRec() {{
+                        function saveRec(action) {{
                             var rec = [];
                             $(".clonedComponent").each(function () {{
                                 $(this).attr("class", "component");
@@ -54,12 +88,10 @@
                             if (inRec.when!==undefined)
                                 outRec.when = inRec.when;
                             console.log(outRec);
-                            //TODO: keep the record in local store
+                            out = JSON.stringify(outRec);
+                            localStorage.setItem("{$rec}@{$epoch}.out",out);
                             url="{$rec}";
                             if (inRec.nr !==undefined) {{
-                                alert("save de update voor record["+inRec.nr+"] to ["+url+"]!");
-                                out = JSON.stringify(outRec);
-                                console.log(out);
                                 $.ajax(
                                 {{
                                     type: "PUT",
@@ -69,19 +101,16 @@
                                     processData: false,
                                     data: out,
                                     success: function (msg) {{
-                                        alert ("TODO: reload the editor!");
+                                        //location.reload();
                                     }},
                                     error: function (err) {{
-                                        alert ("ERR: the save failed! ["+err+"]");
+                                        alert ("ERR: the "+action+" failed! ["+err+"]");
                                         obj = {{"error": err}};
                                         console.log(obj);
                                     }}
                                 }}
                                 );
                            }} else {{
-                                alert("save het nieuwe record to ["+url+"]!");
-                                out = JSON.stringify(outRec);
-                                console.log(out);
                                 $.ajax(
                                 {{
                                     type: "POST",
@@ -91,11 +120,11 @@
                                     processData: false,
                                     data: out,
                                     success: function (msg) {{
-                                        alert ("TODO: reload the editor! ["+msg+"] record["+msg.nr+"]");
                                         console.log(msg);
+                                        window.location.replace("./"+msg.nr+"/editor");
                                     }},
                                     error: function (err) {{
-                                        alert ("ERR: the save failed! ["+err+"]");
+                                        alert ("ERR: the "+action+" failed! ["+err.msg+"]");
                                         obj = {{"error": err}};
                                         console.log(obj);
                                     }}
