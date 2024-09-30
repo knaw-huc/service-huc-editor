@@ -19,7 +19,15 @@
             <head>
                 <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
                 <title>{$config/app/title}</title>
-                <link rel="stylesheet" href="{$base}/static/css/style.css" type="text/css"/>
+                <xsl:choose>
+                    <xsl:when test="normalize-space($config/app/html/style)!=''">
+                        <link rel="stylesheet" href="{$base}/static/css/{$config/app/html/style}" type="text/css"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <link rel="stylesheet" href="{$base}/static/css/style.css" type="text/css"/>
+                    </xsl:otherwise>
+                </xsl:choose>
+                
                 <link rel="stylesheet" href="https://cmdicdn.sd.di.huc.knaw.nl/css/ccfstyle.css" type="text/css"/>
                 <link rel="stylesheet" href="https://cmdicdn.sd.di.huc.knaw.nl/css/autocomplete.css" type="text/css"/>
                 <link rel="stylesheet" href="https://cmdicdn.sd.di.huc.knaw.nl/css/jquery-ui.css" type="text/css"/>

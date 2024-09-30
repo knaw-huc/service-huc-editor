@@ -88,7 +88,7 @@
                 <Element name="genre">
                     <clariah:label xml:lang="en">Genre</clariah:label>
                     <clariah:explanation>Choose one or more of the following genres that apply to the dataset/resources (see https://skosmos.sd.di.huc.knaw.nl/ineo-informationtypes/en/ for all possible values): </clariah:explanation>
-                    <clariah:autoCompleteURI>skos_proxy.php?vocabulary=ineo-informationtypes</clariah:autoCompleteURI>
+                    <clariah:autoCompleteURI>/proxy/skosmos/sd/ineo-informationtypes</clariah:autoCompleteURI>
                     <!--cues-->
                 </Element>
                 <Element name="genreOther">
@@ -99,7 +99,7 @@
                 <Element name="topic">
                     <clariah:label xml:lang="en">Topic Classification</clariah:label>
                     <clariah:explanation>Choose one or more of the following topics (from NWO research list) that apply to the dataset/resource (see https://skosmos.sd.di.huc.knaw.nl/nwo-researchfields/en/ for all possible values): </clariah:explanation>
-                    <clariah:autoCompleteURI>skos_proxy.php?vocabulary=nwo-researchfields</clariah:autoCompleteURI>
+                    <clariah:autoCompleteURI>/proxy/skosmos/sd/nwo-researchfields</clariah:autoCompleteURI>
                     <!--cues-->
                 </Element>
                 <Element name="topicOther">
