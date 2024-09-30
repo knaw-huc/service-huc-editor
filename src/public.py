@@ -63,8 +63,10 @@ def get_proxy(inst:str,vocab:str | None=None,q: str | None = "*"):
         lbls = []
         for res in js['results']:
             lbls.append(res['prefLabel'])
+
+        res = {'query':"unit", 'suggestions':lbls}
         
-        return JSONResponse(jsonable_encoder(lbls))
+        return JSONResponse(jsonable_encoder(res))
 
 def prof_xml(id:str):
     profile_path = f"{settings.URL_DATA_PROFILES}/{id}"

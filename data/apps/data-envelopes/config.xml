@@ -1,0 +1,26 @@
+ <app>
+    <name>data-envelopes</name>
+    <title>HI Data Envelopes Editor</title>
+    <prof>clarin.eu:cr1:p_1708423613607</prof>
+    <html>
+        <title>string(/cmd:CMD/cmd:Components/cmd:DataEnvelope/cmd:BasicInformation/(cmd:title[@xml:lang='en'],cmd:title)[1])</title>
+        <style>data-envelopes.css</style>
+    </html>
+    <list>
+        <ns>
+            <cmd>http://www.clarin.eu/cmd/</cmd>
+        </ns>
+        <title>
+            <xpath>string(/cmd:CMD/cmd:Components/cmd:DataEnvelope/cmd:BasicInformation/(cmd:title[@xml:lang='en'],cmd:title)[1])</xpath>
+            <label>Dataset</label>
+            <sort>true</sort>
+            <filter>true</filter>
+        </title>
+        <status>
+            <xpath>string(/cmd:CMD/cmd:Components/cmd:DataEnvelope/cmd:status)</xpath>
+            <label>Status</label>
+            <sort>true</sort>
+            <filter>'select'</filter>
+        </status>
+    </list>
+</app>
