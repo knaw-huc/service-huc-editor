@@ -2,6 +2,8 @@ import logging
 import os
 import json
 import pathlib
+import toml
+import requests
 
 from fastapi import APIRouter, HTTPException
 from starlette import status
@@ -28,6 +30,41 @@ def info():
     logging.info("HuC Editor API Service")
     logging.debug("info")
     return {"name": "HuC Editor API Service", "version": data["service-version"]}
+
+@router.get('/proxy/skosmos/{inst}')
+@router.get('/proxy/skosmos/{inst}/{vocab}')
+def get_proxy(inst:str,vocab:str | None=None,q: str | None = "*"):
+    logging.info(f"proxy skosmos[{inst}] vocab[{vocab}] q[{q}]")
+    proxy_file = f"{settings.proxies_dir}/skosmos-{inst}.toml"
+    logging.info(f"proxy config[{proxy_file}]")
+    if not os.path.isfile(proxy_file):
+        return HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    
+    with open(proxy_file, 'r') as f:
+        proxy = toml.load(f)
+
+        if vocab == None:
+            vocab = proxy['base']['default']
+
+        if q.startswith('^'):
+            q = q.removeprefix('^') + "*"
+        else:
+            q = "*" + q + "*"
+
+        logging.info(f"proxy skosmos[{inst}] vocab[{vocab}] q[{q}]")
+        url=f"{proxy['base']['url']}/rest/v1/{vocab}/search"
+        params = {'unique': 'yes','lang': 'en','query': q}
+
+        r = requests.get(url, params=params)
+        logging.info(f"proxy[{r.url}] [{r.text}]")
+
+        js = json.loads(r.text)
+
+        lbls = []
+        for res in js['results']:
+            lbls.append(res['prefLabel'])
+        
+        return JSONResponse(jsonable_encoder(lbls))
 
 def prof_xml(id:str):
     profile_path = f"{settings.URL_DATA_PROFILES}/{id}"

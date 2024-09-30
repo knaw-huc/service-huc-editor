@@ -17,7 +17,7 @@ var ccfOptions = {
         label: 'Save'  
     },
     resetButton: {
-        actionURI: 'javascript:history.recBrowser()',
+        actionURI: 'javascript:recBrowser()',
         label: 'Back'
     },
     language: 'en',

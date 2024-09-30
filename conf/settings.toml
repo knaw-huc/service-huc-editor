@@ -13,6 +13,7 @@ url_data_apps = "@format ///{env[BASE_DIR]}/data/apps"
 disable_authentication = false
 
 
+proxies_dir = "@format {env[BASE_DIR]}/resources/proxies"
 xslt_dir = "@format {env[BASE_DIR]}/resources/xslt"
 
 log_file = "@format {env[BASE_DIR]}/logs/huc-editor-service.log"

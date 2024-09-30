@@ -29,6 +29,7 @@ saxonche = "^12.4.2"
 requests = "^2.32.2"
 pytest = "^8.2.1"
 weasyprint = "^62.3"
+toml = "^0.10.2"
 
 [build-system]
 requires = ["poetry-core"]
