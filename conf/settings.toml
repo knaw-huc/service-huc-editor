@@ -5,7 +5,7 @@ fastapi_title = "HuC Editor API Service"
 fastapi_description = ""
 SERVICE_HUC_EDITOR_API_KEY="foobar"
 
-
+url_base = "@format {env[BASE_URL]}"
 url_clarin_component_registry = "https://catalog.clarin.eu/ds/ComponentRegistry/rest/registry/1.x/profiles/%s/xml"
 url_data_profiles = "@format ///{env[BASE_DIR]}/data/profiles"
 url_data_apps = "@format ///{env[BASE_DIR]}/data/apps"

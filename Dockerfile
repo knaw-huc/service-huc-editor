@@ -8,6 +8,7 @@ USER huc
 WORKDIR /home/huc
 ENV PYTHONPATH=/home/huc/huc-editor-service/src
 ENV BASE_DIR=/home/huc/huc-editor-service
+ENV BASE_URL=${BASE_URL:-"http://localhost:1210"}
 
 RUN mkdir dev
 ADD pyproject.toml dev/pyproject.toml
