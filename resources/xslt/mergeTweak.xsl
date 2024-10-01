@@ -5,7 +5,7 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="3.0">
     
-    <xsl:param name="tweakFile" select="'file:/Users/menzowi/Documents/Projects/huc-cmdi-editor/service/data/profiles/clarin.eu:cr1:p_1721373443933/tweaks/tweak-1.xml'"/>
+    <xsl:param name="tweakFile" select="'file:/Users/menzowi/Documents/Projects/huc-cmdi-editor/service/data/profiles/clarin.eu:cr1:p_1708423613599/tweaks/tweak-1.xml'"/>
     <xsl:variable name="tweak" select="document($tweakFile)"/>
     
     <xsl:template match="node() | @*" mode="#all">
@@ -101,11 +101,18 @@
             <xsl:apply-templates select="$myTweak/clariah:*" mode="tweak-cue">
                 <xsl:with-param name="prof" select="." tunnel="yes"/>
             </xsl:apply-templates>
-            <xsl:apply-templates select="$myTweak/AutoValue" mode="copy"/>
+            <xsl:choose>
+                <xsl:when test="exists($myTweak/AutoValue)">
+                    <xsl:apply-templates select="$myTweak/AutoValue" mode="copy"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:apply-templates select="AutoValue" mode="copy"/>
+                </xsl:otherwise>
+            </xsl:choose>
             <xsl:if test="@ValueScheme='string' or normalize-space(@ValueScheme)='' and not(ValueScheme) and $myTweak/ValueScheme">
                 <xsl:apply-templates select="$myTweak/ValueScheme" mode="copy"/>
             </xsl:if>
-            <xsl:apply-templates select="* except clariah:*">
+            <xsl:apply-templates select="* except clariah:* except AutoValue">
                 <xsl:with-param name="tweak" select="$myTweak" tunnel="yes"/>
             </xsl:apply-templates>
         </xsl:copy>
@@ -130,10 +137,18 @@
             <xsl:apply-templates select="$myTweak/clariah:*" mode="tweak-cue">
                 <xsl:with-param name="prof" select="." tunnel="yes"/>
             </xsl:apply-templates>
+            <xsl:choose>
+                <xsl:when test="exists($myTweak/AutoValue)">
+                    <xsl:apply-templates select="$myTweak/AutoValue" mode="copy"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:apply-templates select="AutoValue" mode="copy"/>
+                </xsl:otherwise>
+            </xsl:choose>
             <xsl:if test="@ValueScheme='string' or normalize-space(@ValueScheme)='' and not(ValueScheme) and $myTweak/ValueScheme">
                 <xsl:apply-templates select="$myTweak/ValueScheme" mode="copy"/>
             </xsl:if>
-            <xsl:apply-templates select="* except clariah:*">
+            <xsl:apply-templates select="* except clariah:* except AutoValue">
                 <xsl:with-param name="tweak" select="$myTweak" tunnel="yes"/>
             </xsl:apply-templates>
         </xsl:copy>

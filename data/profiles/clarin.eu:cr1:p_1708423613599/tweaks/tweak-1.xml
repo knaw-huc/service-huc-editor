@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ComponentSpec isProfile="true" CMDVersion="1.2" CMDOriginalVersion="1.2" xsi:noNamespaceSchemaLocation="https://infra.clarin.eu/CMDI/1.x/xsd/cmd-component.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:cue="http://www.clarin.eu/cmd/cues/1" xmlns:clariah="http://www.clariah.eu/">
+    <Header>
+        <ID>clarin.eu:cr1:p_1708423613599</ID>
+    </Header>
+    <Component name="HI" CardinalityMin="1" CardinalityMax="1">
+        <Element name="status" cue:class="status"/>
+        <Component name="Dataset">
+            <Element name="license">
+                <AutoValue>default:creativecommons.org/licenses/by-nc-sa/4.0/</AutoValue>
+            </Element>
+            <Element name="publisher">
+                <AutoValue>default:www.huygens.knaw.nl</AutoValue>
+            </Element>
+            <Element name="description" cue:inputHeight="8" cue:inputWidth="60"/>
+            <Element name="created">
+                <AutoValue>now</AutoValue>
+            </Element>
+            <Element name="modified">
+                <AutoValue>now</AutoValue>
+            </Element>
+            <Element name="issued">
+                <AutoValue>now</AutoValue>
+            </Element>
+            <Component name="Distribution" ConceptLink="http://www.w3.org/ns/dcat#distribution">
+                <Element name="description" ConceptLink="http://purl.org/dc/terms/description" ValueScheme="string" cue:inputHeight="8" cue:inputWidth="60"/>
+                <Element name="modified">
+                    <AutoValue>now</AutoValue>
+                </Element>
+                <Element name="issued">
+                    <AutoValue>now</AutoValue>
+                </Element>
+                <Element name="license">
+                    <AutoValue>default:creativecommons.org/licenses/by-nc-sa/4.0/</AutoValue>
+                </Element>
+            </Component>
+        </Component>
+        <Component name="INEO">
+            <Element name="intro" cue:inputHeight="8" cue:inputWidth="60"/>
+            <Element name="researchActivity">
+                <clariah:autoCompleteURI>skos_proxy.php?vocabulary=tadirah</clariah:autoCompleteURI>
+            </Element>
+            <Element name="researchDomain">
+                <clariah:autoCompleteURI>skos_proxy.php?vocabulary=nwo-researchfields</clariah:autoCompleteURI>
+            </Element>
+            <Element name="informationType">
+                <clariah:autoCompleteURI>skos_proxy.php?vocabulary=ineo-informationtypes</clariah:autoCompleteURI>
+            </Element>
+            <Element name="mediaType">
+                <clariah:autoCompleteURI>skos_proxy.php?vocabulary=ineo-mediatypes</clariah:autoCompleteURI>
+            </Element>
+        </Component>
+    </Component>
+</ComponentSpec>

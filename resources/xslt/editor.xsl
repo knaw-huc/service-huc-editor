@@ -42,6 +42,13 @@
                         var inRec = null;
                         var outRec = null;
                         
+                        function setStatus(status) {{
+                            let id = document.evaluate('//select[@data-class="status"]/@id',document,null,XPathResult.STRING_TYPE,null).stringValue;
+                            alert(id);
+                            document.getElementById(id).value=status;
+
+                        }}
+                        
                         function recBrowser() {{
                             window.location.href = "{concat($base, '/app/', $app,"?refresh=",$epoch)}";
                         }}
@@ -75,6 +82,11 @@
                         }}
 
                         function saveRec(action) {{
+                            if (action==='submit')
+                                setStatus('publish');
+                            else
+                                setStatus('under construction');
+
                             var rec = [];
                             $(".clonedComponent").each(function () {{
                                 $(this).attr("class", "component");

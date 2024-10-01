@@ -65,7 +65,7 @@ def get_proxy(inst:str,vocab:str | None=None,q: str | None = "*"):
             lbls.append(res['prefLabel'])
 
         res = {'query':"unit", 'suggestions':lbls}
-        
+         
         return JSONResponse(jsonable_encoder(res))
 
 def prof_xml(id:str):
