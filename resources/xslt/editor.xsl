@@ -37,6 +37,9 @@
                 <script type="text/javascript" src="{$base}/static/js/ccf_config_en.js"><xsl:comment>keep alive</xsl:comment></script>
                 <script type="text/javascript" src="https://cmdicdn.sd.di.huc.knaw.nl/js/ccfparser.js"><xsl:comment>keep alive</xsl:comment></script>
 
+                <script type="text/javascript" src="{$base}/static/js/skos_list.js"><xsl:comment>keep alive</xsl:comment></script>
+                <link rel="stylesheet" href="{$base}/static/css/skos_list.css" type="text/css"/>
+                
                 <script>
                     <xsl:text>
                         var inRec = null;
@@ -44,8 +47,8 @@
                         
                         function setStatus(status) {{
                             let id = document.evaluate('//select[@data-class="status"]/@id',document,null,XPathResult.STRING_TYPE,null).stringValue;
-                            alert(id);
-                            document.getElementById(id).value=status;
+                            if (id !== undefined &amp;&amp; id !== '')
+                                document.getElementById(id).value=status;
 
                         }}
                         
@@ -169,6 +172,7 @@
                                                     inRec = json;
                                                     console.log(inRec);
                                                     formBuilder.start(inRec);
+                                                    bind_skos_lists();
                                                 }},
                                                 error: function (err) {{
                                                     obj = {{"error": err}};
@@ -195,6 +199,7 @@
                                                 inRec = {{id:"{$config/app/prof}", content: prof}}
                                                 console.log(inRec);
                                                 formBuilder.start(inRec);
+                                                bind_skos_lists();
                                             }},
                                             error: function (err) {{
                                                 obj = {{"error": err}};

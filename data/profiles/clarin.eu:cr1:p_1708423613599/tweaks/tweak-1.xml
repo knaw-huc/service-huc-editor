@@ -4,7 +4,7 @@
         <ID>clarin.eu:cr1:p_1708423613599</ID>
     </Header>
     <Component name="HI" CardinalityMin="1" CardinalityMax="1">
-        <Element name="status" cue:class="status"/>
+        <Element name="status" cue:class="status" cue:readonly="yes"/>
         <Component name="Dataset">
             <Element name="license">
                 <AutoValue>default:creativecommons.org/licenses/by-nc-sa/4.0/</AutoValue>

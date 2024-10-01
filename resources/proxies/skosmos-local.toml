@@ -1,0 +1,4 @@
+[base]
+title="local SKOSMOS"
+url="http://host.docker.internal:8880"
+default="nwo-researchfields"
