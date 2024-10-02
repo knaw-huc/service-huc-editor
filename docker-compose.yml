@@ -16,6 +16,6 @@ services:
       - '1210:1210'
 networks:
   sd-editor:
-    external: false
-    #external:
-    #  name: traefik-public
+    #external: false
+    external:
+      name: traefik-public
