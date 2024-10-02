@@ -7,9 +7,9 @@ services:
       - BASE_URL=https://editor.sd.di.huc.knaw.nl
     labels:
       - "traefik.enable=true"
-      - "traefik.http.services.sd-skosmos-fuseki.loadbalancer.server.port=1210"
-      - "traefik.http.routers.sd-skosmos-fuseki.entrypoints=http"
-      - "traefik.http.routers.sd-skosmos-fuseki.rule=Host(`editor.sd.di.huc.knaw.nl`)"
+      - "traefik.http.services.sd-editor.loadbalancer.server.port=1210"
+      - "traefik.http.routers.sd-editor.entrypoints=http"
+      - "traefik.http.routers.sd-editor.rule=Host(`editor.sd.di.huc.knaw.nl`)"
     networks:
       - sd-editor
     ports:
