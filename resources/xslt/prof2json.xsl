@@ -61,7 +61,7 @@
 
     <xsl:template match="@CardinalityMax">
         <xsl:next-match/>
-        <xsl:if test="string(.) = 'unbounded'">
+        <xsl:if test="string(.) = 'unbounded' and ../@Multilingual!='true'">
             <js:string key="duplicate">yes</js:string>
         </xsl:if>
     </xsl:template>

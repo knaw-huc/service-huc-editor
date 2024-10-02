@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ComponentSpec xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:cue="http://www.clarin.eu/cmd/cues/1" xmlns:cue_old="http://www.clarin.eu/cmdi/cues/1" isProfile="true" xsi:noNamespaceSchemaLocation="https://infra.clarin.eu/CMDI/1.1/general-component-schema.xsd">
+    <Header>
+        <ID>clarin.eu:cr1:p_1721373443934</ID>
+    </Header>
+    <Component name="CollectionHoldingInstitutions" CardinalityMin="1" CardinalityMax="1">
+    </Component>
+</ComponentSpec>
