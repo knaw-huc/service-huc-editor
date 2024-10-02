@@ -73,8 +73,15 @@ def convert_toml_to_xml(toml_file: str, xml_file: str):
     Example:
         convert_toml_to_xml('config.toml', 'config.xml')
     """
-    # Read the TOML file
-    toml_data = toml.load(toml_file)
+    try:
+        # Read the TOML file
+        toml_data = toml.load(toml_file)
+    except FileNotFoundError:
+        logging.error(f"File not found: {toml_file}")
+        raise ValueError("File not found")
+    except toml.TomlDecodeError as e:
+        logging.error(f"Error decoding TOML file: {e}")
+        raise ValueError("Error decoding TOML file")
 
     # Create XML root and build the tree
     root = dict_to_xml('root', toml_data)
