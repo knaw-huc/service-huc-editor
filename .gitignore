@@ -6,8 +6,6 @@ __pycache__
 *.pyc
 /venv/
 /conf/.secrets.toml
-data/apps/adoptie.zip
-/data/apps/adoptie/records
-/data/apps/data-envelopes/records
-/data/apps/nde/records
-data/apps/data-envelopes-20240930.zip
+#/data/apps/adoptie/records
+#/data/apps/data-envelopes/records
+#/data/apps/nde/records

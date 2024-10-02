@@ -1,0 +1,21 @@
+version: '2'
+
+services:
+  sd-editor:
+    image: registry.diginfra.net/tsd/huc-editor-services:2.0-RC1
+    environment:
+      - BASE_URL=https://editor.sd.di.huc.knaw.nl
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.sd-skosmos-fuseki.loadbalancer.server.port=1210"
+      - "traefik.http.routers.sd-skosmos-fuseki.entrypoints=http"
+      - "traefik.http.routers.sd-skosmos-fuseki.rule=Host(`editor.sd.di.huc.knaw.nl`)"
+    networks:
+      - sd-editor
+    ports:
+      - '1210:1210'
+networks:
+  sd-editor:
+    external: false
+    #external:
+    #  name: traefik-public
