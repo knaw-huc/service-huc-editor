@@ -1,6 +1,9 @@
 import importlib.metadata
 import logging
 import re
+import ast
+import xml.dom.minidom
+
 
 from dynaconf import Dynaconf
 import requests as req
@@ -55,17 +58,35 @@ def dict_to_xml(tag, d):
     for key, val in d.items():
         child = ET.Element(key)
         child.text = str(val) if not isinstance(val, dict) else None
+
+        try:
+            evaluated_list = ast.literal_eval(str(val))
+
+            # Check if the evaluated result is a list
+            is_list = isinstance(evaluated_list, list)
+            if is_list:
+                child = ET.Element(key)
+                elem.append(child)
+                for item in evaluated_list:
+                    item_el = ET.Element("item")
+                    item_el.text = item
+                    child.append(item_el)
+        except:
+            pass
+
         elem.append(child if not isinstance(val, dict) else dict_to_xml(key, val))
     return elem
 
 
-def convert_toml_to_xml(toml_file: str, xml_file: str):
+
+def convert_toml_to_xml(toml_file: str, xml_file: str, root_element: str = "root"):
     """
     Convert a TOML file to an XML file.
 
     Args:
         toml_file (str): The path to the input TOML file.
         xml_file (str): The path to the output XML file.
+        root_element (str): The root element name for the XML. Defaults to "root".
 
     This function reads the contents of a TOML file, converts it to an XML format,
     and writes the resulting XML to a specified file.
@@ -77,15 +98,25 @@ def convert_toml_to_xml(toml_file: str, xml_file: str):
         # Read the TOML file
         toml_data = toml.load(toml_file)
     except FileNotFoundError:
+        # Log an error if the file is not found and raise a ValueError
         logging.error(f"File not found: {toml_file}")
         raise ValueError("File not found")
     except toml.TomlDecodeError as e:
+        # Log an error if there is an issue decoding the TOML file and raise a ValueError
         logging.error(f"Error decoding TOML file: {e}")
         raise ValueError("Error decoding TOML file")
 
     # Create XML root and build the tree
-    root = dict_to_xml('root', toml_data)
+    root = dict_to_xml(root_element, toml_data)
     tree = ET.ElementTree(root)
 
-    # Write the XML to a file
-    tree.write(xml_file, encoding='utf-8', xml_declaration=True)
+    # Convert the XML tree to a string
+    rough_string = ET.tostring(tree.getroot(), 'utf-8')
+    # Parse the string with minidom
+    reparsed = xml.dom.minidom.parseString(rough_string)
+    # Pretty-print the XML
+    pretty_xml = reparsed.toprettyxml(indent="  ")
+
+    # Write the pretty-printed XML to a file
+    with open(xml_file, 'w', encoding='utf-8') as f:
+        f.write(pretty_xml)
