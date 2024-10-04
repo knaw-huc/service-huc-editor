@@ -110,7 +110,7 @@
                 <Element name="languages" cue:class="skosType">
                     <clariah:label xml:lang="en">Languages</clariah:label>
                     <clariah:explanation>This refers to the natural language used for textual metadata (i.e., titles, descriptions, etc.) of a cataloged resource (i.e., dataset or service) or the textual values of a dataset distribution. Choose one or more of the following languages (from ISO 639-2) of the dataset/resource: </clariah:explanation>
-                    <clariah:autoCompleteURI>/proxy/skosmos/clarin/ISO639-3</clariah:autoCompleteURI>
+                    <clariah:autoCompleteURI>/proxy/skosmos/clavas/ISO639-3</clariah:autoCompleteURI>
                     <!--cues-->
                 </Element>
                 <Element name="languageOther"><!--cues--></Element>

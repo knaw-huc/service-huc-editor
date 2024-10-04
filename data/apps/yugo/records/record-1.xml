@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cmd:CMD xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:cmd="http://www.clarin.eu/cmd/" xsi:schemaLocation="http://www.clarin.eu/cmd/ http://catalog.clarin.eu/ds/ComponentRegistry/rest/registry/profiles/clarin.eu:cr1:p_1721373443934/xsd" CMDVersion="1.1">
+    <cmd:Header>
+        <cmd:MdCreator>test</cmd:MdCreator>
+        <cmd:MdCreationDate>2024-09-16</cmd:MdCreationDate>
+        <cmd:MdSelfLink>unl://1</cmd:MdSelfLink>
+        <cmd:MdProfile>clarin.eu:cr1:p_1721373443934</cmd:MdProfile>
+    </cmd:Header>
+    <cmd:Resources>
+        <cmd:ResourceProxyList/>
+        <cmd:JournalFileProxyList/>
+        <cmd:ResourceRelationList/>
+        <cmd:IsPartOfList/>
+    </cmd:Resources>
+    <cmd:Components>
+        <cmd:CollectionHoldingInstitutions>
+            <cmd:status>under construction</cmd:status>
+            <cmd:CollectionHoldingInstitutionsIdentityArea>
+                <cmd:identifier>test001</cmd:identifier>
+                <cmd:typeOfInstitution>internation organisation</cmd:typeOfInstitution>
+                <cmd:Names>
+                    <cmd:authorisedForm xml:lang="en">United Nations International Residual Mechanism for Criminal Tribunals</cmd:authorisedForm>
+                    <cmd:parallelForm xml:lang="fr">Nations Unies Mécanisme international appelé à exercer les fonctions résiduelles des Tribunaux pénaux</cmd:parallelForm>
+                    <cmd:otherForm xml:lang="en">UN IRMCT</cmd:otherForm>
+                </cmd:Names>
+            </cmd:CollectionHoldingInstitutionsIdentityArea>
+            <cmd:Collection>
+                <cmd:collectioncore>
+                    <cmd:identificationArea>
+                        <cmd:referencecode>ICTY</cmd:referencecode>
+                        <cmd:dateOfAccumulationOrCreation>1993-01-01</cmd:dateOfAccumulationOrCreation>
+                        <cmd:dateOfAccumulationOrCreation>2017-12-31</cmd:dateOfAccumulationOrCreation>
+                        <cmd:levelOfDescription xml:lang="en">Fonds</cmd:levelOfDescription>
+                        <cmd:extentAndMedium xml:lang="en">2,500 linear metres of physical records; 2 PB of digital records</cmd:extentAndMedium>
+                        <cmd:titles>
+                            <cmd:title xml:lang="en">International Criminal Tribunal for the Former Yugoslavia (ICTY)</cmd:title>
+                            <cmd:parallelFormsOfTitles xml:lang="fr">Tribunal pénal international pour l’ex-Yougoslavie</cmd:parallelFormsOfTitles>
+                            <cmd:parallelFormsOfTitles xml:lang="ba">Međunarodni krivični sud za bivšu Jugoslaviju</cmd:parallelFormsOfTitles>
+                        </cmd:titles>
+                    </cmd:identificationArea>
+                    <cmd:contentAndStructureArea>
+                        <cmd:scopeAndContent xml:lang="en">The fonds consists of documents, photographs,transctripts, video-recordings, electronic records and physical artefacts created, obtained and used in the course of the operation of the International Criminal Tribunal for the former Yugoslaiva (ICTY), between its inception in 1993 and its closure in 2017. The fonds include the records of three ICTY organs: the Chambers, the Office of the Prosecutor and the Registry, and document various
+                            aspects of the ICTY's operations. The fonds is divided into two broad categories, judicial records and non-judicial records. </cmd:scopeAndContent>
+                        <cmd:accruals xml:lang="en">No further accruals are expected. </cmd:accruals>
+                        <cmd:systemOfArrangement xml:lang="en">The records of the ICTY fonds are divided into two broad categories: judicial case records and non-judicial records. Judicial case records (ICTY/JCR) are arranged in the catalogue by case, and then by the four main series of records generated during a case: filings, exhibits, transcripts, and audiovisual recordings of proceedings. Non-judicial records are arranged by function, following the ICTY retention schedule. The non-judicial
+                            records are divided into (1) records related to the judicial process, but which are not part of the case records, including functions carried out by the Office of the Prosecutor (OTP), and (2) administrative records. Records related to the judicial process but not part of the case records consist of: ICTY/JPM: Judicial proceedings management ICTY/PTP: Pre-trial proceedings management ICTY/TPM: Trial proceedings management ICTY/RPM: Review proceedings management
+                            ICTY/APM: Appeal proceedings management ICTY/PFJ: Post-final-judgement proceedings management ICTY/CAS: Court administration and support ICTY/DEM: Detention management ICTY/EAC: Expert and amicus curiae administration ICTY/JRM: Judicial records management ICTY/LSM: Language services management ICTY/SEE: Sentence enforcement ICTY/WAS: Witness assistance, support and protection ICTY/DTA: Defence Team administration ICTY/DET: Defence Team assistance ICTY/FAM: Financial
+                            aid management ICTY/INV: Investigation management ICTY/IND: ICTY indictment management ICTY/ART: Arrest and transfer ICTY/PPD: Prosecution policy and procedure development ICTY/PPT: Prosecution – pre-trial proceedings ICTY/PTR: Prosecution – trail proceedings ICTY/PRP: Prosecution – review proceedings ICTY/PAP: Prosecution – appeal proceedings +I1 ICTY/CRS: Case referral and support ICTY/FUT: Fugitive tracking ICTY/INM: Information management ICTY/INS: Information
+                            support ICTY/REA: Research and analysis ICTY/FRM: Request for Assistance (RFA) management Administrative records consist of: ICTY/AUM: Audit management ICTY/BUD: Budget management ICTY/FIM: Finance management ICTY/HRM: Human resources management ICTY/ICT: Information and Communications Technology (ICT) management ICTY/IMA: Insurance management ICTY/MSM: Mail services management ICTY/PRM: Premises management ICTY/PCM: Procurement management ICTY/PMA: Property
+                            management ICTY/SSM: Security management ICTY/TRM: Travel management ICTY/ERM: External relations management ICTY/OPM: Outreach Programme management ICTY/PIC: Public information management ICTY/GOV: Governance ICTY/EOR: ICTY Executive Offices records ICTY/RMA: Records management ICTY/AMA: Archives management In addition, there are five series of Special Collections which consists of: ICTY/COL/1: ICTY Official Photograph Collection ICTY/COL/2: ICTY Oral history project
+                            ICTY/COL/3: ICTY Staff Union ephemera ICTY/COL/4: ICTY Ephemera Collection ICTY/COL/5: ICTY Legacy Dialogues records</cmd:systemOfArrangement>
+                    </cmd:contentAndStructureArea>
+                    <cmd:conditionsOfAccessAndUseArea>
+                        <cmd:conditionsGoverningAccess xml:lang="en">Access to records is subject to the Access Policy for the Records held by the International Residual Mechanism for Criminal Tribunals (MICT/17/Rev.1). (https://www.irmct.org/sites/default/files/documents/190104-acces-policy-records-irmct.pdf)</cmd:conditionsGoverningAccess>
+                        <cmd:languageOrScriptsOfMaterial xml:lang="en">English; French; Bosnian; Croatian; Serbian; Macedonian; Albanian; Latin; Serbian Cyrilic; Macedonian Cyrilic; </cmd:languageOrScriptsOfMaterial>
+                        <cmd:findingAids xml:lang="en">Catalogue (https://irm-apw.adlibhosting.com/results); United Court Records Databaase User Guide (https://www.irmct.org/sites/default/files/documents/2020-09-Unified-Court-Records-User-Guide.pdf)</cmd:findingAids>
+                    </cmd:conditionsOfAccessAndUseArea>
+                    <cmd:descriptionControlArea>
+                        <cmd:descriptionIdentifierDRE>DRE author</cmd:descriptionIdentifierDRE>
+                        <cmd:languageOfDescription xml:lang="none">Eng; </cmd:languageOfDescription>
+                        <cmd:scriptOfDescription xml:lang="none">Latin; </cmd:scriptOfDescription>
+                        <cmd:sources xml:lang="none">www.icty.org; </cmd:sources>
+                        <cmd:rulesOrConventionsDREGuidelines xml:lang="none">ISAD(G); DRE Guidelines</cmd:rulesOrConventionsDREGuidelines>
+                        <cmd:datesOfDescription>2024-07-16</cmd:datesOfDescription>
+                    </cmd:descriptionControlArea>
+                </cmd:collectioncore>
+                <cmd:Fonds>
+                    <cmd:collectioncore>
+                        <cmd:identificationArea>
+                            <cmd:referencecode>ICTY/ JCR</cmd:referencecode>
+                            <cmd:dateOfAccumulationOrCreation>1993-01-01</cmd:dateOfAccumulationOrCreation>
+                            <cmd:dateOfAccumulationOrCreation>2017-12-31</cmd:dateOfAccumulationOrCreation>
+                            <cmd:levelOfDescription xml:lang="none">Sub-fonds</cmd:levelOfDescription>
+                            <cmd:titles>
+                                <cmd:title xml:lang="en">ICTY judicial case records</cmd:title>
+                            </cmd:titles>
+                        </cmd:identificationArea>
+                        <cmd:contentAndStructureArea>
+                            <cmd:scopeAndContent xml:lang="en">The sub-fonds contains judicial case records for ICTY cases. The ICTY's Office of the Prosecutor (OTP) issued its first indictment in November 1994. Between then and 2004, when the Security Council mandated the end of investigations as part of the ICTY's completion strategy, the OTP issued indictments against 161 individuals for crimes allegedly committed during the wars in Croatia (1991-1995), Bosnia and Herzegovina (1992-1995),
+                                    Kosovo (1999) and North Macedonia (2001). In addition to the individuals from these countries, a number of people from Federal Republic of Yugoslavia (which comprised Serbia and Montenegro) were indicted for crimes allegedly committed in Croatia, BiH and Kosovo. </cmd:scopeAndContent>
+                            <cmd:appraisalDestructionaAndSchedulingInfomation xml:lang="en">Permanent retention </cmd:appraisalDestructionaAndSchedulingInfomation>
+                            <cmd:accruals xml:lang="none">No further accruals are expected. </cmd:accruals>
+                            <cmd:systemOfArrangement xml:lang="en">he records are arranged by case and usually consist of: 1. filings – records related to the case which were submitted by a Chamber, Judge, Party or Non-Party (“Submitting Party”) and entered in the Case File by the Court Records Office 2. exhibits – records formally admitted into evidence by a Chamber 3. transcripts – verbatim, written records of court hearings or other proceedings before the Tribunal 4. audiovisual
+                                    recordings of court hearings or other proceedings There is a catalogue entry for each of these types of records for each case. However, not all of these types of records were created for every case. Where no such records were created for the case in question, the relevant catalogue entry will note this. In addition to the Case File, a separate file was kept for correspondence related to the case (addressed to/from the Chamber, a Judge, a Party or a Non-Party)
+                                    that was not submitted for filing or annexed to a filing as supporting material ("Correspondence File"). This correspondence was not part of the case record, but was maintained separately by the Court Management and Support Services Section.</cmd:systemOfArrangement>
+                        </cmd:contentAndStructureArea>
+                        <cmd:conditionsOfAccessAndUseArea>
+                            <cmd:conditionsGoverningAccess xml:lang="en">Access to records is subject to the Access Policy for the Records held by the International Residual Mechanism for Criminal Tribunals (MICT/17/Rev.1) (https://www.irmct.org/sites/default/files/documents/190104-acces-policy-records-irmct.pdf)</cmd:conditionsGoverningAccess>
+                            <cmd:languageOrScriptsOfMaterial xml:lang="en">English; French; Bosnian; Croatian; Serbian; Macedonian; Albanian; Dutch; Spanish; Norwegian; English Latin; French Latin; Bosnian/ Croatian Latin; Serbian Cyrilic; Macedonian Cyrilic; Albanian Latin; </cmd:languageOrScriptsOfMaterial>
+                            <cmd:findingAids xml:lang="en">Catalogue (https://irm-apw.adlibhosting.com/results); United Court Records Databaase User Guide (https://www.irmct.org/sites/default/files/documents/2020-09-Unified-Court-Records-User-Guide.pdf)</cmd:findingAids>
+                        </cmd:conditionsOfAccessAndUseArea>
+                        <cmd:alliedMaterialsArea>
+                            <cmd:relatedUnitOfDescription xml:lang="en">For judicial case correspondence files, see ICTY/CAS/8</cmd:relatedUnitOfDescription>
+                        </cmd:alliedMaterialsArea>
+                    </cmd:collectioncore>
+                </cmd:Fonds>
+            </cmd:Collection>
+        </cmd:CollectionHoldingInstitutions>
+    </cmd:Components>
+</cmd:CMD>
+
