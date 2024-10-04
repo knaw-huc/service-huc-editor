@@ -28,16 +28,14 @@ security = HTTPBasic(auto_error=False)
 
 def get_current_user(credentials: Optional[HTTPBasicCredentials] = Depends(security)):
     if not credentials:
-        print("----no credentials")
+        logging.debug("---no credentials---")
         return None
 
-    correct_username = "user"
-    correct_password = "password"
-    if credentials.username != correct_username or credentials.password != correct_password:
-        print("----no credentials")
+    correct_username = "guest"
+    if credentials.username != correct_username:
+        logging.debug("---no credentials---")
         return None
 
-    print("----credentials")
     return credentials.username
 @router.get('/info')
 def info(username: str = Depends(get_current_user)):
