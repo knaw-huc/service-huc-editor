@@ -29,17 +29,18 @@
             <js:number key="level" xsl:expand-text="yes">{$level}</js:number>
             <js:string key="ID" xsl:expand-text="yes">{generate-id()}</js:string>
             <js:map key="attributes">
-                <xsl:variable name="attrs">
+                <xsl:variable name="attrs" as="node()*">
                     <xsl:apply-templates select="@* | * except Component except Element"/>
                     <js:string key="initialOrder" xsl:expand-text="yes">{position()}</js:string>
                 </xsl:variable>
-                <xsl:for-each-group select="$attrs" group-by="@key">
+                <xsl:for-each-group select="$attrs except $attrs/self::js:array except $attrs/self::map" group-by="@key">
                     <xsl:variable name="vals" select="js:distinct-values(js:current-group())"/>
                     <xsl:if test="js:count($vals) gt 1">
                         <xsl:message expand-text="yes">component attr[{current-grouping-key()}] multiple values[{string-join($vals,',')}]</xsl:message>
                     </xsl:if>
                     <js:string key="{current-grouping-key()}" xsl:expand-text="yes">{$vals[1]}</js:string>
                 </xsl:for-each-group>
+                <xsl:copy-of select="($attrs/self::js:array,$attrs/self::js:map)"/>
             </js:map>
             <js:array key="content">
                 <xsl:variable name="maxOrder" select="max((Component | Element)/@cue:displayOrder) + 1"/>
@@ -58,17 +59,18 @@
             <js:number key="level" xsl:expand-text="yes">{$level}</js:number>
             <js:string key="ID" xsl:expand-text="yes">{generate-id()}</js:string>
             <js:map key="attributes">
-                <xsl:variable name="attrs">
-                    <xsl:apply-templates select="@* | *"/>
+                <xsl:variable name="attrs" as="node()*">
+                    <xsl:apply-templates select="@* | * except Component except Element"/>
                     <js:string key="initialOrder" xsl:expand-text="yes">{position()}</js:string>
                 </xsl:variable>
-                <xsl:for-each-group select="$attrs" group-by="@key">
+                <xsl:for-each-group select="$attrs except $attrs/self::js:array except $attrs/self::map" group-by="@key">
                     <xsl:variable name="vals" select="js:distinct-values(js:current-group())"/>
                     <xsl:if test="js:count($vals) gt 1">
                         <xsl:message expand-text="yes">element attr[{current-grouping-key()}] multiple values[{string-join($vals,',')}]</xsl:message>
                     </xsl:if>
                     <js:string key="{current-grouping-key()}" xsl:expand-text="yes">{$vals[1]}</js:string>
                 </xsl:for-each-group>
+                <xsl:copy-of select="($attrs/self::js:array,$attrs/self::js:map)"/>
             </js:map>
         </js:map>
     </xsl:template>
