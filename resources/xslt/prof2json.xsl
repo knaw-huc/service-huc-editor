@@ -29,13 +29,22 @@
             <js:number key="level" xsl:expand-text="yes">{$level}</js:number>
             <js:string key="ID" xsl:expand-text="yes">{generate-id()}</js:string>
             <js:map key="attributes">
-                <xsl:apply-templates select="@* | * except Component except Element"/>
-                <js:string key="initialOrder" xsl:expand-text="yes">{position()}</js:string>
+                <xsl:variable name="attrs">
+                    <xsl:apply-templates select="@* | * except Component except Element"/>
+                    <js:string key="initialOrder" xsl:expand-text="yes">{position()}</js:string>
+                </xsl:variable>
+                <xsl:for-each-group select="$attrs" group-by="@key">
+                    <xsl:variable name="vals" select="js:distinct-values(js:current-group())"/>
+                    <xsl:if test="js:count($vals) gt 1">
+                        <xsl:message expand-text="yes">component attr[{current-grouping-key()}] multiple values[{string-join($vals,',')}]</xsl:message>
+                    </xsl:if>
+                    <js:string key="{current-grouping-key()}" xsl:expand-text="yes">{$vals[1]}</js:string>
+                </xsl:for-each-group>
             </js:map>
             <js:array key="content">
-                <xsl:variable name="maxOrder" select="max((Component | Element)/@cue:displayOrder)+1"/>
+                <xsl:variable name="maxOrder" select="max((Component | Element)/@cue:displayOrder) + 1"/>
                 <xsl:apply-templates select="Component | Element">
-                    <xsl:sort select="(@cue:displayOrder,$maxOrder)[1]" data-type="number"/>
+                    <xsl:sort select="(@cue:displayOrder, $maxOrder)[1]" data-type="number"/>
                     <xsl:with-param name="level" select="$level + 1" tunnel="yes"/>
                 </xsl:apply-templates>
             </js:array>
@@ -49,8 +58,17 @@
             <js:number key="level" xsl:expand-text="yes">{$level}</js:number>
             <js:string key="ID" xsl:expand-text="yes">{generate-id()}</js:string>
             <js:map key="attributes">
-                <xsl:apply-templates select="@* | *"/>
-                <js:string key="initialOrder" xsl:expand-text="yes">{position()}</js:string>
+                <xsl:variable name="attrs">
+                    <xsl:apply-templates select="@* | *"/>
+                    <js:string key="initialOrder" xsl:expand-text="yes">{position()}</js:string>
+                </xsl:variable>
+                <xsl:for-each-group select="$attrs" group-by="@key">
+                    <xsl:variable name="vals" select="js:distinct-values(js:current-group())"/>
+                    <xsl:if test="js:count($vals) gt 1">
+                        <xsl:message expand-text="yes">element attr[{current-grouping-key()}] multiple values[{string-join($vals,',')}]</xsl:message>
+                    </xsl:if>
+                    <js:string key="{current-grouping-key()}" xsl:expand-text="yes">{$vals[1]}</js:string>
+                </xsl:for-each-group>
             </js:map>
         </js:map>
     </xsl:template>
@@ -61,7 +79,7 @@
 
     <xsl:template match="@CardinalityMax">
         <xsl:next-match/>
-        <xsl:if test="string(.) = 'unbounded' and ../@Multilingual!='true'">
+        <xsl:if test="string(.) = 'unbounded' and ../normalize-space(@Multilingual) != 'true'">
             <js:string key="duplicate">yes</js:string>
         </xsl:if>
     </xsl:template>
@@ -75,14 +93,14 @@
 
     <xsl:function name="functx:capitalize-first" as="xs:string?">
         <xsl:param name="arg" as="xs:string?"/>
-        
+
         <xsl:sequence select="
-            concat(upper-case(substring($arg,1,1)),
-            substring($arg,2))
-            "/>
-        
+                concat(upper-case(substring($arg, 1, 1)),
+                substring($arg, 2))
+                "/>
+
     </xsl:function>
-    
+
     <xsl:function name="functx:camel-case-to-words" as="xs:string">
         <xsl:param name="arg" as="xs:string?"/>
         <xsl:param name="delim" as="xs:string"/>
@@ -98,13 +116,13 @@
     <xsl:template match="@name">
         <xsl:next-match/>
         <xsl:if test="empty(parent::*/clariah:label)">
-            <xsl:variable name="label" select="functx:capitalize-first(functx:camel-case-to-words(string(.),' '))"/>
-            <xsl:if test="normalize-space($label)!=''">
+            <xsl:variable name="label" select="functx:capitalize-first(functx:camel-case-to-words(string(.), ' '))"/>
+            <xsl:if test="normalize-space($label) != ''">
                 <js:string key="label" xsl:expand-text="yes">{$label}</js:string>
             </xsl:if>
         </xsl:if>
     </xsl:template>
-    
+
     <xsl:template match="@cue:inputHeight">
         <js:string key="height" xsl:expand-text="yes">{string(.)}</js:string>
         <js:string key="inputField">multiple</js:string>
@@ -112,7 +130,7 @@
 
     <xsl:template match="@cue:inputWidth">
         <js:string key="width" xsl:expand-text="yes">{string(.)}</js:string>
-        <xsl:if test="normalize-space(parent::*/@cue:inputHeight)=''">
+        <xsl:if test="normalize-space(parent::*/@cue:inputHeight) = ''">
             <js:string key="inputField">single</js:string>
         </xsl:if>
     </xsl:template>
@@ -120,12 +138,12 @@
     <xsl:template match="clariah:*">
         <js:string key="{local-name()}" xsl:expand-text="yes">{string(.)}</js:string>
     </xsl:template>
-    
+
     <xsl:template match="clariah:value"/>
-    
+
     <xsl:template match="AutoValue">
         <xsl:choose>
-            <xsl:when test="string(.)='now'">
+            <xsl:when test="string(.) = 'now'">
                 <js:string key="autoValue" xsl:expand-text="yes">{current-date()}</js:string>
             </xsl:when>
             <xsl:otherwise>
@@ -133,16 +151,16 @@
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
-    
+
     <xsl:template match="AttributeList">
         <js:array key="attributeList">
             <!-- TODO -->
         </js:array>
     </xsl:template>
-    
+
     <xsl:template match="ValueScheme">
         <xsl:choose>
-            <xsl:when test="normalize-space(pattern)!=''">
+            <xsl:when test="normalize-space(pattern) != ''">
                 <js:string key="pattern" xsl:expand-text="yes">{normalize-space(pattern)}</js:string>
                 <js:string key="ValueScheme">string</js:string>
             </xsl:when>
@@ -151,10 +169,10 @@
                     <js:array>
                         <xsl:for-each select=".//item">
                             <js:map>
-                                <xsl:if test="normalize-space(clariah:label)!=''">
+                                <xsl:if test="normalize-space(clariah:label) != ''">
                                     <js:string key="label" xsl:expand-text="yes">{normalize-space(clariah:label)}</js:string>
                                 </xsl:if>
-                                <xsl:if test="normalize-space(clariah:value)!=''">
+                                <xsl:if test="normalize-space(clariah:value) != ''">
                                     <js:string key="value" xsl:expand-text="yes">{normalize-space(clariah:value)}</js:string>
                                 </xsl:if>
                             </js:map>

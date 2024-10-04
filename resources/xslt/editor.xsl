@@ -36,9 +36,8 @@
                 <script type="text/javascript" src="https://cmdicdn.sd.di.huc.knaw.nl/js/jquery-ui/jquery-ui.js"><xsl:comment>keep alive</xsl:comment></script>
                 <script type="text/javascript" src="{$base}/static/js/ccf_config_en.js"><xsl:comment>keep alive</xsl:comment></script>
                 <script type="text/javascript" src="https://cmdicdn.sd.di.huc.knaw.nl/js/ccfparser.js"><xsl:comment>keep alive</xsl:comment></script>
-
-                <script type="text/javascript" src="{$base}/static/js/skos_list.js"><xsl:comment>keep alive</xsl:comment></script>
-                <link rel="stylesheet" href="{$base}/static/css/skos_list.css" type="text/css"/>
+                <script type="text/javascript" src="https://cmdicdn.sd.di.huc.knaw.nl/js/plugins/skos_list/skos_list.js"><xsl:comment>keep alive</xsl:comment></script>
+                <link rel="stylesheet" href="https://cmdicdn.sd.di.huc.knaw.nl/js/plugins/skos_list/skos_list.css" type="text/css"/>
                 
                 <script>
                     <xsl:text>
@@ -50,6 +49,13 @@
                             if (id !== undefined &amp;&amp; id !== '')
                                 document.getElementById(id).value=status;
 
+                        }}
+                        
+                        function setLanguages() {{
+                            formBuilder.def_language = "{($config/app/lang/def[normalize-space(.)!=''],'en')[1]}";
+                            let all = ['{string-join($config/app/lang/all/*,''',''')}'];
+                            if (all[0]!='')
+                                formBuilder.languages = all;
                         }}
                         
                         function recBrowser() {{
@@ -171,6 +177,7 @@
                                                 success: function (json) {{
                                                     inRec = json;
                                                     console.log(inRec);
+                                                    setLanguages();
                                                     formBuilder.start(inRec);
                                                     bind_skos_lists();
                                                 }},
@@ -198,6 +205,7 @@
                                                 prof = json;
                                                 inRec = {{id:"{$config/app/prof}", content: prof}}
                                                 console.log(inRec);
+                                                setLanguages();
                                                 formBuilder.start(inRec);
                                                 bind_skos_lists();
                                             }},
