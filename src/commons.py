@@ -1,5 +1,6 @@
 import importlib.metadata
 import logging
+import os
 import re
 import ast
 import xml.dom.minidom
@@ -13,8 +14,13 @@ from starlette import status
 import toml
 import xml.etree.ElementTree as ET
 
-settings = Dynaconf(settings_files=["conf/settings.toml", "conf/.secrets.toml"],
-                    environments=True)
+os.environ["BASE_DIR"] = os.getenv("BASE_DIR", os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+settings = Dynaconf(
+    settings_files=['conf/*settings.toml', 'conf/.secrets.toml'],
+    root_path=os.getenv("BASE_DIR"), environments=True
+)
+
 logging.basicConfig(filename=settings.LOG_FILE, level=settings.LOG_LEVEL,
                     format=settings.LOG_FORMAT)
 data = {}
