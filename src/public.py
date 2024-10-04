@@ -2,6 +2,8 @@ import logging
 import os
 import json
 import pathlib
+from typing import Optional
+
 import toml
 import requests
 
@@ -20,9 +22,24 @@ from src.commons import data, settings, tweak_nr
 
 router = APIRouter()
 
+from fastapi import Depends
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
+security = HTTPBasic(auto_error=False)
 
+def get_current_user(credentials: Optional[HTTPBasicCredentials] = Depends(security)):
+    if not credentials:
+        logging.debug("---no credentials---")
+        return None
+
+    correct_username = "guest"
+    if credentials.username != correct_username:
+        logging.debug("---no credentials---")
+        return None
+
+    return credentials.username
 @router.get('/info')
-def info():
+def info(username: str = Depends(get_current_user)):
+
     """
     Endpoint to get the information about the HuC Editor API Service.
     This endpoint does not require any parameters and returns a JSON object containing the name and version of the service.
@@ -248,8 +265,16 @@ class RecForm(str, Enum):
     pdf = "pdf"
 
 @router.get('/app/{app}/record/{nr}')
-@router.get('/app/{app}/record/{nr}/{form}')
-def get_record(request: Request, app: str, nr: str, form: RecForm | None = RecForm.html):
+def get_record(request: Request, app: str, nr: str ):
+    if nr.count('.') == 0:
+        form = "html"
+    elif nr.count('.') == 1:
+        nr, form = nr.rsplit('.', 1)
+    else:
+        return HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not supported")
+
+    if form not in ["json", "xml", "html", "pdf"]:
+        return HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not supported")
     """
     Endpoint to get a record based on its ID and the application name.
     This endpoint accepts the application name and the ID as path parameters.
@@ -264,7 +289,7 @@ def get_record(request: Request, app: str, nr: str, form: RecForm | None = RecFo
         logging.debug(f"{record_file} doesn't exist")
         return HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     
-    if form == RecForm.json or "application/json" in request.headers.get("accept", ""):
+    if form == "json" or "application/json" in request.headers.get("accept", ""):
         with PySaxonProcessor(license=False) as proc:
             rec = proc.parse_xml(xml_file_name=record_file)
             xpproc = proc.new_xpath_processor()
