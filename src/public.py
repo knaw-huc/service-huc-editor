@@ -10,13 +10,12 @@ import requests
 from fastapi import APIRouter, HTTPException
 from starlette import status
 from starlette.requests import Request
-from starlette.responses import JSONResponse, HTMLResponse, Response
+from starlette.responses import JSONResponse, HTMLResponse, Response, RedirectResponse
 from fastapi.encoders import jsonable_encoder
 from enum import Enum
 from weasyprint import HTML
 
 from saxonche import PySaxonProcessor, PyXdmValue, PySaxonApiError
-
 
 from src.commons import data, settings, tweak_nr
 
@@ -37,6 +36,7 @@ def get_current_user(credentials: Optional[HTTPBasicCredentials] = Depends(secur
         return None
 
     return credentials.username
+
 @router.get('/info')
 def info(username: str = Depends(get_current_user)):
 
@@ -47,6 +47,25 @@ def info(username: str = Depends(get_current_user)):
     logging.info("HuC Editor API Service")
     logging.debug("info")
     return {"name": "HuC Editor API Service", "version": data["service-version"]}
+
+@router.get('/proxy/skosmos/{inst}/home')
+@router.get('/proxy/skosmos/{inst}/{vocab}/home')
+def get_proxy(inst:str,vocab:str | None=None):
+    logging.info(f"proxy skosmos[{inst}] vocab[{vocab}] home")
+    proxy_file = f"{settings.proxies_dir}/skosmos-{inst}.toml"
+    logging.info(f"proxy config[{proxy_file}]")
+    if not os.path.isfile(proxy_file):
+        return HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    
+    with open(proxy_file, 'r') as f:
+        proxy = toml.load(f)
+
+        if vocab == None:
+            vocab = proxy['base']['default']
+
+        url=f"{proxy['base']['url']}/{vocab}/en/"
+        return RedirectResponse(url=url)
+        
 
 @router.get('/proxy/skosmos/{inst}')
 @router.get('/proxy/skosmos/{inst}/{vocab}')
