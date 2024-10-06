@@ -2,9 +2,14 @@
 name="yugo"
 title="NIOD Yugoslavia Editor"
 prof="clarin.eu:cr1:p_1721373443934"
+lang.def="en"
+lang.all.i1="en"
+lang.all.i2="fr"
+lang.all.i3="bos"
 
 [app.html]
 title="string(//cmd:authorisedForm)"
+style="yugo.css"
 
 [app.list]
 ns.cmd="http://www.clarin.eu/cmd/"
