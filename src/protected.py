@@ -136,7 +136,7 @@ async def create_app(app: str):
     return JSONResponse({"message": f"App[{app}] already exist!"}, status_code=status.HTTP_200_OK)
 
 
-@router.post("/app/{app}/record", status_code=status.HTTP_201_CREATED)
+@router.post("/app/{app}/record/", status_code=status.HTTP_201_CREATED)
 async def create_record(request: Request, app: str, prof: str | None = None, redir: str | None = "yes"):
     """
     Endpoint to create a record for an application.
