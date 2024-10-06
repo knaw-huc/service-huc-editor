@@ -96,6 +96,18 @@
 
     <xsl:template match="js:map[js:string[@key = 'type'] = 'component']">
         <xsl:element name="cmd:{js:string[@key='name']}" namespace="{$cmd-ns}">
+            <xsl:for-each select="js:map[@key='attributes']/*">
+                <xsl:choose>
+                    <xsl:when test="@key='lang'">
+                        <xsl:attribute name="xml:lang" select="."/> 
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:comment>
+                                <xsl:attribute name="{@key}" select="."/>
+                            </xsl:comment>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:for-each>
             <xsl:apply-templates select="js:array[@key = 'content']/js:map">
                 <xsl:sort select="*[@key = 'sortOrder']" data-type="number"/>
             </xsl:apply-templates>
