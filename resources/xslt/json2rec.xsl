@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:functx="http://www.functx.com" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:math="http://www.w3.org/2005/xpath-functions/math" xmlns:js="http://www.w3.org/2005/xpath-functions" exclude-result-prefixes="xs math functx" version="3.0">
 
-    <xsl:param name="js-uri" select="'file:/Users/menzowi/Documents/Projects/huc-cmdi-editor/service/tests/record-fromEditor.json'"/>
+    <xsl:param name="js-uri" select="'file:/Users/menzowi/Temp/rec.js'"/>
     <xsl:param name="js-doc" select="
             if (js:unparsed-text-available($js-uri)) then
                 (unparsed-text($js-uri))
@@ -90,6 +90,7 @@
     </xsl:template>
 
     <xsl:template match="/">
+        <!--<xsl:copy-of select="$js-xml"/>-->
         <xsl:call-template name="main"/>
     </xsl:template>
 
@@ -102,9 +103,24 @@
     </xsl:template>
 
     <xsl:template match="js:map[js:string[@key = 'type'] = 'element']">
-        <xsl:element name="cmd:{js:string[@key='name']}" namespace="{$cmd-ns}">
-            <xsl:value-of select="js:array[@key = 'content']/js:map/js:string[@key = 'value']"/>
-        </xsl:element>
+        <xsl:variable name="e" select="."/>
+        <xsl:for-each select="$e/js:array[@key = 'content']/js:map">
+            <xsl:element name="cmd:{$e/js:string[@key='name']}" namespace="{$cmd-ns}">
+                <xsl:for-each select="js:map[@key='attributes']/*">
+                    <xsl:choose>
+                        <xsl:when test="@key='lang'">
+                            <xsl:attribute name="xml:lang" select="."/> 
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:comment>
+                                <xsl:attribute name="{@key}" select="."/>
+                            </xsl:comment>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:for-each>
+                <xsl:value-of select="js:string[@key = 'value']"/>
+            </xsl:element>
+        </xsl:for-each>
     </xsl:template>
 
 </xsl:stylesheet>

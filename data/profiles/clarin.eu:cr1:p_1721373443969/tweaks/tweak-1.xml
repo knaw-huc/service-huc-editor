@@ -56,7 +56,7 @@
         <Component name="Collection">
             <Element name="personRef" cue:class="skosType">
                 <!--cues-->
-                <clariah:autoCompleteURI>/proxy/skosmos/local/yugo-personss</clariah:autoCompleteURI>
+                <clariah:autoCompleteURI>/proxy/skosmos/sd/yugo-persons</clariah:autoCompleteURI>
             </Element>
             <Component name="PathToCollection">
                 <Component name="Step">
