@@ -1,8 +1,183 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<ComponentSpec xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:cue="http://www.clarin.eu/cmd/cues/1" xmlns:cue_old="http://www.clarin.eu/cmdi/cues/1" isProfile="true" xsi:noNamespaceSchemaLocation="https://infra.clarin.eu/CMDI/1.1/general-component-schema.xsd">
+<?xml version="1.0" encoding="UTF-8"?><ComponentSpec xmlns:clariah="http://www.clariah.eu/" xmlns:cue="http://www.clarin.eu/cmd/cues/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" isProfile="true" CMDVersion="1.2" CMDOriginalVersion="1.2" xsi:noNamespaceSchemaLocation="https://infra.clarin.eu/CMDI/1.x/xsd/cmd-component.xsd">
     <Header>
         <ID>clarin.eu:cr1:p_1721373443969</ID>
+        <Name>CollectionHoldingInstitutionsWithPath</Name>
+        <Description>Collection holdings Institutions and its collections</Description>
+        <Status>development</Status>
+        <DerivedFrom>clarin.eu:cr1:p_1721373443934</DerivedFrom>
     </Header>
-    <Component name="CollectionHoldingInstitutions" CardinalityMin="1" CardinalityMax="1">
+    <Component name="CollectionHoldingInstitutionsWithPath">
+        <Element name="status">
+            
+        </Element>
+        <Component name="CollectionHoldingInstitutionsIdentityArea">
+            <Element name="identifier"><!--cues--></Element>
+            <Element name="typeOfInstitution">                
+            </Element>
+            <Component name="Names">
+                <Element name="authorisedForm"><!--cues--></Element>
+                <Element name="parallelForm"><!--cues--></Element>
+                <Element name="otherForm"><!--cues--></Element>
+            </Component>
+        </Component>
+        <Component name="CollectionHoldingInstitutionsContactArea">
+            <Element name="city"><!--cues--></Element>
+            <Element name="regionProvince">
+                <Documentation>Region or province where CHI is located</Documentation>
+            </Element>
+            <Element name="country">
+                <Documentation>Country where CHI is located</Documentation>
+            </Element>
+            <Element name="telephoneNumber">
+                <Documentation>Telephone number of CHI</Documentation>
+            </Element>
+            <Element name="faxNumber"><!--cues--></Element>
+            <Element name="email"><!--cues--></Element>
+            <Element name="website"><!--cues--></Element>
+            <Element name="contactPerson"><!--cues--></Element>
+            <Component name="locationsAndAdresses">
+                <Documentation>Addresses of CHI</Documentation>
+                <Element name="Adress">
+                    <Documentation>adress of CHI</Documentation>
+                </Element>
+                <Element name="additionalPostAdress"><!--cues--></Element>
+            </Component>
+        </Component>
+        <Component name="CollectionHoldingInstitutionsDescriptionArea">
+            <Element name="history"><!--cues--></Element>
+            <Element name="geographicalAndCulturalContext"><!--cues--></Element>
+            <Element name="mandatesSourcesofAuthority"><!--cues--></Element>
+            <Element name="administrativeStructure"><!--cues--></Element>
+            <Element name="recordsManagmentAndCollectingPolicies"><!--cues--></Element>
+            <Element name="buildings"><!--cues--></Element>
+            <Element name="archivalHoldings"><!--cues--></Element>
+            <Element name="findingAidsGuidesPublications"><!--cues--></Element>
+        </Component>
+        <Component name="Collection">
+            <Element name="personRef" cue:class="skosType">
+                <!--cues-->
+                <clariah:autoCompleteURI>/proxy/skosmos/local/yugo-personss</clariah:autoCompleteURI>
+            </Element>
+            <Component name="PathToCollection">
+                <Component name="Step">
+                    <Element name="level">
+                        
+                    </Element>
+                    <Element name="identifier"><!--cues--></Element>
+                </Component>
+            </Component>
+            <Component name="collectioncore">
+                <Component name="identificationArea">
+                    <Documentation>Information about collection/fonds/archive</Documentation>
+                    <Element name="referencecode"><!--cues--></Element>
+                    <Element name="dateOfAccumulationOrCreation">
+                        <Documentation>date of accumulation or creation</Documentation>
+                    </Element>
+                    <Element name="levelOfDescription">
+                        <Documentation>Level of Description</Documentation>
+                    </Element>
+                    <Element name="extentAndMedium">
+                        <Documentation>Extent And Medium</Documentation>
+                    </Element>
+                    <Component name="titles">
+                        <Documentation>titles</Documentation>
+                        <Element name="title">
+                            <Documentation>title</Documentation>
+                        </Element>
+                        <Element name="parallelFormsOfTitles">
+                            <Documentation>parallel forms of titles</Documentation>
+                        </Element>
+                    </Component>
+                </Component>
+                <Component name="contextArea">
+                    <Documentation>archival history</Documentation>
+                    <Element name="archivalHistory">
+                        <Documentation>archival history</Documentation>
+                    </Element>
+                    <Element name="immediateSourceOfAcquisitonOrTransfer"><!--cues--></Element>
+                </Component>
+                <Component name="contentAndStructureArea">
+                    <Documentation>information about the content and structure of collection/archive</Documentation>
+                    <Element name="scopeAndContent">
+                        <Documentation>scope and content of collection/archive</Documentation>
+                    </Element>
+                    <Element name="appraisalDestructionaAndSchedulingInfomation">
+                        <Documentation>info</Documentation>
+                    </Element>
+                    <Element name="accruals">
+                        <Documentation>info</Documentation>
+                    </Element>
+                    <Element name="systemOfArrangement">
+                        <Documentation>info</Documentation>
+                    </Element>
+                </Component>
+                <Component name="conditionsOfAccessAndUseArea">
+                    <Documentation>conditions of access and use area</Documentation>
+                    <Element name="conditionsGoverningAccess">
+                        <Documentation>Conditions governing access</Documentation>
+                    </Element>
+                    <Element name="conditionsGoverningReproduction">
+                        <Documentation>Conditions Governing Reproduction</Documentation>
+                    </Element>
+                    <Element name="languageOrScriptsOfMaterial">
+                        <Documentation>Language or scripts of material</Documentation>
+                    </Element>
+                    <Element name="physicalCharacteristicsAndTechnicalRequirements">
+                        <Documentation>Phyical Characteristics</Documentation>
+                    </Element>
+                    <Element name="findingAids">
+                        <Documentation>Finding Aids</Documentation>
+                    </Element>
+                </Component>
+                <Component name="alliedMaterialsArea">
+                    <Documentation>Allied Materials Area</Documentation>
+                    <Element name="existenceAndLocationOfOriginals">
+                        <Documentation>Existence And Location Of Originals</Documentation>
+                    </Element>
+                    <Element name="existenceAndLocationOfCopies">
+                        <Documentation>Existence And Location Of Copies</Documentation>
+                    </Element>
+                    <Element name="relatedUnitOfDescription">
+                        <Documentation>Related Unit of Description</Documentation>
+                    </Element>
+                    <Element name="publicationNote">
+                        <Documentation>Pulication Note</Documentation>
+                    </Element>
+                </Component>
+                <Component name="notes">
+                    <Documentation>Notes</Documentation>
+                    <Element name="note">
+                        <Documentation>Note</Documentation>
+                    </Element>
+                </Component>
+                <Component name="descriptionControlArea">
+                    <Documentation>Description Control Area</Documentation>
+                    <Element name="descriptionIdentifierDRE">
+                        <Documentation>Description Identifier DRE</Documentation>
+                    </Element>
+                    <Element name="institutionIdentfier">
+                        <Documentation>Institution Identifier</Documentation>
+                    </Element>
+                    <Element name="languageOfDescription">
+                        <Documentation>Language Of description</Documentation>
+                    </Element>
+                    <Element name="scriptOfDescription">
+                        <Documentation>Script of description</Documentation>
+                    </Element>
+                    <Element name="sources">
+                        <Documentation>Sources</Documentation>
+                    </Element>
+                    <Element name="archivistsNote">
+                        <Documentation>Archivists Note</Documentation>
+                    </Element>
+                    <Element name="rulesOrConventionsDREGuidelines">
+                        <Documentation>Rules Or Conventions DRE Guidelines</Documentation>
+                    </Element>
+                    <Element name="datesOfDescription">
+                        <Documentation>Date or dates of description</Documentation>
+                    </Element>
+                </Component>
+            </Component>
+        </Component>
     </Component>
 </ComponentSpec>
