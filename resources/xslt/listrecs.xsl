@@ -110,13 +110,13 @@
                                             </a>
                                         </td>
                                         <td>
-                                            <a href="{$url}/xml" title="Show CMDI" target="_blank">CMDI</a>
+                                            <a href="{$url}.xml" title="Show CMDI" target="_blank">CMDI</a>
                                         </td>
                                         <td>
-                                            <a href="{$url}/html" title="Show HTML" target="_blank">HTML</a>
+                                            <a href="{$url}.html" title="Show HTML" target="_blank">HTML</a>
                                         </td>
                                         <td>
-                                            <a href="{$url}/pdf" title="Show PDF" target="_blank">PDF</a>
+                                            <a href="{$url}.pdf" title="Show PDF" target="_blank">PDF</a>
                                         </td>
                                     </tr>
                                 </xsl:for-each>
