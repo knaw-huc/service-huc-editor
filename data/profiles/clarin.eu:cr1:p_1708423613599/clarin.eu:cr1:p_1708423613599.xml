@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ComponentSpec isProfile="true" CMDVersion="1.2" CMDOriginalVersion="1.2" xsi:noNamespaceSchemaLocation="https://infra.clarin.eu/CMDI/1.x/xsd/cmd-component.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <Header>
+        <ID>clarin.eu:cr1:p_1708423613599</ID>
+        <Name>HI</Name>
+        <Description>Huygens Dataset</Description>
+        <Status>development</Status>
+        <DerivedFrom>clarin.eu:cr1:p_1650879720846</DerivedFrom>
+    </Header>
+    <Component name="HI" CardinalityMin="1" CardinalityMax="1">
+        <Element name="ID" ValueScheme="string" CardinalityMin="1" CardinalityMax="1"/>
+        <Element name="status" CardinalityMin="1" CardinalityMax="1" cue:DisplayPriority="1" xmlns:cue="http://www.clarin.eu/cmd/cues/1">
+            <ValueScheme>
+                <Vocabulary>
+                    <enumeration>
+                        <item>under construction</item>
+                        <item>publish</item>
+                    </enumeration>
+                </Vocabulary>
+            </ValueScheme>
+        </Element>
+        <Component name="Dataset" ConceptLink="http://www.w3.org/ns/dcat#Dataset" CardinalityMin="1" CardinalityMax="1">
+            <Element name="title" ConceptLink="http://purl.org/dc/terms/title" ValueScheme="string" CardinalityMin="1" CardinalityMax="1" Multilingual="true" cue:DisplayPriority="1" xmlns:cue="http://www.clarin.eu/cmd/cues/1"/>
+            <Element name="license" ConceptLink="http://purl.org/dc/terms/license" ValueScheme="anyURI" CardinalityMin="1" CardinalityMax="1"/>
+            <Element name="publisher" ConceptLink="http://purl.org/dc/terms/publisher" ValueScheme="anyURI" CardinalityMin="1" CardinalityMax="1" cue:ccf_default="https://www.huygens.knaw.nl/" xmlns:cue="http://www.clarin.eu/cmd/cues/1">
+                <AutoValue>ccf_default</AutoValue>
+            </Element>
+            <Element name="description" ConceptLink="http://purl.org/dc/terms/description" ValueScheme="string" CardinalityMin="0" CardinalityMax="1" Multilingual="true"/>
+            <Element name="keyword" ConceptLink="http://www.w3.org/ns/dcat#keyword" ValueScheme="string" CardinalityMin="0" CardinalityMax="1" Multilingual="true"/>
+            <Element name="landingPage" ConceptLink="http://www.w3.org/ns/dcat#landingPage" ValueScheme="anyURI" CardinalityMin="0" CardinalityMax="unbounded"/>
+            <Element name="source" ConceptLink="http://purl.org/dc/terms/source" ValueScheme="string" CardinalityMin="0" CardinalityMax="1"/>
+            <Element name="created" ConceptLink="ttp://purl.org/dc/terms/created" ValueScheme="date" CardinalityMin="0" CardinalityMax="1"/>
+            <Element name="modified" ConceptLink="ttp://purl.org/dc/terms/modified" ValueScheme="date" CardinalityMin="0" CardinalityMax="1"/>
+            <Element name="issued" ConceptLink=" http://purl.org/dc/terms/issued" ValueScheme="date" CardinalityMin="0" CardinalityMax="1"/>
+            <Element name="versionInfo" ConceptLink="http://www.w3.org/2002/07/owlversionInfo" ValueScheme="string" CardinalityMin="0" CardinalityMax="1"/>
+            <Component name="Distribution" ConceptLink="http://www.w3.org/ns/dcat#distribution" CardinalityMin="0" CardinalityMax="unbounded">
+                <Element name="accessURL" ConceptLink="http://www.w3.org/ns/dcat#accessURL" ValueScheme="anyURI" CardinalityMin="1" CardinalityMax="1"/>
+                <Element name="mediaType" ConceptLink="http://www.w3.org/ns/dcat#mediaType" ValueScheme="string" CardinalityMin="0" CardinalityMax="unbounded"/>
+                <Element name="format" ConceptLink="http://purl.org/dc/terms/format" ValueScheme="string" CardinalityMin="0" CardinalityMax="1"/>
+                <Element name="issued" ConceptLink="ttp://purl.org/dc/terms/issued" ValueScheme="date" CardinalityMin="0" CardinalityMax="1"/>
+                <Element name="modified" ConceptLink="http://purl.org/dc/terms/modified" ValueScheme="date" CardinalityMin="0" CardinalityMax="1"/>
+                <Element name="description" ConceptLink="http://purl.org/dc/terms/description" ValueScheme="string" CardinalityMin="0" CardinalityMax="1" Multilingual="true"/>
+                <Element name="license" ConceptLink="http://purl.org/dc/terms/license" ValueScheme="anyURI" CardinalityMin="0" CardinalityMax="1"/>
+                <Element name="title" ConceptLink="http://purl.org/dc/terms/title" ValueScheme="string" CardinalityMin="0" CardinalityMax="1" Multilingual="true" cue:DisplayPriority="1" xmlns:cue="http://www.clarin.eu/cmd/cues/1"/>
+                <Element name="byteSize" ConceptLink="http://www.w3.org/ns/dcat#byteSize" ValueScheme="string" CardinalityMin="0" CardinalityMax="1"/>
+            </Component>
+        </Component>
+        <Component name="INEO" CardinalityMin="0" CardinalityMax="1">
+            <Element name="intro" ValueScheme="string" CardinalityMin="0" CardinalityMax="1" Multilingual="true" cue:DisplayPriority="1" xmlns:cue="http://www.clarin.eu/cmd/cues/1"/>
+            <Element name="researchActivity" ValueScheme="string" CardinalityMin="0" CardinalityMax="unbounded"/>
+            <Element name="researchDomain" ValueScheme="string" CardinalityMin="0" CardinalityMax="unbounded"/>
+            <Element name="informationType" ValueScheme="string" CardinalityMin="0" CardinalityMax="unbounded"/>
+            <Element name="resourceType" CardinalityMin="1" CardinalityMax="1">
+                <ValueScheme>
+                    <Vocabulary>
+                        <enumeration>
+                            <item>data</item>
+                            <item>tools</item>
+                        </enumeration>
+                    </Vocabulary>
+                </ValueScheme>
+            </Element>
+            <Element name="mediaType" ValueScheme="string" CardinalityMin="0" CardinalityMax="unbounded"/>
+            <Element name="Access" ValueScheme="string" CardinalityMin="0" CardinalityMax="1" Multilingual="true"/>
+            <Element name="Version" ValueScheme="string" CardinalityMin="0" CardinalityMax="1"/>
+            <Element name="status" CardinalityMin="1" CardinalityMax="1">
+                <ValueScheme>
+                    <Vocabulary>
+                        <enumeration>
+                            <item>active</item>
+                            <item>inactive</item>
+                            <item>concept</item>
+                            <item>moved</item>
+                            <item>suspended</item>
+                            <item>unsupported</item>
+                            <item>work in progress</item>
+                        </enumeration>
+                    </Vocabulary>
+                </ValueScheme>
+            </Element>
+            <Element name="language" ValueScheme="string" CardinalityMin="0" CardinalityMax="unbounded"/>
+            <Element name="provenance" ValueScheme="string" CardinalityMin="0" CardinalityMax="1" Multilingual="true"/>
+            <Element name="Learn" ValueScheme="string" CardinalityMin="0" CardinalityMax="1" Multilingual="true"/>
+            <Element name="community" ValueScheme="string" CardinalityMin="0" CardinalityMax="1"/>
+            <Element name="resourceHost" ValueScheme="anyURI" CardinalityMin="0" CardinalityMax="1"/>
+            <Element name="resourceOwner" ValueScheme="anyURI" CardinalityMin="0" CardinalityMax="1"/>
+            <Element name="development" ValueScheme="string" CardinalityMin="0" CardinalityMax="1" Multilingual="true"/>
+            <Element name="funding" ValueScheme="string" CardinalityMin="0" CardinalityMax="1" Multilingual="true"/>
+            <Element name="contactForGeneralQuestions" ValueScheme="string" CardinalityMin="0" CardinalityMax="1"/>
+            <Element name="contactForResearchQuestions" ValueScheme="string" CardinalityMin="0" CardinalityMax="1"/>
+            <Element name="contactForReportingAProblem" ValueScheme="string" CardinalityMin="0" CardinalityMax="1"/>
+        </Component>
+    </Component>
+</ComponentSpec>

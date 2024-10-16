@@ -1,0 +1,15 @@
+dt {
+    font-style: italic;
+}
+
+dt.level-2 {
+    font-weight: bold;
+}
+
+dt.level-2 > dt {
+    font-weight: normal;
+}
+
+dt.level-1 {
+    display:none;
+}

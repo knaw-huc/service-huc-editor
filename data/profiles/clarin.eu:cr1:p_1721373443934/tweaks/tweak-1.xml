@@ -1,0 +1,517 @@
+<?xml version="1.0" encoding="UTF-8"?><ComponentSpec xmlns:clariah="http://www.clariah.eu/" xmlns:cue="http://www.clarin.eu/cmd/cues/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" isProfile="true" CMDVersion="1.2" CMDOriginalVersion="1.2" xsi:noNamespaceSchemaLocation="https://infra.clarin.eu/CMDI/1.x/xsd/cmd-component.xsd">
+    <Header>
+        <ID>clarin.eu:cr1:p_1721373443934</ID>
+        <Name>CollectionHoldingInstitutions</Name>
+        <Description>Collection holdings Institutions and its collections</Description>
+        <Status>development</Status>
+    </Header>
+    <Component name="CollectionHoldingInstitutions">
+        <Element name="status">
+            
+        </Element>
+        <Component name="CollectionHoldingInstitutionsIdentityArea">
+            <Element name="identifier"><!--cues--></Element>
+            <Element name="typeOfInstitution">
+                
+            </Element>
+            <Component name="Names">
+                <Element name="authorisedForm"><!--cues--></Element>
+                <Element name="parallelForm"><!--cues--></Element>
+                <Element name="otherForm"><!--cues--></Element>
+            </Component>
+        </Component>
+        <Component name="Collection">
+            <clariah:label xml:lang="en">level 1</clariah:label>
+            <Component name="collectioncore">
+                <Component name="identificationArea">
+                    <Documentation>Information about collection/fonds/archive</Documentation>
+                    <Element name="referencecode"><!--cues--></Element>
+                    <Element name="dateOfAccumulationOrCreation">
+                        <Documentation>date of accumulation or creation</Documentation>
+                    </Element>
+                    <Element name="levelOfDescription">
+                        <Documentation>Level of Description</Documentation>
+                    </Element>
+                    <Element name="extentAndMedium" cue:inputHeight="8" cue:inputWidth="60">
+                        <Documentation>Extent And Medium</Documentation>
+                    </Element>
+                    <Component name="titles">
+                        <Documentation>titles</Documentation>
+                        <Element name="title">
+                            <Documentation>title</Documentation>
+                        </Element>
+                        <Element name="parallelFormsOfTitles">
+                            <Documentation>parallel forms of titles</Documentation>
+                        </Element>
+                    </Component>
+                </Component>
+                <Component name="contextArea">
+                    <Documentation>archival history</Documentation>
+                    <Element name="archivalHistory" cue:inputHeight="8" cue:inputWidth="60">
+                        <Documentation>archival history</Documentation>
+                    </Element>
+                    <Element name="immediateSourceOfAcquisitonOrTransfer" cue:inputHeight="8" cue:inputWidth="60"><!--cues--></Element>
+                </Component>
+                <Component name="contentAndStructureArea">
+                    <Documentation>information about the content and structure of collection/archive</Documentation>
+                    <Element name="scopeAndContent" cue:inputHeight="8" cue:inputWidth="60">
+                        <Documentation>scope and content of collection/archive</Documentation>
+                    </Element>
+                    <Element name="appraisalDestructionaAndSchedulingInfomation" cue:inputHeight="8" cue:inputWidth="60">
+                        <Documentation>info</Documentation>
+                    </Element>
+                    <Element name="accruals" cue:inputHeight="8" cue:inputWidth="60">
+                        <Documentation>info</Documentation>
+                    </Element>
+                    <Element name="systemOfArrangement" cue:inputHeight="8" cue:inputWidth="60">
+                        <Documentation>info</Documentation>
+                    </Element>
+                </Component>
+                <Component name="conditionsOfAccessAndUseArea">
+                    <Documentation>conditions of access and use area</Documentation>
+                    <Element name="conditionsGoverningAccess" cue:inputHeight="8" cue:inputWidth="60">
+                        <Documentation>Conditions governing access</Documentation>
+                    </Element>
+                    <Element name="conditionsGoverningReproduction" cue:inputHeight="8" cue:inputWidth="60">
+                        <Documentation>Conditions Governing Reproduction</Documentation>
+                    </Element>
+                    <Element name="languageOrScriptsOfMaterial" cue:inputHeight="8" cue:inputWidth="60">
+                        <Documentation>Language or scripts of material</Documentation>
+                    </Element>
+                    <Element name="physicalCharacteristicsAndTechnicalRequirements" cue:inputHeight="8" cue:inputWidth="60">
+                        <Documentation>Phyical Characteristics</Documentation>
+                    </Element>
+                    <Element name="findingAids" cue:inputHeight="8" cue:inputWidth="60">
+                        <Documentation>Finding Aids</Documentation>
+                    </Element>
+                </Component>
+                <Component name="alliedMaterialsArea">
+                    <Documentation>Allied Materials Area</Documentation>
+                    <Element name="existenceAndLocationOfOriginals" cue:inputHeight="8" cue:inputWidth="60">
+                        <Documentation>Existence And Location Of Originals</Documentation>
+                    </Element>
+                    <Element name="existenceAndLocationOfCopies" cue:inputHeight="8" cue:inputWidth="60">
+                        <Documentation>Existence And Location Of Copies</Documentation>
+                    </Element>
+                    <Element name="relatedUnitOfDescription" cue:inputHeight="8" cue:inputWidth="60">
+                        <Documentation>Related Unit of Description</Documentation>
+                    </Element>
+                    <Element name="publicationNote" cue:inputHeight="8" cue:inputWidth="60">
+                        <Documentation>Pulication Note</Documentation>
+                    </Element>
+                </Component>
+                <Component name="notes">
+                    <Documentation>Notes</Documentation>
+                    <Element name="note" cue:inputHeight="8" cue:inputWidth="60">
+                        <Documentation>Note</Documentation>
+                    </Element>
+                </Component>
+                <Component name="descriptionControlArea">
+                    <Documentation>Description Control Area</Documentation>
+                    <Element name="descriptionIdentifierDRE">
+                        <Documentation>Description Identifier DRE</Documentation>
+                    </Element>
+                    <Element name="institutionIdentfier">
+                        <Documentation>Institution Identifier</Documentation>
+                    </Element>
+                    <Element name="languageOfDescription">
+                        <Documentation>Language Of description</Documentation>
+                    </Element>
+                    <Element name="scriptOfDescription">
+                        <Documentation>Script of description</Documentation>
+                    </Element>
+                    <Element name="sources" cue:inputHeight="8" cue:inputWidth="60">
+                        <Documentation>Sources</Documentation>
+                    </Element>
+                    <Element name="archivistsNote" cue:inputHeight="8" cue:inputWidth="60">
+                        <Documentation>Archivists Note</Documentation>
+                    </Element>
+                    <Element name="rulesOrConventionsDREGuidelines" cue:inputHeight="8" cue:inputWidth="60">
+                        <Documentation>Rules Or Conventions DRE Guidelines</Documentation>
+                    </Element>
+                    <Element name="datesOfDescription">
+                        <Documentation>Date or dates of description</Documentation>
+                    </Element>
+                </Component>
+            </Component>
+            <Component name="Fonds">
+                <clariah:label xml:lang="en">level 2</clariah:label>
+                <Component name="collectioncore">
+                    <Component name="identificationArea">
+                        <Documentation>Information about collection/fonds/archive</Documentation>
+                        <Element name="referencecode"><!--cues--></Element>
+                        <Element name="dateOfAccumulationOrCreation">
+                            <Documentation>date of accumulation or creation</Documentation>
+                        </Element>
+                        <Element name="levelOfDescription">
+                            <Documentation>Level of Description</Documentation>
+                        </Element>
+                        <Element name="extentAndMedium" cue:inputHeight="8" cue:inputWidth="60">
+                            <Documentation>Extent And Medium</Documentation>
+                        </Element>
+                        <Component name="titles">
+                            <Documentation>titles</Documentation>
+                            <Element name="title">
+                                <Documentation>title</Documentation>
+                            </Element>
+                            <Element name="parallelFormsOfTitles">
+                                <Documentation>parallel forms of titles</Documentation>
+                            </Element>
+                        </Component>
+                    </Component>
+                    <Component name="contextArea">
+                        <Documentation>archival history</Documentation>
+                        <Element name="archivalHistory" cue:inputHeight="8" cue:inputWidth="60">
+                            <Documentation>archival history</Documentation>
+                        </Element>
+                        <Element name="immediateSourceOfAcquisitonOrTransfer" cue:inputHeight="8" cue:inputWidth="60"><!--cues--></Element>
+                    </Component>
+                    <Component name="contentAndStructureArea">
+                        <Documentation>information about the content and structure of collection/archive</Documentation>
+                        <Element name="scopeAndContent" cue:inputHeight="8" cue:inputWidth="60">
+                            <Documentation>scope and content of collection/archive</Documentation>
+                        </Element>
+                        <Element name="appraisalDestructionaAndSchedulingInfomation" cue:inputHeight="8" cue:inputWidth="60">
+                            <Documentation>info</Documentation>
+                        </Element>
+                        <Element name="accruals" cue:inputHeight="8" cue:inputWidth="60">
+                            <Documentation>info</Documentation>
+                        </Element>
+                        <Element name="systemOfArrangement" cue:inputHeight="8" cue:inputWidth="60">
+                            <Documentation>info</Documentation>
+                        </Element>
+                    </Component>
+                    <Component name="conditionsOfAccessAndUseArea">
+                        <Documentation>conditions of access and use area</Documentation>
+                        <Element name="conditionsGoverningAccess" cue:inputHeight="8" cue:inputWidth="60">
+                            <Documentation>Conditions governing access</Documentation>
+                        </Element>
+                        <Element name="conditionsGoverningReproduction" cue:inputHeight="8" cue:inputWidth="60">
+                            <Documentation>Conditions Governing Reproduction</Documentation>
+                        </Element>
+                        <Element name="languageOrScriptsOfMaterial" cue:inputHeight="8" cue:inputWidth="60">
+                            <Documentation>Language or scripts of material</Documentation>
+                        </Element>
+                        <Element name="physicalCharacteristicsAndTechnicalRequirements" cue:inputHeight="8" cue:inputWidth="60">
+                            <Documentation>Phyical Characteristics</Documentation>
+                        </Element>
+                        <Element name="findingAids" cue:inputHeight="8" cue:inputWidth="60">
+                            <Documentation>Finding Aids</Documentation>
+                        </Element>
+                    </Component>
+                    <Component name="alliedMaterialsArea">
+                        <Documentation>Allied Materials Area</Documentation>
+                        <Element name="existenceAndLocationOfOriginals" cue:inputHeight="8" cue:inputWidth="60">
+                            <Documentation>Existence And Location Of Originals</Documentation>
+                        </Element>
+                        <Element name="existenceAndLocationOfCopies" cue:inputHeight="8" cue:inputWidth="60">
+                            <Documentation>Existence And Location Of Copies</Documentation>
+                        </Element>
+                        <Element name="relatedUnitOfDescription" cue:inputHeight="8" cue:inputWidth="60">
+                            <Documentation>Related Unit of Description</Documentation>
+                        </Element>
+                        <Element name="publicationNote" cue:inputHeight="8" cue:inputWidth="60">
+                            <Documentation>Pulication Note</Documentation>
+                        </Element>
+                    </Component>
+                    <Component name="notes">
+                        <Documentation>Notes</Documentation>
+                        <Element name="note" cue:inputHeight="8" cue:inputWidth="60">
+                            <Documentation>Note</Documentation>
+                        </Element>
+                    </Component>
+                    <Component name="descriptionControlArea">
+                        <Documentation>Description Control Area</Documentation>
+                        <Element name="descriptionIdentifierDRE">
+                            <Documentation>Description Identifier DRE</Documentation>
+                        </Element>
+                        <Element name="institutionIdentfier">
+                            <Documentation>Institution Identifier</Documentation>
+                        </Element>
+                        <Element name="languageOfDescription">
+                            <Documentation>Language Of description</Documentation>
+                        </Element>
+                        <Element name="scriptOfDescription">
+                            <Documentation>Script of description</Documentation>
+                        </Element>
+                        <Element name="sources" cue:inputHeight="8" cue:inputWidth="60">
+                            <Documentation>Sources</Documentation>
+                        </Element>
+                        <Element name="archivistsNote" cue:inputHeight="8" cue:inputWidth="60">
+                            <Documentation>Archivists Note</Documentation>
+                        </Element>
+                        <Element name="rulesOrConventionsDREGuidelines" cue:inputHeight="8" cue:inputWidth="60">
+                            <Documentation>Rules Or Conventions DRE Guidelines</Documentation>
+                        </Element>
+                        <Element name="datesOfDescription">
+                            <Documentation>Date or dates of description</Documentation>
+                        </Element>
+                    </Component>
+                </Component>
+                <Component name="Subfonds">
+                    <clariah:label xml:lang="en">level 3</clariah:label>
+                    <Component name="collectioncore">
+                        <Component name="identificationArea">
+                            <Documentation>Information about collection/fonds/archive</Documentation>
+                            <Element name="referencecode"><!--cues--></Element>
+                            <Element name="dateOfAccumulationOrCreation">
+                                <Documentation>date of accumulation or creation</Documentation>
+                            </Element>
+                            <Element name="levelOfDescription">
+                                <Documentation>Level of Description</Documentation>
+                            </Element>
+                            <Element name="extentAndMedium" cue:inputHeight="8" cue:inputWidth="60">
+                                <Documentation>Extent And Medium</Documentation>
+                            </Element>
+                            <Component name="titles">
+                                <Documentation>titles</Documentation>
+                                <Element name="title">
+                                    <Documentation>title</Documentation>
+                                </Element>
+                                <Element name="parallelFormsOfTitles">
+                                    <Documentation>parallel forms of titles</Documentation>
+                                </Element>
+                            </Component>
+                        </Component>
+                        <Component name="contextArea">
+                            <Documentation>archival history</Documentation>
+                            <Element name="archivalHistory" cue:inputHeight="8" cue:inputWidth="60">
+                                <Documentation>archival history</Documentation>
+                            </Element>
+                            <Element name="immediateSourceOfAcquisitonOrTransfer" cue:inputHeight="8" cue:inputWidth="60"><!--cues--></Element>
+                        </Component>
+                        <Component name="contentAndStructureArea">
+                            <Documentation>information about the content and structure of collection/archive</Documentation>
+                            <Element name="scopeAndContent" cue:inputHeight="8" cue:inputWidth="60">
+                                <Documentation>scope and content of collection/archive</Documentation>
+                            </Element>
+                            <Element name="appraisalDestructionaAndSchedulingInfomation" cue:inputHeight="8" cue:inputWidth="60">
+                                <Documentation>info</Documentation>
+                            </Element>
+                            <Element name="accruals" cue:inputHeight="8" cue:inputWidth="60">
+                                <Documentation>info</Documentation>
+                            </Element>
+                            <Element name="systemOfArrangement" cue:inputHeight="8" cue:inputWidth="60">
+                                <Documentation>info</Documentation>
+                            </Element>
+                        </Component>
+                        <Component name="conditionsOfAccessAndUseArea">
+                            <Documentation>conditions of access and use area</Documentation>
+                            <Element name="conditionsGoverningAccess" cue:inputHeight="8" cue:inputWidth="60">
+                                <Documentation>Conditions governing access</Documentation>
+                            </Element>
+                            <Element name="conditionsGoverningReproduction" cue:inputHeight="8" cue:inputWidth="60">
+                                <Documentation>Conditions Governing Reproduction</Documentation>
+                            </Element>
+                            <Element name="languageOrScriptsOfMaterial" cue:inputHeight="8" cue:inputWidth="60">
+                                <Documentation>Language or scripts of material</Documentation>
+                            </Element>
+                            <Element name="physicalCharacteristicsAndTechnicalRequirements" cue:inputHeight="8" cue:inputWidth="60">
+                                <Documentation>Phyical Characteristics</Documentation>
+                            </Element>
+                            <Element name="findingAids" cue:inputHeight="8" cue:inputWidth="60">
+                                <Documentation>Finding Aids</Documentation>
+                            </Element>
+                        </Component>
+                        <Component name="alliedMaterialsArea">
+                            <Documentation>Allied Materials Area</Documentation>
+                            <Element name="existenceAndLocationOfOriginals" cue:inputHeight="8" cue:inputWidth="60">
+                                <Documentation>Existence And Location Of Originals</Documentation>
+                            </Element>
+                            <Element name="existenceAndLocationOfCopies" cue:inputHeight="8" cue:inputWidth="60">
+                                <Documentation>Existence And Location Of Copies</Documentation>
+                            </Element>
+                            <Element name="relatedUnitOfDescription" cue:inputHeight="8" cue:inputWidth="60">
+                                <Documentation>Related Unit of Description</Documentation>
+                            </Element>
+                            <Element name="publicationNote" cue:inputHeight="8" cue:inputWidth="60">
+                                <Documentation>Pulication Note</Documentation>
+                            </Element>
+                        </Component>
+                        <Component name="notes">
+                            <Documentation>Notes</Documentation>
+                            <Element name="note" cue:inputHeight="8" cue:inputWidth="60">
+                                <Documentation>Note</Documentation>
+                            </Element>
+                        </Component>
+                        <Component name="descriptionControlArea">
+                            <Documentation>Description Control Area</Documentation>
+                            <Element name="descriptionIdentifierDRE">
+                                <Documentation>Description Identifier DRE</Documentation>
+                            </Element>
+                            <Element name="institutionIdentfier">
+                                <Documentation>Institution Identifier</Documentation>
+                            </Element>
+                            <Element name="languageOfDescription">
+                                <Documentation>Language Of description</Documentation>
+                            </Element>
+                            <Element name="scriptOfDescription">
+                                <Documentation>Script of description</Documentation>
+                            </Element>
+                            <Element name="sources" cue:inputHeight="8" cue:inputWidth="60">
+                                <Documentation>Sources</Documentation>
+                            </Element>
+                            <Element name="archivistsNote" cue:inputHeight="8" cue:inputWidth="60">
+                                <Documentation>Archivists Note</Documentation>
+                            </Element>
+                            <Element name="rulesOrConventionsDREGuidelines" cue:inputHeight="8" cue:inputWidth="60">
+                                <Documentation>Rules Or Conventions DRE Guidelines</Documentation>
+                            </Element>
+                            <Element name="datesOfDescription">
+                                <Documentation>Date or dates of description</Documentation>
+                            </Element>
+                        </Component>
+                    </Component>
+                    <Component name="Subsubfonds">
+                        <clariah:label xml:lang="en">level 4</clariah:label>
+                        <Component name="collectioncore">
+                            <Component name="identificationArea">
+                                <Documentation>Information about collection/fonds/archive</Documentation>
+                                <Element name="referencecode"><!--cues--></Element>
+                                <Element name="dateOfAccumulationOrCreation">
+                                    <Documentation>date of accumulation or creation</Documentation>
+                                </Element>
+                                <Element name="levelOfDescription">
+                                    <Documentation>Level of Description</Documentation>
+                                </Element>
+                                <Element name="extentAndMedium" cue:inputHeight="8" cue:inputWidth="60">
+                                    <Documentation>Extent And Medium</Documentation>
+                                </Element>
+                                <Component name="titles">
+                                    <Documentation>titles</Documentation>
+                                    <Element name="title">
+                                        <Documentation>title</Documentation>
+                                    </Element>
+                                    <Element name="parallelFormsOfTitles">
+                                        <Documentation>parallel forms of titles</Documentation>
+                                    </Element>
+                                </Component>
+                            </Component>
+                            <Component name="contextArea">
+                                <Documentation>archival history</Documentation>
+                                <Element name="archivalHistory" cue:inputHeight="8" cue:inputWidth="60">
+                                    <Documentation>archival history</Documentation>
+                                </Element>
+                                <Element name="immediateSourceOfAcquisitonOrTransfer" cue:inputHeight="8" cue:inputWidth="60"><!--cues--></Element>
+                            </Component>
+                            <Component name="contentAndStructureArea">
+                                <Documentation>information about the content and structure of collection/archive</Documentation>
+                                <Element name="scopeAndContent" cue:inputHeight="8" cue:inputWidth="60">
+                                    <Documentation>scope and content of collection/archive</Documentation>
+                                </Element>
+                                <Element name="appraisalDestructionaAndSchedulingInfomation" cue:inputHeight="8" cue:inputWidth="60">
+                                    <Documentation>info</Documentation>
+                                </Element>
+                                <Element name="accruals" cue:inputHeight="8" cue:inputWidth="60">
+                                    <Documentation>info</Documentation>
+                                </Element>
+                                <Element name="systemOfArrangement" cue:inputHeight="8" cue:inputWidth="60">
+                                    <Documentation>info</Documentation>
+                                </Element>
+                            </Component>
+                            <Component name="conditionsOfAccessAndUseArea">
+                                <Documentation>conditions of access and use area</Documentation>
+                                <Element name="conditionsGoverningAccess" cue:inputHeight="8" cue:inputWidth="60">
+                                    <Documentation>Conditions governing access</Documentation>
+                                </Element>
+                                <Element name="conditionsGoverningReproduction" cue:inputHeight="8" cue:inputWidth="60">
+                                    <Documentation>Conditions Governing Reproduction</Documentation>
+                                </Element>
+                                <Element name="languageOrScriptsOfMaterial" cue:inputHeight="8" cue:inputWidth="60">
+                                    <Documentation>Language or scripts of material</Documentation>
+                                </Element>
+                                <Element name="physicalCharacteristicsAndTechnicalRequirements" cue:inputHeight="8" cue:inputWidth="60">
+                                    <Documentation>Phyical Characteristics</Documentation>
+                                </Element>
+                                <Element name="findingAids" cue:inputHeight="8" cue:inputWidth="60">
+                                    <Documentation>Finding Aids</Documentation>
+                                </Element>
+                            </Component>
+                            <Component name="alliedMaterialsArea">
+                                <Documentation>Allied Materials Area</Documentation>
+                                <Element name="existenceAndLocationOfOriginals" cue:inputHeight="8" cue:inputWidth="60">
+                                    <Documentation>Existence And Location Of Originals</Documentation>
+                                </Element>
+                                <Element name="existenceAndLocationOfCopies" cue:inputHeight="8" cue:inputWidth="60">
+                                    <Documentation>Existence And Location Of Copies</Documentation>
+                                </Element>
+                                <Element name="relatedUnitOfDescription" cue:inputHeight="8" cue:inputWidth="60">
+                                    <Documentation>Related Unit of Description</Documentation>
+                                </Element>
+                                <Element name="publicationNote" cue:inputHeight="8" cue:inputWidth="60">
+                                    <Documentation>Pulication Note</Documentation>
+                                </Element>
+                            </Component>
+                            <Component name="notes">
+                                <Documentation>Notes</Documentation>
+                                <Element name="note" cue:inputHeight="8" cue:inputWidth="60">
+                                    <Documentation>Note</Documentation>
+                                </Element>
+                            </Component>
+                            <Component name="descriptionControlArea">
+                                <Documentation>Description Control Area</Documentation>
+                                <Element name="descriptionIdentifierDRE">
+                                    <Documentation>Description Identifier DRE</Documentation>
+                                </Element>
+                                <Element name="institutionIdentfier">
+                                    <Documentation>Institution Identifier</Documentation>
+                                </Element>
+                                <Element name="languageOfDescription">
+                                    <Documentation>Language Of description</Documentation>
+                                </Element>
+                                <Element name="scriptOfDescription">
+                                    <Documentation>Script of description</Documentation>
+                                </Element>
+                                <Element name="sources" cue:inputHeight="8" cue:inputWidth="60">
+                                    <Documentation>Sources</Documentation>
+                                </Element>
+                                <Element name="archivistsNote" cue:inputHeight="8" cue:inputWidth="60">
+                                    <Documentation>Archivists Note</Documentation>
+                                </Element>
+                                <Element name="rulesOrConventionsDREGuidelines" cue:inputHeight="8" cue:inputWidth="60">
+                                    <Documentation>Rules Or Conventions DRE Guidelines</Documentation>
+                                </Element>
+                                <Element name="datesOfDescription">
+                                    <Documentation>Date or dates of description</Documentation>
+                                </Element>
+                            </Component>
+                        </Component>
+                    </Component>
+                </Component>
+            </Component>
+        </Component>
+        <Component name="CollectionHoldingInstituteContactArea">
+            <Element name="city"><!--cues--></Element>
+            <Element name="regionProvince">
+                <Documentation>Region or province where CHI is located</Documentation>
+            </Element>
+            <Element name="country">
+                <Documentation>Country where CHI is located</Documentation>
+            </Element>
+            <Element name="telephoneNumber">
+                <Documentation>Telephone number of CHI</Documentation>
+            </Element>
+            <Element name="faxNumber"><!--cues--></Element>
+            <Element name="email"><!--cues--></Element>
+            <Element name="website"><!--cues--></Element>
+            <Element name="contactPerson"><!--cues--></Element>
+            <Component name="locationsAndAdresses">
+                <Documentation>Addresses of CHI</Documentation>
+                <Element name="Adress">
+                    <Documentation>adress of CHI</Documentation>
+                </Element>
+                <Element name="additionalPostAdress"><!--cues--></Element>
+            </Component>
+        </Component>
+        <Component name="CollectionHoldingInstituteDescriptionArea">
+            <Element name="history" cue:inputHeight="8" cue:inputWidth="60"><!--cues--></Element>
+            <Element name="geographicalAndCulturalContext" cue:inputHeight="8" cue:inputWidth="60"><!--cues--></Element>
+            <Element name="mandatesSourcesofAuthority" cue:inputHeight="8" cue:inputWidth="60"><!--cues--></Element>
+            <Element name="administrativeStructure" cue:inputHeight="8" cue:inputWidth="60"><!--cues--></Element>
+            <Element name="recordsManagmentAndCollectingPolicies" cue:inputHeight="8" cue:inputWidth="60"><!--cues--></Element>
+            <Element name="buildings" cue:inputHeight="8" cue:inputWidth="60"><!--cues--></Element>
+            <Element name="archivalHoldings" cue:inputHeight="8" cue:inputWidth="60"><!--cues--></Element>
+            <Element name="findingAidsGuidesPublications" cue:inputHeight="8" cue:inputWidth="60"><!--cues--></Element>
+        </Component>
+    </Component>
+</ComponentSpec>
