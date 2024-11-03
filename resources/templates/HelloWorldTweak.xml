@@ -7,8 +7,8 @@
         <Status>development</Status>
     </Header>
     <Component name="ShowcaseForm">
+        <clariah:label xml:lang="en">Hello World</clariah:label>   
         <Element name="Hello">
-            <clariah:label xml:lang="en">Who</clariah:label>   
             <!--cues-->
         </Element>
         <Component name="On">

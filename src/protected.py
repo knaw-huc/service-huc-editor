@@ -142,7 +142,7 @@ async def create_app(app: str, descr: str | None = None, prof: str | None = None
                 config = toml.load(f)
                 await prof_save(app,config['app']['prof'])
             if config['app']['prof'] == 'clarin.eu:cr1:p_1721373444008':
-                shutil.copyfile(f"{settings.templates_dir}/tweak-1.xml",f"{settings.URL_DATA_APPS}/{app}/profiles/{config['app']['prof']}/tweaks/tweak-1.xml")
+                shutil.copyfile(f"{settings.templates_dir}/HelloWorldTweak.xml",f"{settings.URL_DATA_APPS}/{app}/profiles/{config['app']['prof']}/tweaks/tweak-1.xml")
         return JSONResponse({"message": f"app[{app}] is created."}, status_code=status.HTTP_201_CREATED)
     return JSONResponse({"message": f"app[{app}] already exist!"}, status_code=status.HTTP_200_OK)
 
