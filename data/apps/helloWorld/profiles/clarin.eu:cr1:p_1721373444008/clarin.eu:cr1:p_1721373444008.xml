@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ComponentSpec isProfile="true" CMDVersion="1.2" CMDOriginalVersion="1.2" xsi:noNamespaceSchemaLocation="https://infra.clarin.eu/CMDI/1.x/xsd/cmd-component.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <Header>
+        <ID>clarin.eu:cr1:p_1721373444008</ID>
+        <Name>ShowcaseForm</Name>
+        <Description>A showcase profile for the CLARIAH CMDI Forms</Description>
+        <Status>development</Status>
+    </Header>
+    <Component name="ShowcaseForm" CardinalityMin="1" CardinalityMax="1">
+        <Element name="Hello" ValueScheme="string" CardinalityMin="1" CardinalityMax="1" cue:DisplayPriority="1" xmlns:cue="http://www.clarin.eu/cmd/cues/1"/>
+        <Component name="On" CardinalityMin="0" CardinalityMax="1">
+            <Element name="planet" CardinalityMin="1" CardinalityMax="1" cue:DisplayPriority="1" xmlns:cue="http://www.clarin.eu/cmd/cues/1">
+                <ValueScheme>
+                    <Vocabulary>
+                        <enumeration>
+                            <item AppInfo=" ">Mercury</item>
+                            <item AppInfo="">Venus</item>
+                            <item AppInfo=" "> Earth</item>
+                            <item AppInfo=" ">Mars</item>
+                            <item AppInfo=" ">Jupiter</item>
+                            <item AppInfo=" ">Saturn</item>
+                            <item AppInfo=" ">Uranus</item>
+                            <item>Neptune</item>
+                        </enumeration>
+                    </Vocabulary>
+                </ValueScheme>
+            </Element>
+            <Element name="when" ValueScheme="date" CardinalityMin="0" CardinalityMax="1">
+                <AutoValue></AutoValue>
+            </Element>
+        </Component>
+    </Component>
+</ComponentSpec>

@@ -52,8 +52,8 @@
                 </ValueScheme>
             </Element>
         </Component>
-        <Component name="typeVocab" CardinalityMin="1" CardinalityMax="unbounded">
-            <Element name="typeSyntax" ConceptLink="http://purl.org/dc/terms/conformsTo" CardinalityMin="1" CardinalityMax="1" cue:DisplayPriority="1" xmlns:cue="http://www.clarin.eu/cmd/cues/1">
+        <Component name="Type" CardinalityMin="1" CardinalityMax="unbounded">
+            <Element name="syntax" ConceptLink="http://purl.org/dc/terms/conformsTo" CardinalityMin="1" CardinalityMax="1" cue:DisplayPriority="1" xmlns:cue="http://www.clarin.eu/cmd/cues/1">
                 <ValueScheme>
                     <Vocabulary>
                         <enumeration>
@@ -70,8 +70,8 @@
                     </Vocabulary>
                 </ValueScheme>
             </Element>
-            <Element name="typeKOS" ValueScheme="string" CardinalityMin="1" CardinalityMax="1"/>
-            <Element name="typeEntity" CardinalityMin="0" CardinalityMax="unbounded">
+            <Element name="kos" ValueScheme="string" CardinalityMin="1" CardinalityMax="1"/>
+            <Element name="entity" CardinalityMin="0" CardinalityMax="unbounded">
                 <Documentation xml:lang="en">(Use if applicable) if the vocabulary values are individual entities, choose the main type of entity being described.</Documentation>
                 <ValueScheme>
                     <Vocabulary>
@@ -90,8 +90,8 @@
             <Element name="domainUNESCO" ValueScheme="string" CardinalityMin="1" CardinalityMax="unbounded"/>
             <Element name="domainNWO" ValueScheme="string" CardinalityMin="0" CardinalityMax="unbounded" cue:DisplayPriority="1" xmlns:cue="http://www.clarin.eu/cmd/cues/1"/>
             <Component name="Tag" CardinalityMin="0" CardinalityMax="unbounded">
-                <Element name="tag" ValueScheme="string" CardinalityMin="1" CardinalityMax="1"/>
-                <Element name="uri" ValueScheme="anyURI" CardinalityMin="1" CardinalityMax="1" cue:DisplayPriority="1" xmlns:cue="http://www.clarin.eu/cmd/cues/1"/>
+                <Element name="tag" ValueScheme="string" CardinalityMin="1" CardinalityMax="1" cue:DisplayPriority="1" xmlns:cue="http://www.clarin.eu/cmd/cues/1"/>
+                <Element name="uri" ValueScheme="anyURI" CardinalityMin="0" CardinalityMax="1"/>
             </Component>
         </Component>
         <Component name="Description" ComponentRef="clarin.eu:cr1:c_1595321762411" CardinalityMin="0" CardinalityMax="1">
@@ -113,6 +113,18 @@
         </Component>
         <Component name="Assessement" CardinalityMin="1" CardinalityMax="1">
             <Component name="Review" ComponentRef="clarin.eu:cr1:c_1712653174412" CardinalityMin="0" CardinalityMax="unbounded">
+                <Element name="status" CardinalityMin="1" CardinalityMax="1">
+                    <ValueScheme>
+                        <Vocabulary>
+                            <enumeration>
+                                <item ConceptLink="" AppInfo="">new</item>
+                                <item ConceptLink="" AppInfo="">review-in-progress</item>
+                                <item ConceptLink="" AppInfo="">published</item>
+                                <item ConceptLink="" AppInfo="">discarded</item>
+                            </enumeration>
+                        </Vocabulary>
+                    </ValueScheme>
+                </Element>
                 <Element name="author" ValueScheme="string" CardinalityMin="1" CardinalityMax="1"/>
                 <Element name="published" ValueScheme="dateTime" CardinalityMin="1" CardinalityMax="1"/>
                 <Element name="body" ValueScheme="string" CardinalityMin="1" CardinalityMax="1" cue:DisplayPriority="1" xmlns:cue="http://www.clarin.eu/cmd/cues/1"/>
@@ -120,13 +132,7 @@
                 <Element name="like" ValueScheme="string" CardinalityMin="0" CardinalityMax="unbounded"/>
                 <Element name="dislike" ValueScheme="string" CardinalityMin="0" CardinalityMax="unbounded"/>
             </Component>
-            <Component name="Usage" CardinalityMin="0" CardinalityMax="1">
-                <Element name="count" ValueScheme="int" CardinalityMin="1" CardinalityMax="1" cue:DisplayPriority="1" xmlns:cue="http://www.clarin.eu/cmd/cues/1"/>
-                <Element name="outOf" ValueScheme="int" CardinalityMin="1" CardinalityMax="1"/>
-            </Component>
             <Component name="Recommendation" CardinalityMin="0" CardinalityMax="unbounded">
-                <Element name="rating" ValueScheme="string" CardinalityMin="1" CardinalityMax="1" cue:DisplayPriority="1" xmlns:cue="http://www.clarin.eu/cmd/cues/1"/>
-                <Element name="localIdentifier" ValueScheme="anyURI" CardinalityMin="0" CardinalityMax="1"/>
                 <Component name="Publisher" ComponentRef="clarin.eu:cr1:c_1595321762427" CardinalityMin="1" CardinalityMax="1">
                     <Element name="identifier" ValueScheme="anyURI" CardinalityMin="0" CardinalityMax="unbounded" cue:DisplayPriority="2" xmlns:cue="http://www.clarin.eu/cmd/cues/1"/>
                     <Element name="name" ValueScheme="string" CardinalityMin="1" CardinalityMax="1" cue:DisplayPriority="1" xmlns:cue="http://www.clarin.eu/cmd/cues/1"/>
@@ -135,10 +141,6 @@
                         <Element name="url" ConceptLink="http://hdl.handle.net/11459/CCR_C-63_95ec8724-267a-8689-a04d-50ae515bbacf" ValueScheme="anyURI" CardinalityMin="0" CardinalityMax="unbounded"/>
                     </Component>
                 </Component>
-            </Component>
-            <Component name="Persistence" CardinalityMin="0" CardinalityMax="1">
-                <Element name="versioningPolicy" ValueScheme="string" CardinalityMin="0" CardinalityMax="1" Multilingual="true" cue:DisplayPriority="1" xmlns:cue="http://www.clarin.eu/cmd/cues/1"/>
-                <Element name="sustainability" ValueScheme="string" CardinalityMin="0" CardinalityMax="1" Multilingual="true"/>
             </Component>
         </Component>
         <Component name="Version" CardinalityMin="1" CardinalityMax="unbounded">

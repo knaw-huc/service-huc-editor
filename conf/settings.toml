@@ -7,20 +7,20 @@ SERVICE_HUC_EDITOR_API_KEY="foobar"
 
 url_base = "@format {env[BASE_URL]}"
 url_clarin_component_registry = "https://catalog.clarin.eu/ds/ComponentRegistry/rest/registry/1.x/profiles/%s/xml"
-url_data_profiles = "@format ///{env[BASE_DIR]}/data/profiles"
 url_data_apps = "@format ///{env[BASE_DIR]}/data/apps"
 
 disable_authentication = false
 
+template_prof="clarin.eu:cr1:p_1721373444008"
 
 proxies_dir = "@format {env[BASE_DIR]}/resources/proxies"
 xslt_dir = "@format {env[BASE_DIR]}/resources/xslt"
+templates_dir = "@format {env[BASE_DIR]}/resources/templates"
+static_dir = "@format {env[BASE_DIR]}/resources/static"
 
 log_file = "@format {env[BASE_DIR]}/logs/huc-editor-service.log"
 log_level = 10
 log_format = "%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s"
-
-static_dir = "@format {env[BASE_DIR]}/resources/static"
 
 [default.keycloak]
     url="http://localhost:9090"

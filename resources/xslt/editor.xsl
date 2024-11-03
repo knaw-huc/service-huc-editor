@@ -10,7 +10,7 @@
     <xsl:param name="nr" select="()"/>
     <xsl:param name="config" select="doc(concat($cwd, '/data/apps/', $app, '/config.xml'))"/>
     <xsl:param name="rec" select="concat($base, '/app/', $app, '/record/', $nr)"/>
-    <xsl:param name="prof" select="concat($base, '/profile/', $config/app/prof)"/>
+    <xsl:param name="prof" select="concat($base, '/app/', $app, '/profile/', $config/config/app/prof)"/>
 
     <xsl:variable name="epoch" select="floor((current-dateTime() - xs:dateTime('1970-01-01T00:00:00')) div xs:dayTimeDuration('PT1S'))"/>
 
@@ -18,10 +18,10 @@
         <html lang="en" xsl:expand-text="yes">
             <head>
                 <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
-                <title>{$config/app/title}</title>
+                <title>{$config/config/app/title}</title>
                 <xsl:choose>
-                    <xsl:when test="normalize-space($config/app/html/style)!=''">
-                        <link rel="stylesheet" href="{$base}/static/css/{$config/app/html/style}" type="text/css"/>
+                    <xsl:when test="normalize-space($config/config/app/html/style)!=''">
+                        <link rel="stylesheet" href="{$base}/static/css/{$config/config/app/html/style}" type="text/css"/>
                     </xsl:when>
                     <xsl:otherwise>
                         <link rel="stylesheet" href="{$base}/static/css/style.css" type="text/css"/>
@@ -52,8 +52,8 @@
                         }}
                         
                         function setLanguages() {{
-                            formBuilder.def_language = "{($config/app/lang/def[normalize-space(.)!=''],'en')[1]}";
-                            let all = ['{string-join($config/app/lang/all/*,''',''')}'];
+                            formBuilder.def_language = "{($config/config/app/lang/def[normalize-space(.)!=''],'en')[1]}";
+                            let all = ['{string-join($config/config/app/lang/all/*,''',''')}'];
                             if (all[0]!='')
                                 formBuilder.languages = all;
                         }}
@@ -133,7 +133,7 @@
                                         //location.reload();
                                     }},
                                     error: function (err) {{
-                                        alert ("ERR: the "+action+" failed! ["+err+"]");
+                                        alert ("ERR: the "+action+" failed! ["+err.responseJSON.detail+"]");
                                         obj = {{"error": err}};
                                         console.log(obj);
                                     }}
@@ -153,7 +153,7 @@
                                         window.location.replace("./"+msg.nr+"/editor");
                                     }},
                                     error: function (err) {{
-                                        alert ("ERR: the "+action+" failed! ["+err.msg+"]");
+                                        alert ("ERR: the "+action+" failed! ["+err.responseJSON.detail+"]");
                                         obj = {{"error": err}};
                                         console.log(obj);
                                     }}
@@ -203,7 +203,7 @@
                                             dataType: "json",
                                             success: function (json) {{
                                                 prof = json;
-                                                inRec = {{id:"{$config/app/prof}", content: prof}}
+                                                inRec = {{id:"{$config/config/app/prof}", content: prof}}
                                                 console.log(inRec);
                                                 setLanguages();
                                                 formBuilder.start(inRec);
@@ -224,7 +224,7 @@
             </head>
             <body>
                 <div id="wrapper">
-                    <div id="header">{$config/app/title}</div>
+                    <div id="header">{$config/config/app/title}</div>
                     <div id="user"/>
                     <div id="homeBtn"/>
                     <div id="content">

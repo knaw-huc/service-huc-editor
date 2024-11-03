@@ -1,0 +1,22 @@
+<?xml version="1.0" ?>
+<config>
+  <app>
+    <name>helloWorld</name>
+    <title> Editor</title>
+    <prof>clarin.eu:cr1:p_1721373444008</prof>
+    <html>
+      <title>string(/cmd:CMD/cmd:Components//cmd:*[normalize-space(text())!=''][1])</title>
+    </html>
+    <list>
+      <ns>
+        <cmd>http://www.clarin.eu/cmd/</cmd>
+      </ns>
+      <who>
+        <xpath>string(/cmd:CMD/cmd:Components/cmd:ShowcaseForm/cmd:Hello)</xpath>
+        <label>Hello</label>
+        <sort>true</sort>
+        <filter>true</filter>
+      </who>
+    </list>
+  </app>
+</config>

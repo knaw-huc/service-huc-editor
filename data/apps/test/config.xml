@@ -1,0 +1,22 @@
+<?xml version="1.0" ?>
+<config>
+  <app>
+    <name>test</name>
+    <title> Editor</title>
+    <prof>clarin.eu:cr1:p_1297242111880</prof>
+    <html>
+      <title>string(/cmd:CMD/cmd:Components//cmd:*[normalize-space(text())!=''][1])</title>
+    </html>
+    <list>
+      <ns>
+        <cmd>http://www.clarin.eu/cmd/</cmd>
+      </ns>
+      <first>
+        <xpath>string(/cmd:CMD/cmd:Components//cmd:*[normalize-space(text())!=''][1])</xpath>
+        <label>First</label>
+        <sort>true</sort>
+        <filter>true</filter>
+      </first>
+    </list>
+  </app>
+</config>

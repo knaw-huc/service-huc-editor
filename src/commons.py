@@ -5,11 +5,8 @@ import re
 import ast
 import xml.dom.minidom
 
-
 from dynaconf import Dynaconf
 import requests as req
-from fastapi import HTTPException
-from starlette import status
 
 import toml
 import xml.etree.ElementTree as ET
@@ -29,15 +26,6 @@ data = {}
 __version__ = importlib.metadata.metadata(settings.SERVICE_NAME)["version"]
 data.update({"service-version": __version__})
 
-
-async def get_profile_from_clarin(id):
-    clarin_url = settings.URL_CLARIN_COMPONENT_REGISTRY % id
-    logging.debug(f"{clarin_url}")
-    clarin_profile = req.get(clarin_url)
-    if clarin_profile.status_code != status.HTTP_200_OK:
-        return HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    else:
-        return clarin_profile.content
 
 def tweak_nr(tf):
     nr = re.sub('.*/tweak-([0-9]+).xml','\\1',str(tf))
@@ -85,14 +73,14 @@ def dict_to_xml(tag, d):
 
 
 
-def convert_toml_to_xml(toml_file: str, xml_file: str, root_element: str = "root"):
+def convert_toml_to_xml(toml_file: str, xml_file: str, root_element: str = "config"):
     """
     Convert a TOML file to an XML file.
 
     Args:
         toml_file (str): The path to the input TOML file.
         xml_file (str): The path to the output XML file.
-        root_element (str): The root element name for the XML. Defaults to "root".
+        root_element (str): The root element name for the XML. Defaults to "config".
 
     This function reads the contents of a TOML file, converts it to an XML format,
     and writes the resulting XML to a specified file.

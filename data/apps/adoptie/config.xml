@@ -1,25 +1,28 @@
- <app>
+<?xml version="1.0" ?>
+<config>
+  <app>
     <name>adoptie</name>
     <title>IISG Adoptie Editor</title>
     <prof>clarin.eu:cr1:p_1721373443933</prof>
     <html>
-        <title>string(/cmd:CMD/cmd:Components/cmd:Adoptie/cmd:IDnummer)</title>
+      <title>string(/cmd:CMD/cmd:Components/cmd:Adoptie/cmd:IDnummer)</title>
     </html>
     <list>
-        <ns>
-            <cmd>http://www.clarin.eu/cmd/</cmd>
-        </ns>
-        <adoptie>
-            <xpath>string(/cmd:CMD/cmd:Components/cmd:Adoptie/cmd:IDnummer)</xpath>
-            <label>Adoptie</label>
-            <sort>true</sort>
-            <filter>true</filter>
-        </adoptie>
-        <status>
-            <xpath>string(/cmd:CMD/cmd:Components/cmd:Adoptie/cmd:status)</xpath>
-            <label>Status</label>
-            <sort>true</sort>
-            <filter>'select'</filter>
-        </status>
+      <ns>
+        <cmd>http://www.clarin.eu/cmd/</cmd>
+      </ns>
+      <adoptie>
+        <xpath>string(/cmd:CMD/cmd:Components/cmd:Adoptie/cmd:IDnummer)</xpath>
+        <label>Adoptie</label>
+        <sort>true</sort>
+        <filter>true</filter>
+      </adoptie>
+      <status>
+        <xpath>string(/cmd:CMD/cmd:Components/cmd:Adoptie/cmd:status)</xpath>
+        <label>Status</label>
+        <sort>true</sort>
+        <filter>'select'</filter>
+      </status>
     </list>
-</app>
+  </app>
+</config>

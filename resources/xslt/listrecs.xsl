@@ -14,7 +14,7 @@
         <html lang="en" xsl:expand-text="yes">
             <head>
                 <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
-                <title>{$config/app/title}</title>
+                <title>{$config/config/app/title}</title>
                 <link rel="stylesheet" href="{$base}/static/css/style.css" type="text/css"/>
                 <link rel="stylesheet" href="{$base}/static/css/datatable.min.css" type="text/css"/>
                 <link rel="stylesheet" href="{$base}/static/js/lib/jquery-ui/jquery-ui.css"/>
@@ -54,7 +54,7 @@
             </head>
             <body>
                 <div id="wrapper">
-                    <div id="header">{$config/app/title}</div>
+                    <div id="header">{$config/config/app/title}</div>
                     <div id="user"/>
                     <div id="homeBtn"/>
                     <div id="content">
@@ -126,8 +126,8 @@
                         <script>
                             var datatable = new DataTable(document.querySelector('#resultTable'), {{
                                 pageSize: 25,
-                                sort: [{string-join($config/app/list/(* except ns)/sort,', ')}, true],
-                                filters: [{string-join($config/app/list/(* except ns)/filter,', ')}, 'select'],
+                                sort: [{string-join($config/config/app/list/(* except ns)/sort,', ')}, true],
+                                filters: [{string-join($config/config/app/list/(* except ns)/filter,', ')}, 'select'],
                                 filterText: 'Type to filter... ',
                                 pagingDivSelector: "#paging-resultTable"}}
                             );

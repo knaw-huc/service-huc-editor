@@ -20,7 +20,7 @@
     <xsl:template match="text()"/>
     
     <xsl:template name="title">
-        <xsl:variable name="xpath" select="$config/app/html/title"/>
+        <xsl:variable name="xpath" select="$config/config/app/html/title"/>
         <xsl:evaluate xpath="$xpath" context-item="."/>
     </xsl:template>
     
