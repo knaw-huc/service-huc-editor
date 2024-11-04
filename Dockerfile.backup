@@ -1,0 +1,8 @@
+FROM registry.diginfra.net/tsd/backup:latest
+
+RUN apk update && \
+    apk add mysql-client
+
+COPY editor_backup.sh .
+RUN chmod +x *.sh
+ENV BACKUP_SCRIPT "/opt/editor_backup.sh"

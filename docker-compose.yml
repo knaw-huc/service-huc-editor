@@ -10,10 +10,33 @@ services:
       - "traefik.http.services.sd-editor.loadbalancer.server.port=1210"
       - "traefik.http.routers.sd-editor.entrypoints=http"
       - "traefik.http.routers.sd-editor.rule=Host(`editor.sd.di.huc.knaw.nl`)"
+    volumes:
+      - ./conf:/home/huc/huc-editor-service/conf
+      - ./data:/home/huc/huc-editor-service/data
     networks:
       - sd-editor
     ports:
       - '1210:1210'
+  niod-yugo-backup:
+      build:
+          context: .
+          dockerfile: ./Dockerfile.backup
+      restart: unless-stopped
+      environment:
+          BACKUP_HOUR: "01"
+          BACKUP_MINUTE: "35"
+          BACKUP_NAME: "sd-editor"
+          BACKUP_LOCATION: "/backup/data"
+          BACKUP_FILE: "$BACKUP_LOCATION/$BACKUP_NAME.tgz"
+      volumes:
+          - ./data/backup:/backup/data # in prod change to /backup/data:/backup/data
+          - ./conf:/data/conf
+          - ./data:/data/data
+      networks:
+          - sd-editor
+      depends_on:
+          - sd-editor
+
 networks:
   sd-editor:
     #external: false
