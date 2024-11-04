@@ -22,7 +22,7 @@
         </Component>
         <Component name="Collection">
             <clariah:label xml:lang="en">level 1</clariah:label>
-            <Component name="collection">
+            <Component name="`Collection">
                 <Component name="identificationArea">
                     <Documentation>Information about collection/fonds/archive</Documentation>
                     <Element name="referencecode"><!--cues--></Element>
@@ -136,7 +136,7 @@
             </Component>
             <Component name="Fonds">
                 <clariah:label xml:lang="en">level 2</clariah:label>
-                <Component name="collection">
+                <Component name="Collection">
                     <Component name="identificationArea">
                         <Documentation>Information about collection/fonds/archive</Documentation>
                         <Element name="referencecode"><!--cues--></Element>
@@ -250,7 +250,7 @@
                 </Component>
                 <Component name="Subfonds">
                     <clariah:label xml:lang="en">level 3</clariah:label>
-                    <Component name="collection">
+                    <Component name="Collection">
                         <Component name="identificationArea">
                             <Documentation>Information about collection/fonds/archive</Documentation>
                             <Element name="referencecode"><!--cues--></Element>

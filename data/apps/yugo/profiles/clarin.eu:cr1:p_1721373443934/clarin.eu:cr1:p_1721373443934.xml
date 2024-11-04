@@ -73,7 +73,7 @@
             <Element name="findingAidsGuidesPublications" ValueScheme="string" CardinalityMin="0" CardinalityMax="1" Multilingual="true" cue:DisplayPriority="1" xmlns:cue="http://www.clarin.eu/cmd/cues/1"/>
         </Component>
         <Component name="Collection" CardinalityMin="1" CardinalityMax="unbounded">
-            <Component name="collection" ComponentRef="clarin.eu:cr1:c_1721373443947" CardinalityMin="1" CardinalityMax="1">
+            <Component name="Collection" ComponentRef="clarin.eu:cr1:c_1721373443947" CardinalityMin="1" CardinalityMax="1">
                 <Component name="identificationArea" CardinalityMin="1" CardinalityMax="1">
                     <Documentation>Information about collection/fonds/archive</Documentation>
                     <Element name="referencecode" ValueScheme="string" CardinalityMin="0" CardinalityMax="1" cue:DisplayPriority="1" xmlns:cue="http://www.clarin.eu/cmd/cues/1"/>
@@ -203,7 +203,7 @@
                 </Component>
             </Component>
             <Component name="Fonds" CardinalityMin="0" CardinalityMax="unbounded">
-                <Component name="collection" ComponentRef="clarin.eu:cr1:c_1721373443947" CardinalityMin="0" CardinalityMax="1">
+                <Component name="Collection" ComponentRef="clarin.eu:cr1:c_1721373443947" CardinalityMin="0" CardinalityMax="1">
                     <Component name="identificationArea" CardinalityMin="1" CardinalityMax="1">
                         <Documentation>Information about collection/fonds/archive</Documentation>
                         <Element name="referencecode" ValueScheme="string" CardinalityMin="0" CardinalityMax="1" cue:DisplayPriority="1" xmlns:cue="http://www.clarin.eu/cmd/cues/1"/>
@@ -333,7 +333,7 @@
                     </Component>
                 </Component>
                 <Component name="Subfonds" CardinalityMin="0" CardinalityMax="unbounded">
-                    <Component name="collection" ComponentRef="clarin.eu:cr1:c_1721373443947" CardinalityMin="0" CardinalityMax="1">
+                    <Component name="Collection" ComponentRef="clarin.eu:cr1:c_1721373443947" CardinalityMin="0" CardinalityMax="1">
                         <Component name="identificationArea" CardinalityMin="1" CardinalityMax="1">
                             <Documentation>Information about collection/fonds/archive</Documentation>
                             <Element name="referencecode" ValueScheme="string" CardinalityMin="0" CardinalityMax="1" cue:DisplayPriority="1" xmlns:cue="http://www.clarin.eu/cmd/cues/1"/>
@@ -463,7 +463,7 @@
                         </Component>
                     </Component>
                     <Component name="Subsubfonds" CardinalityMin="0" CardinalityMax="unbounded">
-                        <Component name="collection" ComponentRef="clarin.eu:cr1:c_1721373443947" CardinalityMin="1" CardinalityMax="1">
+                        <Component name="Collection" ComponentRef="clarin.eu:cr1:c_1721373443947" CardinalityMin="1" CardinalityMax="1">
                             <Component name="identificationArea" CardinalityMin="1" CardinalityMax="1">
                                 <Documentation>Information about collection/fonds/archive</Documentation>
                                 <Element name="referencecode" ValueScheme="string" CardinalityMin="0" CardinalityMax="1" cue:DisplayPriority="1" xmlns:cue="http://www.clarin.eu/cmd/cues/1"/>
