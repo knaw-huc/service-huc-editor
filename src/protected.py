@@ -28,7 +28,7 @@ async def create_profile(app: str, id: str):
     if not os.path.isdir(f"{settings.URL_DATA_APPS}/{app}"):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     logging.info(f"app[{app}] profile[{id}] create/update")
-    return prof_save(app,id)
+    return await prof_save(app,id)
 
 @router.delete("/app/{app}/profile/{id}")
 async def delete_profile(request: Request, app: str, id: str):
