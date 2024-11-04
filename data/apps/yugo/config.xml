@@ -1,46 +1,49 @@
- <app>
+<?xml version="1.0" ?>
+<config>
+  <app>
     <name>yugo</name>
     <title>NIOD Yugoslavia Editor</title>
     <prof>clarin.eu:cr1:p_1721373443934</prof>
     <lang>
-        <def>en</def>
-        <all>
-            <i1>en</i1>
-            <i2>fr</i2>
-            <i3>bos</i3>
-        </all>
+      <def>en</def>
+      <all>
+        <i1>en</i1>
+        <i2>fr</i2>
+        <i3>bos</i3>
+      </all>
     </lang>
     <html>
-        <title>string(//cmd:authorisedForm)</title>
-        <style>yugo.css</style>
+      <title>string(//cmd:authorisedForm)</title>
+      <style>yugo.css</style>
     </html>
     <list>
-        <ns>
-            <cmd>http://www.clarin.eu/cmd/</cmd>
-        </ns>
-        <identifier>
-            <xpath>string(//cmd:identifier)</xpath>
-            <label>identifier</label>
-            <sort>true</sort>
-            <filter>true</filter>
-        </identifier>
-        <name>
-            <xpath>string(//cmd:authorisedForm)</xpath>
-            <label>authorised form</label>
-            <sort>true</sort>
-            <filter>true</filter>
-        </name>
-        <type>
-            <xpath>string(//cmd:typeOfInstitution)</xpath>
-            <label>type</label>
-            <sort>true</sort>
-            <filter>'select'</filter>
-        </type>
-        <status>
-            <xpath>string(//cmd:status)</xpath>
-            <label>status</label>
-            <sort>true</sort>
-            <filter>'select'</filter>
-        </status>
+      <ns>
+        <cmd>http://www.clarin.eu/cmd/</cmd>
+      </ns>
+      <identifier>
+        <xpath>string(//cmd:identifier)</xpath>
+        <label>identifier</label>
+        <sort>true</sort>
+        <filter>true</filter>
+      </identifier>
+      <name>
+        <xpath>string(//cmd:authorisedForm)</xpath>
+        <label>authorised form</label>
+        <sort>true</sort>
+        <filter>true</filter>
+      </name>
+      <type>
+        <xpath>string(//cmd:typeOfInstitution)</xpath>
+        <label>type</label>
+        <sort>true</sort>
+        <filter>'select'</filter>
+      </type>
+      <status>
+        <xpath>string(//cmd:status)</xpath>
+        <label>status</label>
+        <sort>true</sort>
+        <filter>'select'</filter>
+      </status>
     </list>
-</app>
+  </app>
+</config>
