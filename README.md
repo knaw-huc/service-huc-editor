@@ -13,7 +13,7 @@ docker run -p 1210:1210 --name=ccf --rm -it ccf
 2. Initialize the HelloWorld app:
 
 ```sh
-curl -v -X PUT -H 'Authorization: Bearer foobar' http://0.0.0.0:1210/app/helloWorld
+curl -v -X PUT -H 'Authorization: Bearer foobar' http://0.0.0.0:1210/app/HelloWorld
 ```
 
 3. Visit the HelloWorld app:
@@ -64,7 +64,7 @@ To add cues to the profile you can download a template tweak file for your profi
 
 [http://localhost:1210/app/helloWorld/profile/clarin.eu:cr1:p_1721373444008/tweak/template](http://localhost:1210/app/helloWorld/profile/clarin.eu:cr1:p_1721373444008/tweak/template)
 
-The next sections ;list the cues you can add there. Also see the various apps in the [data](data) directory. You'll find the tweak files under the profiles, e.g. [data/apps/data-envelopes/profiles/clarin.eu:cr1:p_1708423613607/tweaks/tweak-1.xml](data/apps/data-envelopes/profiles/clarin.eu:cr1:p_1708423613607/tweaks/tweak-1.xml)
+The next sections list the cues you can add there. Also see the various apps in the [data](data) directory. You'll find the tweak files under the profiles, e.g. [data/apps/data-envelopes/profiles/clarin.eu:cr1:p_1708423613607/tweaks/tweak-1.xml](data/apps/data-envelopes/profiles/clarin.eu:cr1:p_1708423613607/tweaks/tweak-1.xml).
 
 #### CMDI cues
 

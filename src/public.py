@@ -229,6 +229,12 @@ def get_editor(request: Request, app: str, nr: str | None=None):
     if "text/html" in request.headers.get("accept", ""):
         editor = rec_editor(app,nr)
         return HTMLResponse(content=editor)
+    
+class RecForm(str, Enum):
+    json = "json"
+    xml = "xml"
+    html = "html"
+    pdf = "pdf"
 
 @router.get('/app/{app}/record/{nr}')
 def get_record(request: Request, app: str, nr: str ):
