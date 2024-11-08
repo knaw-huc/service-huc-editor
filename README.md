@@ -13,7 +13,7 @@ docker run -p 1210:1210 --name=ccf --rm -it ccf
 2. Initialize the HelloWorld app:
 
 ```sh
-curl -v -X PUT -H 'Authorization: Bearer foobar' http://0.0.0.0:1210/app/HelloWorld
+curl -v -X PUT -H 'Authorization: Bearer foobar' http://localhost:1210/app/HelloWorld
 ```
 
 3. Visit the HelloWorld app:
