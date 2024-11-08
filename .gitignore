@@ -1,14 +1,7 @@
 .DS_Store
 __pycache__
 .idea
-# data/
-
 *.pyc
 /venv/
 /conf/.secrets.toml
-/data/apps/adoptie/records
-/data/apps/data-envelopes/records
-/data/apps/nde/records
-/backup
-/data/apps/helloWorld
-/data/backup
+/data/apps/*
