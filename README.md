@@ -6,14 +6,13 @@
 1. Start the docker container:
 
 ```sh
-docker build -t ccf .
-docker run -p 1210:1210 --name=ccf --rm -it ccf
+docker run -p 1210:1210 --name=ccf --rm -it ghcr.io/knaw-huc/service-huc-editor:2.0-RC1
 ```
 
 2. Initialize the HelloWorld app:
 
 ```sh
-curl -v -X PUT -H 'Authorization: Bearer foobar' http://0.0.0.0:1210/app/HelloWorld
+curl -v -X PUT -H 'Authorization: Bearer foobar' http://localhost:1210/app/HelloWorld
 ```
 
 3. Visit the HelloWorld app:
@@ -39,10 +38,18 @@ Remember the ID of your profile, which can be seen in its XML representation, e.
     <Description>A showcase profile for the CLARIAH CMDI Forms</Description>
     <Status>development</Status>
   </Header>
+  ...
+</ComponentSpec>
 ```
 
 ### start the service
 
+With release image:
+```sh
+docker run -v ./conf:/home/huc/huc-editor-service/conf -v ./data:/home/huc/huc-editor-service/data -p 1210:1210 --name=ccf --rm -it ghcr.io/knaw-huc/service-huc-editor:2.0-RC1
+```
+
+With local image:
 ```sh
 docker build -t ccf .
 docker run -v ./conf:/home/huc/huc-editor-service/conf -v ./data:/home/huc/huc-editor-service/data -p 1210:1210 --name=ccf --rm -it ccf
@@ -64,7 +71,7 @@ To add cues to the profile you can download a template tweak file for your profi
 
 [http://localhost:1210/app/helloWorld/profile/clarin.eu:cr1:p_1721373444008/tweak/template](http://localhost:1210/app/helloWorld/profile/clarin.eu:cr1:p_1721373444008/tweak/template)
 
-The next sections list the cues you can add there. Also see the various apps in the [data](data) directory. You'll find the tweak files under the profiles, e.g. [data/apps/data-envelopes/profiles/clarin.eu:cr1:p_1708423613607/tweaks/tweak-1.xml](data/apps/data-envelopes/profiles/clarin.eu:cr1:p_1708423613607/tweaks/tweak-1.xml).
+The next sections list the cues you can add to elements. 
 
 #### CMDI cues
 
