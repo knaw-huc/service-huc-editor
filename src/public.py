@@ -7,6 +7,7 @@ import requests
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException
+from passlib.apache import HtpasswdFile
 
 from starlette import status
 from starlette.requests import Request
@@ -30,22 +31,36 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
 security = HTTPBasic(auto_error=False)
 
-def get_current_user(credentials: Optional[HTTPBasicCredentials] = Depends(security)):
+
+def get_current_user(app: str, credentials: Optional[HTTPBasicCredentials] = Depends(security)):
     if not credentials:
         logging.debug("---no credentials---")
         return None
 
-    # load the settings.passwords
-    # check if credentials.username is known
-    # if so check if credentials.password is correct
-    # if so return credentials.username
-    # else return None
-    correct_username = "guest"
-    if credentials.username != correct_username:
-        logging.debug("---no credentials---")
-        return None
+    config_app_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
+    if not os.path.isfile(config_app_file):
+        logging.error(f"config file {config_app_file} doesn't exist")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="App config file not found")
 
-    return credentials.username
+    with open(config_app_file, 'r') as f:
+        config = toml.load(f)
+        users_cred_files = config['app']['users']
+        if not os.path.isfile(users_cred_files):
+            logging.error(f"users file {users_cred_files} doesn't exist")
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Users file not found")
+
+    ht = HtpasswdFile(users_cred_files)
+    valid_user = ht.check_password(credentials.username, credentials.password)
+    if not valid_user:
+        # valid_user = None means that the user is not valid
+        # valid_user = False means that the user is valid but the password is incorrect
+        logging.debug("---no credentials---")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+
+    return credentials
+
+def get_user_with_app(app: str, credentials: HTTPBasicCredentials = Depends(security)):
+    return get_current_user(app, credentials)
 
 @router.get('/info')
 def info():
@@ -115,7 +130,7 @@ def get_proxy(inst:str,vocab:str | None=None,q: str | None = "*"):
         return JSONResponse(jsonable_encoder(res))
 
 @router.get('/app/{app}/profile/{id}')
-def get_profile(request: Request, app: str, id: str):
+def get_profile(request: Request, app: str, id: str,  user: Optional[str] = Depends(get_user_with_app)):
     """
     Endpoint to get a profile based on its ID.
     This endpoint accepts the ID as a path parameter and the 'Accept' header to determine the response format.
@@ -124,6 +139,9 @@ def get_profile(request: Request, app: str, id: str):
     If the 'Accept' header is 'application/json', it returns a 501 error as this functionality is not implemented yet.
     If the 'Accept' header is not 'application/xml' or 'application/json', it returns a 400 error.
     """
+    if user is None:
+        logging.info("No user credentials provided, proceeding without authentication")
+
     form="xml"
     if id.endswith(".xml"):
         form = "xml"
