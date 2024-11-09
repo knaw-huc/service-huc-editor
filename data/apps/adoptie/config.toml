@@ -2,6 +2,7 @@
 name="adoptie"
 title="IISG Adoptie Editor"
 prof="clarin.eu:cr1:p_1721373443933"
+users= "/tmp/htp"
 
 [app.html]
 title="string(/cmd:CMD/cmd:Components/cmd:Adoptie/cmd:IDnummer)"
