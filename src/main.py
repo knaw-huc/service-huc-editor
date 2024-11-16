@@ -1,4 +1,5 @@
 import logging
+import os
 from contextlib import asynccontextmanager
 
 import uvicorn
@@ -56,6 +57,12 @@ app = FastAPI(title=settings.FASTAPI_TITLE, description=settings.FASTAPI_DESCRIP
               version=__version__)
 
 app.mount("/static", StaticFiles(directory=settings.static_dir), name="static")
+for root, dirs, files in os.walk(settings.URL_DATA_APPS):
+    if 'static' in dirs:
+        static_path = os.path.join(root, 'static')
+        logging.info(f"Found 'static' directory at: {static_path}")
+        app.mount(f"/app/{os.path.basename(root)}/static", StaticFiles(directory=static_path), name="static")
+        logging.info(f"Mounted {os.path.basename(root)} static directory at: {static_path}")
 
 app.add_middleware(
     CORSMiddleware,
