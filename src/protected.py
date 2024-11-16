@@ -12,6 +12,7 @@ from saxonche import PySaxonProcessor
 
 from starlette import status
 from starlette.responses import JSONResponse, RedirectResponse
+from starlette.staticfiles import StaticFiles
 
 from src.commons import settings, convert_toml_to_xml
 from src.profiles import prof_save
@@ -114,15 +115,16 @@ async def delete_profile_tweak(request: Request, app: str, id: str, nr: str):
     return JSONResponse({"message": f"Profile[{id}] tweak[{nr}] deleted"})
 
 @router.put("/app/{app}", status_code=status.HTTP_201_CREATED)
-async def create_app(app: str, descr: str | None = None, prof: str | None = None):
+async def create_app(request: Request, app: str, descr: str | None = None, prof: str | None = None):
     """
     Endpoint to create an application based on its name.
     If the application already exists, it returns a message indicating that the application already exists.
     """
     logging.info(f"app[{app}] create")
-    if not os.path.isdir(f"{settings.URL_DATA_APPS}/{app}"):
-        logging.debug(f"{settings.URL_DATA_APPS}/{app} doesn't exist!")
-        os.makedirs(f"{settings.URL_DATA_APPS}/{app}/records")
+    app_dir = f"{settings.URL_DATA_APPS}/{app}"
+    if not os.path.isdir(app_dir):
+        logging.debug(f"{app_dir} doesn't exist!")
+        os.makedirs(f"{app_dir}/records")
         with PySaxonProcessor(license=False) as proc:
             xsltproc = proc.new_xslt30_processor()
             xsltproc.set_cwd(os.getcwd())
@@ -143,6 +145,16 @@ async def create_app(app: str, descr: str | None = None, prof: str | None = None
                 await prof_save(app,config['app']['prof'])
             if config['app']['prof'] == 'clarin.eu:cr1:p_1721373444008':
                 shutil.copyfile(f"{settings.templates_dir}/HelloWorldTweak.xml",f"{settings.URL_DATA_APPS}/{app}/profiles/{config['app']['prof']}/tweaks/tweak-1.xml")
+
+        static_app_dir = f"{app_dir}/static"
+        os.makedirs(static_app_dir)
+        try:
+            apps = request.app
+            apps.mount( f"/app/{app}/static", StaticFiles(directory=static_app_dir), name="static")
+        except Exception as e:
+            logging.error(f"Error mounting static files {static_app_dir}, error message: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+
         return JSONResponse({"message": f"app[{app}] is created."}, status_code=status.HTTP_201_CREATED)
     return JSONResponse({"message": f"app[{app}] already exist!"}, status_code=status.HTTP_200_OK)
 
