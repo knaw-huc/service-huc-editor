@@ -14,7 +14,7 @@ from starlette import status
 from starlette.responses import JSONResponse, RedirectResponse
 from starlette.staticfiles import StaticFiles
 
-from src.commons import settings, convert_toml_to_xml
+from src.commons import settings, convert_toml_to_xml, call_record_create_hook
 from src.profiles import prof_save
 from src.records import rec_update
 
@@ -125,6 +125,8 @@ async def create_app(request: Request, app: str, descr: str | None = None, prof:
     if not os.path.isdir(app_dir):
         logging.debug(f"{app_dir} doesn't exist!")
         os.makedirs(f"{app_dir}/records")
+        with open(f"{app_dir}/__init__.py", 'w') as file:
+            file.write("")
         with PySaxonProcessor(license=False) as proc:
             xsltproc = proc.new_xslt30_processor()
             xsltproc.set_cwd(os.getcwd())
@@ -241,6 +243,12 @@ async def create_record(request: Request, app: str, prof: str | None = None, red
             record_body = executable.transform_to_string(xdm_node=null)
         with open(record_file, 'w') as file:
             file.write(record_body)
+            config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
+            with open(config_file, 'r') as f:
+                config = toml.load(f)
+                logging.info(f"call_record_create_hook(hook[{config['hooks']['create']}],app[{app}],rec[{nr}])")
+                if config['hooks']['create']:
+                    call_record_create_hook(config['hooks']['create'],app, nr)
     else:
         with open(record_file, 'wb') as file:
             file.write(record_body)

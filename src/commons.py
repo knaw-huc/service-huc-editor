@@ -1,3 +1,4 @@
+import importlib
 import importlib.metadata
 import logging
 import os
@@ -114,3 +115,10 @@ def convert_toml_to_xml(toml_file: str, xml_file: str, root_element: str = "conf
     # Write the pretty-printed XML to a file
     with open(xml_file, 'w', encoding='utf-8') as f:
         f.write(pretty_xml)
+
+def call_record_create_hook(hook,app,rec):
+    # import hook from data/apps/app/src/hooks.py
+    mod = importlib.import_module(f"apps.{app}.src.hooks")
+    # call hook(app,rec)
+    func = getattr(mod,hook)
+    func(app,rec)
