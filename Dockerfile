@@ -6,7 +6,7 @@ RUN useradd -ms /bin/bash huc
 
 USER huc
 WORKDIR /home/huc
-ENV PYTHONPATH=/home/huc/huc-editor-service/src
+ENV PYTHONPATH=/home/huc/huc-editor-service:/home/huc/huc-editor-service/data
 ENV BASE_DIR=/home/huc/huc-editor-service
 ENV BASE_URL=${BASE_URL:-"http://localhost:1210"}
 
