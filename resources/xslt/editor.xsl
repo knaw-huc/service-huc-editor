@@ -21,7 +21,7 @@
                 <title>{$config/config/app/title}</title>
                 <xsl:choose>
                     <xsl:when test="normalize-space($config/config/app/html/style)!=''">
-                        <link rel="stylesheet" href="{$base}/static/css/{$config/config/app/html/style}" type="text/css"/>
+                        <link rel="stylesheet" href="{$base}/app/{$app}/static/css/{$config/config/app/html/style}" type="text/css"/>
                     </xsl:when>
                     <xsl:otherwise>
                         <link rel="stylesheet" href="{$base}/static/css/style.css" type="text/css"/>
