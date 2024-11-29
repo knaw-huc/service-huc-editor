@@ -5,3 +5,4 @@ __pycache__
 /venv/
 /conf/.secrets.toml
 /data/apps/*
+config.xml
