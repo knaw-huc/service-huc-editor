@@ -4,5 +4,5 @@ __pycache__
 *.pyc
 /venv/
 /conf/.secrets.toml
-#/data/apps/*
+/data/apps/*
 config.xml
