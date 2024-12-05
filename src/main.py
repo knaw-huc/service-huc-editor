@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 
 import uvicorn
 from fastapi import FastAPI, HTTPException, Depends, status
-from fastapi.security import OAuth2PasswordBearer, HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
 from typing import Annotated
 import emoji
@@ -17,7 +17,6 @@ from contextlib import asynccontextmanager
 import emoji
 import uvicorn
 from fastapi import FastAPI, Request, HTTPException, Depends, status
-from fastapi.security import OAuth2PasswordBearer
 
 from src.commons import settings, data
 
@@ -25,7 +24,7 @@ __version__ = importlib.metadata.metadata(settings.SERVICE_NAME)["version"]
 
 from starlette.middleware.cors import CORSMiddleware
 
-from src import public, protected
+from src import public, protected, admin
 
 api_keys = [
     settings.SERVICE_HUC_EDITOR_API_KEY
@@ -78,12 +77,12 @@ app.include_router(
     prefix=""
 )
 
-#app.include_router(
-#    protected.router,
-#    tags=["Protected"],
-#    prefix="",
-#    dependencies=[Depends(api_key_auth)]
-#)
+app.include_router(
+    admin.router,
+    tags=["Protected"],
+    prefix="",
+    dependencies=[Depends(auth_header)]
+)
 app.include_router(
     protected.router,
     tags=["unProtected"],

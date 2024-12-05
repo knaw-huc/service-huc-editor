@@ -122,3 +122,24 @@ def call_record_create_hook(hook,app,rec):
     # call hook(app,rec)
     func = getattr(mod,hook)
     func(app,rec)
+
+def allowed(user,app,action,default):
+    config_app_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
+    if not os.path.isfile(config_app_file):
+        logging.error(f"config file {config_app_file} doesn't exist")
+        if default == "any":
+            return True
+        return False
+
+    with open(config_app_file, 'r') as f:
+        config = toml.load(f)
+        mode = default
+        if 'access' in config["app"]:
+            if action in config['app']['access']:
+                mode = config['app']['access'][action]
+
+        if mode == "users" and user != None:
+            return True
+        if mode == "any":
+            return True
+    return False
