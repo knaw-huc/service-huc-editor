@@ -37,7 +37,7 @@ title="{} Editor"
 prof="{$prof}"
 
 [app.html]
-title="string(/cmd:CMD/cmd:Components//cmd:*[normalize-space(text())!=''][1])"
+title="string((/cmd:CMD/cmd:Components//cmd:*[empty(cmd:*)][normalize-space(text())!=''])[1])"
 
 [app.list]
 ns.cmd="http://www.clarin.eu/cmd/"
@@ -55,7 +55,7 @@ filter="true"
             <xsl:otherwise>
                 <xsl:text>
 [app.list.first]
-xpath="string(/cmd:CMD/cmd:Components//cmd:*[normalize-space(text())!=''][1])"
+xpath="string((/cmd:CMD/cmd:Components//cmd:*[empty(cmd:*)][normalize-space(text())!=''])[1])"
 label="First"
 sort="true"# or "false"
 filter="true"# or "'select'"
