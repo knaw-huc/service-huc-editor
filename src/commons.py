@@ -19,12 +19,12 @@ settings = Dynaconf(
     root_path=os.getenv("BASE_DIR"), environments=True
 )
 
-logging.basicConfig(filename=settings.LOG_FILE, level=settings.LOG_LEVEL,
-                    format=settings.LOG_FORMAT)
+logging.basicConfig(filename=settings.log_file, level=settings.log_level,
+                    format=settings.log_format)
 data = {}
 
 
-__version__ = importlib.metadata.metadata(settings.SERVICE_NAME)["version"]
+__version__ = importlib.metadata.metadata(settings.service_name)["version"]
 data.update({"service-version": __version__})
 
 
