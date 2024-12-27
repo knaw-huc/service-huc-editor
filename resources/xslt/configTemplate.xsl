@@ -33,7 +33,7 @@
         <xsl:text expand-text="yes">
 [app]
 name="{$app}"
-title="{} Editor"
+title="{functx:capitalize-first(functx:camel-case-to-words(string($app),' '))} Editor"
 prof="{$prof}"
 
 [app.html]

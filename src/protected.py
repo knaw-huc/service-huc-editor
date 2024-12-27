@@ -113,7 +113,9 @@ async def create_record(request: Request, app: str, prof: str | None = None, red
             xsltproc.set_cwd(os.getcwd())
             executable = xsltproc.compile_stylesheet(stylesheet_file=f"{settings.xslt_dir}/json2rec.xsl")
             executable.set_parameter("js-doc", proc.make_string_value(json.dumps(rec)))
-            executable.set_parameter("user", proc.make_string_value("service"))
+            if (user == None):
+                user = "server"
+            executable.set_parameter("user", proc.make_string_value(user))
             executable.set_parameter("self", proc.make_string_value(f"unl://{nr}"))
             executable.set_parameter("prof", proc.make_string_value(prof.strip()))
             null = proc.parse_xml(xml_text="<null/>")
@@ -171,7 +173,9 @@ async def modify_record(request: Request, app: str, nr: str, prof: str | None = 
                 rec = js['record']
             logging.info(f"- record JSON[{json.dumps(rec)}]")
             executable.set_parameter("js-doc", proc.make_string_value(json.dumps(rec)))
-            executable.set_parameter("user", proc.make_string_value("service"))
+            if (user == None):
+                user = "server"
+            executable.set_parameter("user", proc.make_string_value(user))
             executable.set_parameter("self", proc.make_string_value(f"unl://{nr}"))
             if (prof!=None):
                 executable.set_parameter("prof", proc.make_string_value(prof.strip()))
