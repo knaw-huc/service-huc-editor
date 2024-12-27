@@ -90,7 +90,7 @@ The next sections list the cues you can add to elements.
 
 #### CMDI cues
 
-Since CMDI 1.2 cues for tools can be specified. CCF supports the following using this mechanism:
+Since CMDI 1.2 cues for tools can be specified. CCF supports the following cues using this mechanism:
 
 - ``cue:displayOrder``
 - ``cue:inputWidth``
@@ -106,6 +106,12 @@ Since CMDI 1.2 cues for tools can be specified. CCF supports the following using
 #### CMDI auto values
 
 - ``now``
+
+#### other tweaks
+
+In the tweak file propererties of elements can be changed within limits:
+- minimum and maximum cardinality within the original bounds
+- vocabulary can be added as long as the values match the original value scheme
 
 ### configure the app
 
