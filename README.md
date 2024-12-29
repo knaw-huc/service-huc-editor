@@ -183,5 +183,16 @@ Here are some example configurations:
 - [iisg afstand](https://code.huc.knaw.nl/tsd/sd-service-huc-editor/-/blob/main/data/apps/afstand/config.toml?ref_type=heads) (HuC only)
 - [niod yugo dre](https://github.com/knaw-huc/niod-dre-yugo-editor/blob/main/data/apps/yugo/config.toml)
 
+#### The columns in the record list
+
+#### The record title
+
+#### Styling
+
+#### Access
+
+#### Hooks
 
 ## configure the services
+
+### Access to the admin API
