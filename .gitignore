@@ -3,6 +3,6 @@ __pycache__
 .idea
 *.pyc
 /venv/
-#/conf/.secrets.toml
+/conf/.secrets.toml
 /data/apps/*
 config.xml
