@@ -202,7 +202,7 @@ Here are some example configurations:
 
 #### Hooks
 
-### configure the services
+### Configure the services
 
 #### Access to the admin API
 
