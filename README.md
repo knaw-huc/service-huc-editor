@@ -19,6 +19,16 @@ curl -v -X PUT -H 'Authorization: Bearer foobar' http://localhost:1210/app/Hello
 
 [http://localhost:1210/app/HelloWorld](http://localhost:1210/app/HelloWorld)
 
+## Default credentials:
+
+- admin API key: ``foobar``
+- ``htp.test``: user ``test`` with password ``test``
+
+**ALWAYS** change these when running a CCF production deployment!
+
+- [admin API key](#access-to-the-admin-api)
+- [user access](#access)
+
 ## Setup your own
 
 ### Create or select a CMDI profile
@@ -165,7 +175,6 @@ CMDI 1.2 also added a way to specify auto values for an element, here the CCF su
 </Element>
 ```
 
-
 #### Other tweaks
 
 In the tweak file propererties of elements can be changed within limits:
@@ -196,3 +205,4 @@ Here are some example configurations:
 ## configure the services
 
 ### Access to the admin API
+
