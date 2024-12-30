@@ -179,9 +179,22 @@ CMDI 1.2 also added a way to specify auto values for an element, here the CCF su
 
 In the tweak file propererties of elements can be changed within limits:
 - minimum and maximum cardinality within the original bounds
-- vocabulary can be added as long as the values match the original value scheme
+- a vocabulary can be added as long as the values match the original value scheme
 
 ### Configure the app
+
+The configuration of the app can be retrieved:
+
+```sh
+curl -v -X GT -H 'Authorization: Bearer foobar' http://localhost:1210/app/HelloWorld/config
+.toml
+```
+
+To update the ``config.toml`` use ``PUT`` with ``application/toml`` as the ``Content-Type``:
+
+```sh
+curl -X PUT -H 'Authorization: Bearer foobar' -H 'Content-Type: application/toml' http://localhost:1210/app/HelloWorld/config -v --data-binary '@./config.toml'
+```
 
 Here are some example configurations:
 
