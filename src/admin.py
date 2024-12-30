@@ -187,7 +187,11 @@ async def modify_config(request: Request, app: str):
     if not('application/toml' in request.headers['Content-Type']):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Content-Type must be application/toml!")
     config_content = await request.body()
+    config_content = config_content.decode()
+    #logging.info(f"app[{app}] config[{config_content}]")
+    config = toml.loads(str(config_content))
     if 'application/toml' in request.headers['Content-Type']:
         with open(config_file, 'w') as file:
-            file.write(config_content)
+            file.write(toml.dumps(config))
+            return JSONResponse({"message": f"App[{app}] config updated"})
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not supported")
