@@ -150,7 +150,9 @@ CMDI cues being attributes don't work together with ``xml:lang`` language attrib
 
 ##### Vocabularies
 
-CCF doesn't support the CMDI external vocabularies syntax yet. Currently you can specify an ``autocompleteURL`` in the ``http://www.clariah.eu/`` namespace:
+**Note:** CCF doesn't support the CMDI external vocabularies syntax yet!
+
+Currently you can specify an ``autocompleteURL`` in the ``http://www.clariah.eu/`` namespace:
 
 ```xml
 <Element name="researchActivity" cue:class="skosType" xmlns:clariah="http://www.clariah.eu/">
@@ -250,9 +252,60 @@ This CSS file should be placed in the ``static/css/`` directory within the `app`
 
 #### Access
 
+**Note:** CCF doesn't support SSO yet!
+
+User based access control is currently supported via [htpasswd](https://httpd.apache.org/docs/2.4/programs/htpasswd.html), e.g.:
+
+```sh
+htpasswd -b -c ./htp test test
+```
+
+To configure access control in the config add a ``app.access`` section, e.g.:
+
+```toml
+[app.access]
+users="./htp"
+read="users"
+write="users" 
+```
+
+where
+- ``users`` points to the htpassword file;
+- ``read`` indicates who have read access: authenticated ``users`` or ``any`` (default)
+- ``write`` indicates who have write access: authenticated ``users`` or ``any`` (default)
+ 
 #### Hooks
+
+**Note:** under development!
+
+```toml
+[app.hooks.record]
+create="create_record"
+#read=
+#update=
+#delete=
+```
+
+Place ``hooks.py`` in  in the ``src/`` directory within the `app` directory, e.g., ``.../apps/vocabs/src/hooks.py``.
+
+```py
+import logging
+
+def create_record(app: str, rec: str):
+    logging.debug((f"record[{rec}] created!"))
+```
 
 ### Configure the services
 
+Global setting can be edited in the [](./conf/settings.toml) TOML file
+
 #### Access to the admin API
 
+The token for the admin API is set in the [](./conf/.secrets.toml):
+
+```toml
+[default]
+SERVICE_HUC_EDITOR_API_KEY="foobar"
+```
+
+**Note:** you MUST change this token in production!
