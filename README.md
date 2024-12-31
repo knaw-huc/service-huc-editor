@@ -122,11 +122,12 @@ The next sections list the cues you can add to elements and components.
 
 Since CMDI 1.2 cues for tools can be specified. CCF supports the following cues using this mechanism:
 
+- ``cue:class``: will add this as a CSS class, which can be used to style the elememt or component or to associate JavaScript triggers;
 - ``cue:displayOrder``: change the order of the elements or components; this allows to mix them in the editor, which can't be done in the profile specification
-- ``cue:inputWidth``: change how many characters width an input box is;
-- ``cue:inputHeight``: change how many lines an input box is;
-- ``cue:readonly``: if set to ``true`` the value of this element can't be changed;
 - ``cue:hide``: if set to ``true`` this element or component won't be shown in the editor.
+- ``cue:inputHeight``: change how many lines an input box is;
+- ``cue:inputWidth``: change how many characters width an input box is;
+- ``cue:readonly``: if set to ``true`` the value of this element can't be changed;
 
 Cues are attributes in the namespace ``http://www.clarin.eu/cmd/cues/1`` on the element or component tag, e.g.,
 
@@ -162,6 +163,8 @@ The URI follows the follow pattern:
 - the proxy recipe, e.g., [`skosmos`](./src/public.py#L32)
 - a specific instance of the recipe, e.g., [``sd``]./resources/proxies/skosmos-sd.toml) (see [](./resources/proxies/) for an overview)
 - a vocab in that instance, e.g., ``tadirah``
+
+**Note:** add the ``cue:class="skosType"`` to get an icon to open up a dialog for browsing the vocabulary next to the default autocomplete.
 
 #### CMDI auto values
 
@@ -207,9 +210,43 @@ Here are some example configurations:
 
 #### The columns in the record list
 
+The record list contains by defalt the creation date of the record, but other fields can be added in the apps configuration, e.g.,
+
+```toml
+[app.list.who]
+xpath="string(/cmd:CMD/cmd:Components/cmd:ShowcaseForm/cmd:Hello)"
+label="Hello"
+sort="true"
+filter="true"
+```
+where
+
+- ``who`` is the id of the column;
+- ``xpath`` retrieves the value from the record;
+- ``label`` is the header of the column;
+- ``sort`` indicates if the column is sortable by clicking on the header
+- ``filter`` indicates if the column has a filter where you can type (``true``) or a dropdown of the possible values (``'select'``, **note:** the single quotes are mandatory!)
+
+
 #### The record title
 
+Set an XPath to retrieve the title of the record in the HTML and PDF views of the record:
+
+```toml
+[app.html]
+title="string((/cmd:CMD/cmd:Components//cmd:*[empty(cmd:*)][normalize-space(text())!=''])[1])"
+```
+
 #### Styling
+
+Set a CSS style that overwrites the default CSS style, e.g.:
+
+```toml
+[app.html]
+style="data-envelopes.css"
+```
+
+This CSS file should be placed in the ``static/css/`` directory within the `app` directory, e.g., ``.../apps/data-envelopes/static/css/data-envelopes.css``.
 
 #### Access
 
