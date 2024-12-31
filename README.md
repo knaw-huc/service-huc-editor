@@ -35,7 +35,7 @@ curl -v -X PUT -H 'Authorization: Bearer foobar' http://localhost:1210/app/Hello
 
 Create or select a [CMDI](http://www.clarin.eu/cmdi/) profile in/from the [Component Registry](https://catalog.clarin.eu/ds/ComponentRegistry/)
 
-_CCF limitations_
+**CCF limitations**
 * don't use attributes, as they are tied to XML and don't have a decent counterpart in JSON, RDF, ...
 
 Remember the ID of your profile, which can be seen in its XML representation, e.g. `clarin.eu:cr1:p_1721373444008`:
@@ -260,7 +260,7 @@ User based access control is currently supported via [htpasswd](https://httpd.ap
 htpasswd -b -c ./htp test test
 ```
 
-To configure access control in the config add a ``app.access`` section, e.g.:
+To configure access control in the config add an ``app.access`` section, e.g.:
 
 ```toml
 [app.access]
@@ -297,7 +297,7 @@ def create_record(app: str, rec: str):
 
 ### Configure the services
 
-Global setting can be edited in the [](./conf/settings.toml) TOML file
+Global settings can be edited in the [](./conf/settings.toml) TOML file.
 
 #### Access to the admin API
 
