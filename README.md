@@ -124,7 +124,7 @@ Or deleted, e.g.:
 curl -v -X PUT -H 'Authorization: Bearer foobar' http://localhost:1210/app/helloWorld/profile/clarin.eu:cr1:p_1721373444008/tweak/1
 ```
 
-Note, the tweak file is not actually deleted on disk, but marked as such.
+**Note:** the tweak file is not actually deleted on disk, but marked as such.
 
 Multiple tweak files can exist and will be applied in order. The (future) purpose is to have dedicated tweak files for labels in specific languages, or a tweak file for indexing details. The result can be seen by requesting the profile, e.g., http://localhost:1210/app/helloWorld/profile/clarin.eu:cr1:p_1721373444008
 
