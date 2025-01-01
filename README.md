@@ -19,6 +19,10 @@ curl -v -X PUT -H 'Authorization: Bearer foobar' http://localhost:1210/app/Hello
 
 [http://localhost:1210/app/HelloWorld](http://localhost:1210/app/HelloWorld)
 
+4. Visit the API documentation:
+
+[http://localhost:1210/docs#/](http://localhost:1210/docs#/)
+
 ## Default credentials:
 
 - admin API key: ``foobar``
@@ -100,10 +104,27 @@ This template replicates the full structure of the profile, but this is not need
 </ComponentSpec>        
 ```
 
-To update the tweaks use:
-- \[``POST``\] to, e.g., http://localhost:1210/app/helloWorld/profile/clarin.eu:cr1:p_1721373444008/tweak add a new tweak file, which will redirect you to the tweakfile created, e.g., http://localhost:1210/app/helloWorld/profile/clarin.eu:cr1:p_1721373444008/tweak/1
-- \[``PUT``\] to a specific tweak file to update it 
-- \[``DELETE``\] a specific tweak file
+To create a tweak file use:
+
+```sh
+curl -X POST -H 'Authorization: Bearer foobar' -H 'Content-Type: application/xml'  http://localhost:1210/app/helloWorld/profile/clarin.eu:cr1:p_1721373444008/tweak -v --data-binary '@./tweak.xml'
+```
+
+This will return you the location of the tweak file created, e.g., [](http://localhost:1210/app/helloWorld/profile/clarin.eu:cr1:p_1721373444008/tweak/1)
+
+An specfic tweak file can be updated using ``PUT``, e.g.:
+
+```sh
+curl -X PUT -H 'Authorization: Bearer foobar' -H 'Content-Type: application/xml'  http://localhost:1210/app/helloWorld/profile/clarin.eu:cr1:p_1721373444008/tweak/1 -v --data-binary '@./tweak.xml'
+```
+
+Or deleted, e.g.:
+
+```sh
+curl -v -X PUT -H 'Authorization: Bearer foobar' http://localhost:1210/app/helloWorld/profile/clarin.eu:cr1:p_1721373444008/tweak/1
+```
+
+Note, the tweak file is not actually deleted on disk, but marked as such.
 
 Multiple tweak files can exist and will be applied in order. The (future) purpose is to have dedicated tweak files for labels in specific languages, or a tweak file for indexing details. The result can be seen by requesting the profile, e.g., http://localhost:1210/app/helloWorld/profile/clarin.eu:cr1:p_1721373444008
 
