@@ -110,9 +110,9 @@ To create a tweak file use:
 curl -X POST -H 'Authorization: Bearer foobar' -H 'Content-Type: application/xml'  http://localhost:1210/app/helloWorld/profile/clarin.eu:cr1:p_1721373444008/tweak -v --data-binary '@./tweak.xml'
 ```
 
-This will return you the location of the tweak file created, e.g., [](http://localhost:1210/app/helloWorld/profile/clarin.eu:cr1:p_1721373444008/tweak/1)
+This will return you the location of the tweak file created, e.g., [http://localhost:1210/app/helloWorld/profile/clarin.eu:cr1:p_1721373444008/tweak/1](http://localhost:1210/app/helloWorld/profile/clarin.eu:cr1:p_1721373444008/tweak/1)
 
-An specfic tweak file can be updated using ``PUT``, e.g.:
+An specfic tweak file can be updated using ``PUT``, e.g., 
 
 ```sh
 curl -X PUT -H 'Authorization: Bearer foobar' -H 'Content-Type: application/xml'  http://localhost:1210/app/helloWorld/profile/clarin.eu:cr1:p_1721373444008/tweak/1 -v --data-binary '@./tweak.xml'
