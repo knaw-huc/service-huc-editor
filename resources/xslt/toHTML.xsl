@@ -10,6 +10,8 @@
     <xsl:param name="app" select="'adoptie'"/>
     <xsl:param name="nr" select="'1'"/>
     <xsl:param name="config" select="doc(concat($cwd, '/data/apps/', $app, '/config.xml'))"/>
+    <xsl:param name="prof" select="$config/config/app/prof"/>
+    
     
     <xsl:param name="style" select="'style.css'"/>
     <xsl:param name="tweak-uri" select="''"/>

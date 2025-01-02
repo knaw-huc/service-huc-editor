@@ -22,6 +22,7 @@ async def prof_save(app: str, id: str):
     profile_xml = await get_profile_from_clarin(id)
     if not os.path.isdir(profile_path):
         os.makedirs(f"{profile_path}/tweaks")
+        os.makedirs(f"{profile_path}/records")
         with open(os.path.join(profile_path, f'{id}.xml'), 'wb') as file:
             file.write(profile_xml)
         return {"message": f"Profile[{id}] is created"}

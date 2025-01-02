@@ -9,8 +9,9 @@
     <xsl:param name="app" select="'adoptie'"/>
     <xsl:param name="nr" select="()"/>
     <xsl:param name="config" select="doc(concat($cwd, '/data/apps/', $app, '/config.xml'))"/>
-    <xsl:param name="rec" select="concat($base, '/app/', $app, '/record/', $nr)"/>
-    <xsl:param name="prof" select="concat($base, '/app/', $app, '/profile/', $config/config/app/prof)"/>
+    <xsl:param name="prof" select="$config/config/app/prof"/>
+    <xsl:param name="prof-url" select="concat($base, '/app/', $app, '/profile/', $prof)"/>
+    <xsl:param name="rec-url" select="concat($prof-url, '/record/', $nr)"/>
 
     <xsl:variable name="epoch" select="floor((current-dateTime() - xs:dateTime('1970-01-01T00:00:00')) div xs:dayTimeDuration('PT1S'))"/>
 
@@ -118,8 +119,8 @@
                                 outRec.when = inRec.when;
                             console.log(outRec);
                             out = JSON.stringify(outRec);
-                            localStorage.setItem("{$rec}@{$epoch}.out",out);
-                            url="{$rec}";
+                            localStorage.setItem("{$rec-url}@{$epoch}.out",out);
+                            url="{$rec-url}";
                             if (inRec.nr !==undefined) {{
                                 $.ajax(
                                 {{
@@ -168,7 +169,7 @@
                             <xsl:text>
                                 $('document').ready(
                                     function () {{
-                                        var url = "{$rec}";
+                                        var url = "{$rec-url}";
                                         $.ajax(
                                             {{
                                                 type: "GET",
@@ -195,7 +196,7 @@
                             <xsl:text>
                                 $('document').ready(
                                     function () {{
-                                        var url = "{$prof}";
+                                        var url = "{$prof-url}";
                                         $.ajax(
                                         {{
                                             type: "GET",

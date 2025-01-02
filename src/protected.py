@@ -68,17 +68,27 @@ def get_user_with_app(app: str, credentials: HTTPBasicCredentials = Depends(secu
     return get_current_user(app, credentials)
 
 @router.post("/app/{app}/record/", status_code=status.HTTP_201_CREATED)
+@router.post("/app/{app}/profile/{prof}/record/", status_code=status.HTTP_201_CREATED)
 async def create_record(request: Request, app: str, prof: str | None = None, redir: str | None = "yes", user: Optional[str] = Depends(get_user_with_app)):
     if (not allowed(user,app,'write','any')):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
+    if (prof == None):
+        config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
+        with open(config_file, 'r') as f:
+            config = toml.load(f)
+            prof = config['app']['prof'] 
     """
     Endpoint to create a record for an application.
     If the app does not exist, it returns a 400 error.
     """
-    logging.info(f"Modifying app[{app}]: creating record")
-    record_dir = f"{settings.URL_DATA_APPS}/{app}/records"
+    
+    logging.info(f"Modifying app[{app}] prof[{prof}]: creating record")
+    record_dir = f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}/records"
     if not os.path.isdir(f"{settings.URL_DATA_APPS}/{app}"):
         logging.debug(f"app[{app}] doesn't exist")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    if not os.path.isdir(f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}"):
+        logging.debug(f"app[{app}] prof[{prof}] doesn't exist")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     if not os.path.exists(record_dir):
         logging.debug(f"{record_dir} doesn't exist")
@@ -104,10 +114,8 @@ async def create_record(request: Request, app: str, prof: str | None = None, red
         if js["record"] != None:
             rec = js["record"]
         logging.info(f"- record JSON[{json.dumps(rec)}]")
-        if prof == None and js["prof"] != None:
-            prof = js["prof"]
-        if (prof == None or prof.strip() == ""):
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="When using application/json the prof query parameter should be filled!")
+        if prof != None and js["prof"] != None and prof != js["prof"]:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"The profile in the path (or the app default) and the profile in the JSON differ! ({prof}!={js['prof']})")
         with PySaxonProcessor(license=False) as proc:
             xsltproc = proc.new_xslt30_processor()
             xsltproc.set_cwd(os.getcwd())
@@ -127,30 +135,36 @@ async def create_record(request: Request, app: str, prof: str | None = None, red
                 config = toml.load(f)
                 if "hooks" in config['app'] and "record" in config["app"]["hooks"] and "create" in config["app"]["hooks"]["record"]:
                     logging.info(f"call_record_create_hook(hook[{config['app']['hooks']['record']['create']}],app[{app}],rec[{nr}])")
-                    call_record_create_hook(config['app']['hooks']['record']['create'],app, nr)
+                    call_record_create_hook(config['app']['hooks']['record']['create'],app,prof,nr)
     else:
         with open(record_file, 'wb') as file:
             file.write(record_body)
         err = rec_update(app, nr, record_body.decode())
-        logging.info(f"update app[{app}] record[{nr}] msg[{err}]")
+        logging.info(f"update app[{app}] prof[{prof}] record[{nr}] msg[{err}]")
         if (err.strip() == "404"):
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Initial record[{nr}] version was not saved!")
         elif (err.strip() != "OK"):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=err)
         if redir.strip() != "no":
             return RedirectResponse(url=f"./{nr}")
-    return JSONResponse({"message": f"App[{app}] record[{nr}] created","nr": nr})
+    return JSONResponse({"message": f"App[{app}] prof[{prof}] record[{nr}] created","nr": nr})
 
 @router.put("/app/{app}/record/{nr}")
+@router.put("/app/{app}/profile/{prof}/record/{nr}")
 async def modify_record(request: Request, app: str, nr: str, prof: str | None = None, when: str | None = None, user: Optional[str] = Depends(get_user_with_app)):
     if (not allowed(user,app,'write','any')):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
+    if (prof == None):
+        config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
+        with open(config_file, 'r') as f:
+            config = toml.load(f)
+            prof = config['app']['prof'] 
     """
     Endpoint to create a record for an application based on its name and the record's ID.
     If the record already exists, it returns a message indicating that the record already exists.
     """
-    logging.info(f"app[{app}] record[{nr}] modify")
-    record_file = f"{settings.URL_DATA_APPS}/{app}/records/record-{nr}.xml"
+    logging.info(f"app[{app}] prof[{prof}] record[{nr}] modify")
+    record_file = f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}/records/record-{nr}.xml"
     if not os.path.exists(record_file):
         logging.debug(f"{record_file} doesn't exist")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
@@ -177,10 +191,9 @@ async def modify_record(request: Request, app: str, nr: str, prof: str | None = 
                 user = "server"
             executable.set_parameter("user", proc.make_string_value(user))
             executable.set_parameter("self", proc.make_string_value(f"unl://{nr}"))
-            if (prof!=None):
-                executable.set_parameter("prof", proc.make_string_value(prof.strip()))
-            elif (js['prof']!=None):
-                executable.set_parameter("prof", proc.make_string_value(js['prof'].strip()))
+            if prof != None and js["prof"] != None and prof != js["prof"]:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"The profile in the path (or the app default) and the profile in the JSON differ! ({prof}!={js['prof']})")
+            executable.set_parameter("prof", proc.make_string_value(prof.strip()))
             if (when!=None):
                 executable.set_parameter("when", proc.make_string_value(when.strip()))
             elif (js['when']!=None):
@@ -202,7 +215,7 @@ async def modify_record(request: Request, app: str, nr: str, prof: str | None = 
     # if not valid:
     #   return HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid XML")
 
-    err = rec_update(app, nr, record_body)
+    err = rec_update(app, prof, nr, record_body)
     logging.info(f"update app[{app}] record[{nr}] msg[{err}]")
     if (err.strip() == "404"):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Record[{nr}] version was not saved as previous version couldn't be found!")
@@ -213,15 +226,21 @@ async def modify_record(request: Request, app: str, nr: str, prof: str | None = 
 
 
 @router.delete("/app/{app}/record/{nr}")
-async def delete_record(request: Request, app: str, nr: str, user: Optional[str] = Depends(get_user_with_app)):
+@router.delete("/app/{app}/profile/{prof}/record/{nr}")
+async def delete_record(request: Request, app: str, nr: str, prof: str | None=None, user: Optional[str] = Depends(get_user_with_app)):
     if (not allowed(user,app,'write','any')):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
+    if (prof == None):
+        config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
+        with open(config_file, 'r') as f:
+            config = toml.load(f)
+            prof = config['app']['prof'] 
     """
     Endpoint to delete a record based on its ID.
     If the record does not exist, it returns a 404 error.
     """
-    logging.info(f"app[{app}] record[{nr}] delete")
-    record_file = f"{settings.URL_DATA_APPS}/{app}/records/record-{nr}.xml"
+    logging.info(f"app[{app}] prof[{prof}] record[{nr}] delete")
+    record_file = f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}/records/record-{nr}.xml"
     if not os.path.exists(record_file):
         logging.info(f"{record_file} not found!")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
@@ -230,24 +249,31 @@ async def delete_record(request: Request, app: str, nr: str, user: Optional[str]
         os.remove(f"{record_file}.deleted")
     os.rename(record_file,f"{record_file}.deleted")
 
-    return JSONResponse({"message": f"app[{app}] record[{nr}] deleted"})
+    return JSONResponse({"message": f"app[{app}] prof[{prof}] record[{nr}] deleted"})
 
 @router.get('/app/{app}/record/editor')
+@router.get('/app/{app}/profile/{prof}/record/editor')
 @router.get('/app/{app}/record/{nr}/editor')
-def get_editor(request: Request, app: str, nr: str | None=None, user: Optional[str] = Depends(get_user_with_app)):
+@router.get('/app/{app}/profile/{prof}/record/{nr}/editor')
+def get_editor(request: Request, app: str, prof: str | None=None, nr: str | None=None, user: Optional[str] = Depends(get_user_with_app)):
     if (not allowed(user,app,'write','any')):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
+    if (prof == None):
+        config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
+        with open(config_file, 'r') as f:
+            config = toml.load(f)
+            prof = config['app']['prof'] 
     if nr:
-        logging.info(f"app[{app}] record[{nr}] editor")
-        record_file = f"{settings.URL_DATA_APPS}/{app}/records/record-{nr}.xml"
+        logging.info(f"app[{app}] prof[{prof}] record[{nr}] editor")
+        record_file = f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}/records/record-{nr}.xml"
         if not os.path.exists(record_file):
             logging.debug(f"{record_file} doesn't exist")
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     else:
-        logging.info(f"app[{app}] new record editor")        
+        logging.info(f"app[{app}] prof[{prof}] new record editor")        
     
     if "text/html" in request.headers.get("accept", ""):
-        editor = rec_editor(app,nr)
+        editor = rec_editor(app,prof,nr)
         return HTMLResponse(content=editor)
     
 class RecForm(str, Enum):
@@ -257,9 +283,15 @@ class RecForm(str, Enum):
     pdf = "pdf"
 
 @router.get('/app/{app}/record/{nr}')
-def get_record(request: Request, app: str, nr: str, user: Optional[str] = Depends(get_user_with_app)):
+@router.get('/app/{app}/profile/{prof}/record/{nr}')
+def get_record(request: Request, app: str,  nr: str, prof: str | None=None, user: Optional[str] = Depends(get_user_with_app)):
     if (not allowed(user,app,'read','any')):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
+    if (prof == None):
+        config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
+        with open(config_file, 'r') as f:
+            config = toml.load(f)
+            prof = config['app']['prof'] 
     if nr.count('.') == 0:
         form = "html"
     elif nr.count('.') == 1:
@@ -275,9 +307,8 @@ def get_record(request: Request, app: str, nr: str, user: Optional[str] = Depend
     If the record does not exist, it returns a 404 error.
     If the record exists but the reading functionality is not implemented yet, it returns a 501 error.
     """
-    #?is er iemand ingelogd of is er een gast?
-    logging.info(f"app[{app}] record[{nr}] form[{form}] accept[{request.headers.get("accept", "")}]")
-    record_file = f"{settings.URL_DATA_APPS}/{app}/records/record-{nr}.xml"
+    logging.info(f"app[{app}] prof[{prof}] record[{nr}] form[{form}] accept[{request.headers.get("accept", "")}]")
+    record_file = f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}/records/record-{nr}.xml"
 
     if not os.path.exists(record_file):
         logging.debug(f"{record_file} doesn't exist")
@@ -286,12 +317,6 @@ def get_record(request: Request, app: str, nr: str, user: Optional[str] = Depend
     if form == "json" or "application/json" in request.headers.get("accept", ""):
         with PySaxonProcessor(license=False) as proc:
             rec = proc.parse_xml(xml_file_name=record_file)
-            xpproc = proc.new_xpath_processor()
-            xpproc.set_cwd(os.getcwd())
-            xpproc.declare_namespace('clariah','http://www.clariah.eu/')
-            xpproc.declare_namespace('cmd','http://www.clarin.eu/cmd/')
-            xpproc.set_context(xdm_item=rec)
-            prof = xpproc.evaluate_single("string(/cmd:CMD/cmd:Header/cmd:MdProfile)").get_string_value()
             prof_doc = prof_json(app, prof)
             xsltproc = proc.new_xslt30_processor()
             xsltproc.set_cwd(os.getcwd())
@@ -301,7 +326,7 @@ def get_record(request: Request, app: str, nr: str, user: Optional[str] = Depend
             result = executable.transform_to_string(xdm_node=rec)
             return JSONResponse(content=jsonable_encoder(json.loads(result)))
     elif form == RecForm.pdf or "application/pdf" in request.headers.get("accept", ""):
-            html = rec_html(app,nr)
+            html = rec_html(app,prof,nr)
             pdf = HTML(string=html).write_pdf()
             headers = {'Content-Disposition': f'inline; filename="{app}-record-{nr}.pdf"'}
             return Response(pdf, headers=headers, media_type='application/pdf')
@@ -312,7 +337,7 @@ def get_record(request: Request, app: str, nr: str, user: Optional[str] = Depend
             rec = file.read()
             return Response(content=rec, media_type="application/xml")
     elif form == RecForm.html or "text/html" in request.headers.get("accept", ""):
-            html = rec_html(app,nr)
+            html = rec_html(app,prof,nr)
             return HTMLResponse(content=html)
     elif form == RecForm.xml or "application/xml" in request.headers.get("accept", ""):
         with open(record_file, 'r') as file:

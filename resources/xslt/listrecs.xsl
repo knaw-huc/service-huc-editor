@@ -7,8 +7,8 @@
     <xsl:param name="base" select="'http://localhost:1210'"/>
     <xsl:param name="app" select="'adoptie'"/>
     <xsl:param name="config" select="doc(concat($cwd, '/data/apps/', $app, '/config.xml'))"/>
-    <xsl:param name="recs" select="concat($cwd, '/data/apps/', $app, '/records')"/>
-
+    <xsl:param name="prof" select="$config/config/app/prof"/>
+    <xsl:param name="recs" select="concat($cwd, '/data/apps/', $app, '/profiles/', $prof, '/records')"/>
 
     <xsl:template name="main">
         <html lang="en" xsl:expand-text="yes">
@@ -67,7 +67,7 @@
                                     </xsl:for-each>
                                     <th>Creation date</th>
                                     <th>
-                                        <a href="{concat($base, '/app/', $app, '/record/editor')}" id="addRec">
+                                        <a href="{concat($base, '/app/', $app, '/profile/', $prof, '/record/editor')}" id="addRec">
                                             <img src="{$base}/static/img/add.ico" height="16px" width="16px"/>
                                         </a>
                                     </th>
@@ -83,7 +83,7 @@
                                     <xsl:sort select="replace(base-uri(.), '.*/record-(\d+)\.xml', '$1')" data-type="number"/>
                                     <xsl:variable name="rec" select="."/>
                                     <xsl:variable name="nr" select="replace(base-uri($rec), '.*/record-(\d+)\.xml', '$1')"/>
-                                    <xsl:variable name="url" select="concat($base, '/app/', $app, '/record/', $nr)"/>
+                                    <xsl:variable name="url" select="concat($base, '/app/', $app, '/profile/', $prof, '/record/', $nr)"/>
                                     <xsl:comment>[{base-uri($rec)}][{$url}]</xsl:comment>
 
                                     <tr>

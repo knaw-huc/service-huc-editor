@@ -116,12 +116,12 @@ def convert_toml_to_xml(toml_file: str, xml_file: str, root_element: str = "conf
     with open(xml_file, 'w', encoding='utf-8') as f:
         f.write(pretty_xml)
 
-def call_record_create_hook(hook,app,rec):
+def call_record_create_hook(hook,app,prof,rec):
     # import hook from data/apps/app/src/hooks.py
     mod = importlib.import_module(f"apps.{app}.src.hooks")
     # call hook(app,rec)
     func = getattr(mod,hook)
-    func(app,rec)
+    func(app,prof,rec)
 
 def allowed(user,app,action,default):
     config_app_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
