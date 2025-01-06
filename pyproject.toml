@@ -1,5 +1,7 @@
-[tool.poetry]
+[project]
 name = "huc-editor-service"
+
+[tool.poetry]
 version = "0.1.10"
 description = ""
 authors = ["ekoi <eko.indarto@dans.knaw.nl>"]
@@ -11,9 +13,9 @@ packages = [
 
 
 [project.urls]
-Homepage = ""
+Homepage = "https://github.com/knaw-huc/clariah-cmdi-forms"
 Documentation = "https://readthedocs.org"
-Repository = "https://github.com/knaw-huc/service-huc-editor"
+Repository = "https://github.com/knaw-huc/service-huc-editor/blob/main/README.md"
 Issues = "https://github.com/knaw-huc/service-huc-editor/issues"
 Changelog = "https://github.com/knaw-huc/service-huc-editor/master/CHANGELOG.md"
 
