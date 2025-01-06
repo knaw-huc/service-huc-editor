@@ -9,7 +9,7 @@
     <xsl:param name="app" select="'adoptie'"/>
     <xsl:param name="nr" select="()"/>
     <xsl:param name="config" select="doc(concat($cwd, '/data/apps/', $app, '/config.xml'))"/>
-    <xsl:param name="prof" select="$config/config/app/prof"/>
+    <xsl:param name="prof" select="$config/config/app/def_prof"/>
     <xsl:param name="prof-url" select="concat($base, '/app/', $app, '/profile/', $prof)"/>
     <xsl:param name="rec-url" select="concat($prof-url, '/record/', $nr)"/>
 
@@ -204,7 +204,7 @@
                                             dataType: "json",
                                             success: function (json) {{
                                                 prof = json;
-                                                inRec = {{id:"{$config/config/app/prof}", content: prof}}
+                                                inRec = {{id:"{$prof}", content: prof}}
                                                 console.log(inRec);
                                                 setLanguages();
                                                 formBuilder.start(inRec);

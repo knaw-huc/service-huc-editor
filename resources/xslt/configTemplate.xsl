@@ -34,18 +34,19 @@
 [app]
 name="{$app}"
 title="{functx:capitalize-first(functx:camel-case-to-words(string($app),' '))} Editor"
-prof="{$prof}"
+def_prof="{$prof}"
 
-[app.html]
+[app.prof.{$app}]
+prof="{$prof}"
 title="string((/cmd:CMD/cmd:Components//cmd:*[empty(cmd:*)][normalize-space(text())!=''])[1])"
 
-[app.list]
+[app.prof.{$app}.list]
 ns.cmd="http://www.clarin.eu/cmd/"
         </xsl:text>
         <xsl:choose>
             <xsl:when test="$prof = $template_prof">
-                <xsl:text>
-[app.list.who]
+                <xsl:text expand-text="yes">
+[app.prof.{$app}.list.who]
 xpath="string(/cmd:CMD/cmd:Components/cmd:ShowcaseForm/cmd:Hello)"
 label="Hello"
 sort="true"
@@ -53,8 +54,8 @@ filter="true"
                 </xsl:text>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:text>
-[app.list.first]
+                <xsl:text expand-text="yes">
+[app.prof.{$app}.list.first]
 xpath="string((/cmd:CMD/cmd:Components//cmd:*[empty(cmd:*)][normalize-space(text())!=''])[1])"
 label="First"
 sort="true"# or "false"

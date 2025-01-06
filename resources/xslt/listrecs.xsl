@@ -7,8 +7,8 @@
     <xsl:param name="base" select="'http://localhost:1210'"/>
     <xsl:param name="app" select="'adoptie'"/>
     <xsl:param name="config" select="doc(concat($cwd, '/data/apps/', $app, '/config.xml'))"/>
-    <xsl:param name="prof" select="$config/config/app/prof"/>
-    <xsl:param name="recs" select="concat($cwd, '/data/apps/', $app, '/profiles/', $prof, '/records')"/>
+    <!--<xsl:param name="prof" select="$config/config/app/def_prof"/>
+    <xsl:param name="recs" select="concat($cwd, '/data/apps/', $app, '/profiles/', $prof, '/records')"/>-->
 
     <xsl:template name="main">
         <html lang="en" xsl:expand-text="yes">
@@ -58,80 +58,86 @@
                     <div id="user"/>
                     <div id="homeBtn"/>
                     <div id="content">
-                        <h2>list of records</h2>
-                        <table id="resultTable" class="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <xsl:for-each select="$config//app/list/(* except ns)">
-                                        <th>{label}</th>
-                                    </xsl:for-each>
-                                    <th>Creation date</th>
-                                    <th>
-                                        <a href="{concat($base, '/app/', $app, '/profile/', $prof, '/record/editor')}" id="addRec">
-                                            <img src="{$base}/static/img/add.ico" height="16px" width="16px"/>
-                                        </a>
-                                    </th>
-                                    <th/>
-                                    <!--<th/>-->
-                                    <th/>
-                                    <th/>
-                                    <th/>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <xsl:for-each select="collection(concat($recs,'?match=record-\d+\.xml&amp;on-error=warning'))">
-                                    <xsl:sort select="replace(base-uri(.), '.*/record-(\d+)\.xml', '$1')" data-type="number"/>
-                                    <xsl:variable name="rec" select="."/>
-                                    <xsl:variable name="nr" select="replace(base-uri($rec), '.*/record-(\d+)\.xml', '$1')"/>
-                                    <xsl:variable name="url" select="concat($base, '/app/', $app, '/profile/', $prof, '/record/', $nr)"/>
-                                    <xsl:comment>[{base-uri($rec)}][{$url}]</xsl:comment>
-
+                        <xsl:for-each select="$config/config/app/prof/*">
+                            <xsl:variable name="p" select="."/>
+                            <xsl:variable name="prof" select="prof"/>
+                            <xsl:variable name="recs" select="concat($cwd, '/data/apps/', $app, '/profiles/', $prof, '/records')"/>
+                            <h2 xsl:expand-text="yes">list of {(./label_en,local-name())[1]} records</h2>
+                            <table id="records-{local-name()}" class="table table-bordered resultTable">
+                                <thead>
                                     <tr>
-                                        <xsl:for-each select="$config//app/list/(* except ns)">
-                                            <td>
-                                                <xsl:variable name="xpath" select="xpath"/>
-                                                <xsl:evaluate xpath="$xpath" context-item="$rec"/>
-                                            </td>
+                                        <xsl:for-each select="list/(* except ns)">
+                                            <th>{(label,label_en,local-name())[1]}</th>
                                         </xsl:for-each>
-                                        <td>{/cmd:CMD/cmd:Header/cmd:MdCreationDate}</td>
-                                        <td>
-                                            <a href="{$url}/editor" title="Edit metadata">
-                                                <img src="{$base}/static/img/edit.png" height="16px" width="16px"/>
+                                        <th>Creation date</th>
+                                        <th>
+                                            <a href="{concat($base, '/app/', $app, '/profile/', $prof, '/record/editor')}" id="addRec">
+                                                <img src="{$base}/static/img/add.ico" height="16px" width="16px"/>
                                             </a>
-                                        </td>
-                                        <!--<td>
-                                            <a href="dwnldRec('{$nr}')" title="Download">
-                                                <img src="{$base}/static/img/download.png" height="16px" width="16px"/>
-                                            </a>
-                                        </td>-->
-                                        <td>
-                                            <a title="Delete" class="myBtn delete" id="myBtn1" onclick="deleteRecord('{$url}');">
-                                                <img src="{$base}/static/img/bin.png" height="16px" width="16px"/>
-                                            </a>
-                                        </td>
-                                        <td>
-                                            <a href="{$url}.xml" title="Show CMDI" target="_blank">CMDI</a>
-                                        </td>
-                                        <td>
-                                            <a href="{$url}.html" title="Show HTML" target="_blank">HTML</a>
-                                        </td>
-                                        <td>
-                                            <a href="{$url}.pdf" title="Show PDF" target="_blank">PDF</a>
-                                        </td>
+                                        </th>
+                                        <th/>
+                                        <!--<th/>-->
+                                        <th/>
+                                        <th/>
+                                        <th/>
                                     </tr>
-                                </xsl:for-each>
-                            </tbody>
-                        </table>
-                        <div id="paging-resultTable"/>
-                        <script>
-                            var datatable = new DataTable(document.querySelector('#resultTable'), {{
-                                pageSize: 25,
-                                sort: [{string-join($config/config/app/list/(* except ns)/sort,', ')}, true],
-                                filters: [{string-join($config/config/app/list/(* except ns)/filter,', ')}, 'select'],
-                                filterText: 'Type to filter... ',
-                                pagingDivSelector: "#paging-resultTable"}}
-                            );
-                        </script>
+                                </thead>
+                                <tbody>
+                                    <xsl:for-each select="collection(concat($recs,'?match=record-\d+\.xml&amp;on-error=warning'))">
+                                        <xsl:sort select="replace(base-uri(.), '.*/record-(\d+)\.xml', '$1')" data-type="number"/>
+                                        <xsl:variable name="rec" select="."/>
+                                        <xsl:variable name="nr" select="replace(base-uri($rec), '.*/record-(\d+)\.xml', '$1')"/>
+                                        <xsl:variable name="url" select="concat($base, '/app/', $app, '/profile/', $prof, '/record/', $nr)"/>
+                                        <xsl:comment>[{base-uri($rec)}][{$url}]</xsl:comment>
+    
+                                        <tr>
+                                            <xsl:for-each select="$p/list/(* except ns)">
+                                                <td>
+                                                    <xsl:variable name="xpath" select="xpath"/>
+                                                    <xsl:evaluate xpath="$xpath" context-item="$rec"/>
+                                                </td>
+                                            </xsl:for-each>
+                                            <td>{/cmd:CMD/cmd:Header/cmd:MdCreationDate}</td>
+                                            <td>
+                                                <a href="{$url}/editor" title="Edit metadata">
+                                                    <img src="{$base}/static/img/edit.png" height="16px" width="16px"/>
+                                                </a>
+                                            </td>
+                                            <!--<td>
+                                                <a href="dwnldRec('{$nr}')" title="Download">
+                                                    <img src="{$base}/static/img/download.png" height="16px" width="16px"/>
+                                                </a>
+                                            </td>-->
+                                            <td>
+                                                <a title="Delete" class="myBtn delete" id="myBtn1" onclick="deleteRecord('{$url}');">
+                                                    <img src="{$base}/static/img/bin.png" height="16px" width="16px"/>
+                                                </a>
+                                            </td>
+                                            <td>
+                                                <a href="{$url}.xml" title="Show CMDI" target="_blank">CMDI</a>
+                                            </td>
+                                            <td>
+                                                <a href="{$url}.html" title="Show HTML" target="_blank">HTML</a>
+                                            </td>
+                                            <td>
+                                                <a href="{$url}.pdf" title="Show PDF" target="_blank">PDF</a>
+                                            </td>
+                                        </tr>
+                                    </xsl:for-each>
+                                </tbody>
+                            </table>
+                            <div id="paging-records-{local-name()}"/>
+                            <br/>
+                            <script xsl:expand-text="yes">
+                                var datatable = new DataTable(document.querySelector('#records-{local-name()}'), {{
+                                    pageSize: 25,
+                                    sort: [{string-join(list/(* except ns)/sort,', ')}, true],
+                                    filters: [{string-join(list/(* except ns)/filter,', ')}, 'select'],
+                                    filterText: 'Type to filter... ',
+                                    pagingDivSelector: "#paging-records-{local-name()}"}}
+                                );
+                            </script>
+                        </xsl:for-each>
                         <script type="text/javascript" src="{$base}/static/js/src/sorttable.js"/>
                     </div>
                 </div>

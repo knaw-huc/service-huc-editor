@@ -76,7 +76,7 @@ async def create_record(request: Request, app: str, prof: str | None = None, red
         config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
         with open(config_file, 'r') as f:
             config = toml.load(f)
-            prof = config['app']['prof'] 
+            prof = config['app']['def_prof'] 
     """
     Endpoint to create a record for an application.
     If the app does not exist, it returns a 400 error.
@@ -158,7 +158,7 @@ async def modify_record(request: Request, app: str, nr: str, prof: str | None = 
         config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
         with open(config_file, 'r') as f:
             config = toml.load(f)
-            prof = config['app']['prof'] 
+            prof = config['app']['def_prof'] 
     """
     Endpoint to create a record for an application based on its name and the record's ID.
     If the record already exists, it returns a message indicating that the record already exists.
@@ -234,7 +234,7 @@ async def delete_record(request: Request, app: str, nr: str, prof: str | None=No
         config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
         with open(config_file, 'r') as f:
             config = toml.load(f)
-            prof = config['app']['prof'] 
+            prof = config['app']['def_prof'] 
     """
     Endpoint to delete a record based on its ID.
     If the record does not exist, it returns a 404 error.
@@ -262,7 +262,7 @@ def get_editor(request: Request, app: str, prof: str | None=None, nr: str | None
         config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
         with open(config_file, 'r') as f:
             config = toml.load(f)
-            prof = config['app']['prof'] 
+            prof = config['app']['def_prof'] 
     if nr:
         logging.info(f"app[{app}] prof[{prof}] record[{nr}] editor")
         record_file = f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}/records/record-{nr}.xml"
@@ -291,7 +291,7 @@ def get_record(request: Request, app: str,  nr: str, prof: str | None=None, user
         config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
         with open(config_file, 'r') as f:
             config = toml.load(f)
-            prof = config['app']['prof'] 
+            prof = config['app']['def_prof'] 
     if nr.count('.') == 0:
         form = "html"
     elif nr.count('.') == 1:

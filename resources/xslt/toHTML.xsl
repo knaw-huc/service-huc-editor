@@ -10,7 +10,7 @@
     <xsl:param name="app" select="'adoptie'"/>
     <xsl:param name="nr" select="'1'"/>
     <xsl:param name="config" select="doc(concat($cwd, '/data/apps/', $app, '/config.xml'))"/>
-    <xsl:param name="prof" select="$config/config/app/prof"/>
+    <xsl:param name="prof" select="$config/config/app/def_prof"/>
     
     
     <xsl:param name="style" select="'style.css'"/>
@@ -22,7 +22,11 @@
     <xsl:template match="text()"/>
     
     <xsl:template name="title">
-        <xsl:variable name="xpath" select="$config/config/app/html/title"/>
+        <xsl:comment expand-text="yes">
+            prof[{$prof}]
+            xpath[{$config/config/app/prof/*[prof=$prof]/title}]
+        </xsl:comment>
+        <xsl:variable name="xpath" select="$config/config/app/prof/*[prof=$prof]/title"/>
         <xsl:evaluate xpath="$xpath" context-item="."/>
     </xsl:template>
     

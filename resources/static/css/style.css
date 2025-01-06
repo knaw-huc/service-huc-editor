@@ -123,29 +123,29 @@ table tr td {
     vertical-align: top;
 }
 
-#resultTable {
+.resultTable {
     border-collapse: collapse;
 }
 
-#resultTable tr {
+.resultTable tr {
     border-top: 1px solid #555;
     border-left: 1px solid #555;
     border-right: 1px solid #555;
 }
 
-#resultTable tr:hover {
+.resultTable tr:hover {
     color: #777;
 }
 
-#resultTable tr:last-child {
+.resultTable tr:last-child {
     border-bottom: 1px solid #555;
 }
 
-#resultTable tr td, #resultTable tr th {
+.resultTable tr td, #resultTable tr th {
     padding: 4px 16px 4px 6px;
 }
 
-#resultTable tr th {
+.resultTable tr th {
     color: #fff;
     background-color: #444;
 }
