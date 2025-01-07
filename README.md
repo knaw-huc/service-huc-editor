@@ -6,7 +6,7 @@
 1. Start the docker container:
 
 ```sh
-docker run -p 1210:1210 --name=ccf --rm -it ghcr.io/knaw-huc/service-huc-editor:2.0-RC1
+docker run -p 1210:1210 --name=ccf --rm -it ghcr.io/knaw-huc/service-huc-editor:2.0-RC3
 ```
 
 2. Initialize the HelloWorld app:
@@ -60,7 +60,7 @@ Remember the ID of your profile, which can be seen in its XML representation, e.
 
 With release image:
 ```sh
-docker run -v ./conf:/home/huc/huc-editor-service/conf -v ./data:/home/huc/huc-editor-service/data -p 1210:1210 --name=ccf --rm -it ghcr.io/knaw-huc/service-huc-editor:2.0-RC2
+docker run -v ./conf:/home/huc/huc-editor-service/conf -v ./data:/home/huc/huc-editor-service/data -p 1210:1210 --name=ccf --rm -it ghcr.io/knaw-huc/service-huc-editor:2.0-RC3
 ```
 
 With local image:
@@ -231,12 +231,33 @@ Here are some example configurations:
 - [iisg afstand](https://code.huc.knaw.nl/tsd/sd-service-huc-editor/-/blob/main/data/apps/afstand/config.toml?ref_type=heads) (HuC only)
 - [niod yugo dre](https://github.com/knaw-huc/niod-dre-yugo-editor/blob/main/data/apps/yugo/config.toml)
 
-#### The columns in the record list
 
-The record list contains by defalt the creation date of the record, but other fields can be added in the apps configuration, e.g.,
+#### The profiles in the app
+
+An app is based on one or more CMD profiles. There should be at least one profile and one profile should be the default:
 
 ```toml
-[app.list.who]
+[app]
+def_prof="clarin.eu:cr1:p_1721373444008"
+```
+
+Each profile needs to have an id, e.g. `HelloWorld` and a main entry in the config:
+
+```toml
+[app.prof.HelloWorld]
+prof="clarin.eu:cr1:p_1721373444008"
+title="string((/cmd:CMD/cmd:Components//cmd:*[empty(cmd:*)][normalize-space(text())!=''])[1])"
+```
+
+The `title` XPath is used to retrieve the title of the record in the HTML and PDF views.
+
+
+#### The columns in the record list
+
+The per profile  record list contains by default the creation date of the record, but other fields can be added in the apps configuration, e.g.,
+
+```toml
+[app.prof.HelloWorld.list.who]
 xpath="string(/cmd:CMD/cmd:Components/cmd:ShowcaseForm/cmd:Hello)"
 label="Hello"
 sort="true"
@@ -249,16 +270,6 @@ where
 - ``label`` is the header of the column;
 - ``sort`` indicates if the column is sortable by clicking on the header
 - ``filter`` indicates if the column has a filter where you can type (``true``) or a dropdown of the possible values (``'select'``, **note:** the single quotes are mandatory!)
-
-
-#### The record title
-
-Set an XPath to retrieve the title of the record in the HTML and PDF views of the record:
-
-```toml
-[app.html]
-title="string((/cmd:CMD/cmd:Components//cmd:*[empty(cmd:*)][normalize-space(text())!=''])[1])"
-```
 
 #### Styling
 
