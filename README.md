@@ -25,7 +25,7 @@ curl -v -X PUT -H 'Authorization: Bearer foobar' http://localhost:1210/app/Hello
 
 5. Take a look at the logs:
 
-Next to the docker container log there is a more extensive log inside the container at `/home/huc/huc-editor-service/logs/huc-editor-service.log`.
+Next to the docker container log there is a more extensive log inside the container at `/home/huc/huc-editor-service/logs/huc-editor-service.log`
 
 ## Default credentials:
 
