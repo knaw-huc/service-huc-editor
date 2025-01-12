@@ -12,7 +12,7 @@
             else
                 ()"/>
     <xsl:param name="js-xml" select="js:json-to-xml($js-doc)"/>
-    <xsl:param name="vers" select="'1.2'"/>
+    <xsl:param name="vers" select="'1.1'"/>
     <xsl:param name="prof" select="'unknown'"/>
     <xsl:param name="user" select="'test'"/>
     <xsl:param name="self" select="'unl://1'"/>
