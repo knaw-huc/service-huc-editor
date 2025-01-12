@@ -232,6 +232,15 @@ Here are some example configurations:
 - [niod yugo dre](https://github.com/knaw-huc/niod-dre-yugo-editor/blob/main/data/apps/yugo/config.toml)
 
 
+#### The CMDI version in the app
+
+Set the version of CMDI to be used for record serialisation.
+
+```toml
+[app]
+cmdi_version="1.2" #or 1.1, which is (for legacy reasons) the default
+```
+
 #### The profiles in the app
 
 An app is based on one or more CMD profiles. There should be at least one profile and one profile should be the default:
@@ -246,10 +255,11 @@ Each profile needs to have an id, e.g. `HelloWorld` and a main entry in the conf
 ```toml
 [app.prof.HelloWorld]
 prof="clarin.eu:cr1:p_1721373444008"
-title="string((/cmd:CMD/cmd:Components//cmd:*[empty(cmd:*)][normalize-space(text())!=''])[1])"
+title="string((/cmd:CMD/cmd:Components//cmd:*[empty(cmd:*)][normalize-space(text())!=''])[1])" #for CMDI version 1.1
+#title="string((/cmd:CMD/cmd:Components//cmdp:*[empty(cmdp:*)][normalize-space(text())!=''])[1])" #for CMDI version 1.2
 ```
 
-The `title` XPath is used to retrieve the title of the record in the HTML and PDF views.
+The `title` XPath is used to retrieve the title of the record in the HTML and PDF views (**note:** the `cmd` and `cmdp` namespaces are available and set compliant with the configured CMDI version).
 
 
 #### The columns in the record list
@@ -258,7 +268,8 @@ The per profile  record list contains by default the creation date of the record
 
 ```toml
 [app.prof.HelloWorld.list.who]
-xpath="string(/cmd:CMD/cmd:Components/cmd:ShowcaseForm/cmd:Hello)"
+xpath="string(/cmd:CMD/cmd:Components/cmd:ShowcaseForm/cmd:Hello)" # for CMDI 1.1
+# xpath="string(/cmd:CMD/cmd:Components/cmdp:ShowcaseForm/cmdp:Hello)" # for CMDI 1.1
 label="Hello"
 sort="true"
 filter="true"
@@ -266,7 +277,7 @@ filter="true"
 where
 
 - ``who`` is the id of the column;
-- ``xpath`` retrieves the value from the record;
+- ``xpath`` retrieves the value from the record (**note:** the `cmd` and `cmdp` namespaces are available and set compliant with the configured CMDI version);
 - ``label`` is the header of the column;
 - ``sort`` indicates if the column is sortable by clicking on the header
 - ``filter`` indicates if the column has a filter where you can type (``true``) or a dropdown of the possible values (``'select'``, **note:** the single quotes are mandatory!)
