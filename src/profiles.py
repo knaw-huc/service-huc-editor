@@ -32,11 +32,11 @@ async def prof_save(app: str, id: str):
             return {"message": f"Profile[{id}] is refreshed"}
 
 def prof_xml(app: str, id: str):
+    logging.info(f"app[{app}] prof[{id}] get XML")
     profile_path = f"{settings.URL_DATA_APPS}/{app}/profiles/{id}"
     with open(os.path.join(profile_path, f'{id}.xml'), 'r') as file:
         # Reading data from the xml file
         prof = file.read()
-
         tweaks = [t for t in pathlib.Path(f"{profile_path}/tweaks/").glob("tweak-*.xml")]
         tweaks.sort(key=tweak_nr)
         with PySaxonProcessor(license=False) as proc:

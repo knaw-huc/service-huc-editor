@@ -9,7 +9,7 @@
     <xsl:param name="config" select="doc(concat($cwd, '/data/apps/', $app, '/config.xml'))"/>
     <!--<xsl:param name="prof" select="$config/config/app/def_prof"/>
     <xsl:param name="recs" select="concat($cwd, '/data/apps/', $app, '/profiles/', $prof, '/records')"/>-->
-
+    
     <xsl:template name="main">
         <html lang="en" xsl:expand-text="yes">
             <head>
@@ -62,6 +62,29 @@
                             <xsl:variable name="p" select="."/>
                             <xsl:variable name="prof" select="prof"/>
                             <xsl:variable name="recs" select="concat($cwd, '/data/apps/', $app, '/profiles/', $prof, '/records')"/>
+                            <xsl:variable name="cmd-ns" select="
+                                if ($config//app/cmdi_version = '1.2')  then
+                                'http://www.clarin.eu/cmd/1'
+                                else
+                                'http://www.clarin.eu/cmd/'"/>
+                            <xsl:variable name="cmdp-ns" select="
+                                if ($config//app/cmdi_version = '1.2')  then
+                                concat('http://www.clarin.eu/cmd/1/profiles/',$prof)
+                                else
+                                ()"/>              
+                            <xsl:variable name="NS" as="element(*:ns)">
+                                <xsl:element namespace="{$cmd-ns}" name="cmd:ns">
+                                    <xsl:if test="exists($cmdp-ns)">
+                                        <xsl:namespace name="cmdp" select="$cmdp-ns"/>
+                                    </xsl:if>
+                                </xsl:element>
+                            </xsl:variable>
+                            <xsl:comment expand-text="yes">
+                                # cmdi version[{$config//app/cmdi_version}]
+                                # cmd ns [{$cmd-ns}]
+                                # cmdp ns [{$cmdp-ns}]
+                                <xsl:copy-of select="$NS"/>
+                            </xsl:comment>
                             <h2 xsl:expand-text="yes">list of {(./label_en,local-name())[1]} records</h2>
                             <table id="records-{local-name()}" class="table table-bordered resultTable">
                                 <thead>
@@ -94,7 +117,7 @@
                                             <xsl:for-each select="$p/list/(* except ns)">
                                                 <td>
                                                     <xsl:variable name="xpath" select="xpath"/>
-                                                    <xsl:evaluate xpath="$xpath" context-item="$rec"/>
+                                                    <xsl:evaluate xpath="$xpath" context-item="$rec" namespace-context="$NS"/>
                                                 </td>
                                             </xsl:for-each>
                                             <td>{/cmd:CMD/cmd:Header/cmd:MdCreationDate}</td>

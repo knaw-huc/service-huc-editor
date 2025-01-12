@@ -72,11 +72,12 @@ def get_user_with_app(app: str, credentials: HTTPBasicCredentials = Depends(secu
 async def create_record(request: Request, app: str, prof: str | None = None, redir: str | None = "yes", user: Optional[str] = Depends(get_user_with_app)):
     if (not allowed(user,app,'write','any')):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
+    config = None
+    config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
+    with open(config_file, 'r') as f:
+        config = toml.load(f)
     if (prof == None):
-        config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
-        with open(config_file, 'r') as f:
-            config = toml.load(f)
-            prof = config['app']['def_prof'] 
+        prof = config['app']['def_prof'] 
     """
     Endpoint to create a record for an application.
     If the app does not exist, it returns a 400 error.
@@ -121,6 +122,8 @@ async def create_record(request: Request, app: str, prof: str | None = None, red
             xsltproc.set_cwd(os.getcwd())
             executable = xsltproc.compile_stylesheet(stylesheet_file=f"{settings.xslt_dir}/json2rec.xsl")
             executable.set_parameter("js-doc", proc.make_string_value(json.dumps(rec)))
+            if 'cmdi_version' in config["app"]:
+                executable.set_parameter("vers", proc.make_string_value(config['app']['cmdi_version']))
             if (user == None):
                 user = "server"
             executable.set_parameter("user", proc.make_string_value(user))
@@ -154,11 +157,12 @@ async def create_record(request: Request, app: str, prof: str | None = None, red
 async def modify_record(request: Request, app: str, nr: str, prof: str | None = None, when: str | None = None, user: Optional[str] = Depends(get_user_with_app)):
     if (not allowed(user,app,'write','any')):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
+    config=None
+    config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
+    with open(config_file, 'r') as f:
+        config = toml.load(f)
     if (prof == None):
-        config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
-        with open(config_file, 'r') as f:
-            config = toml.load(f)
-            prof = config['app']['def_prof'] 
+        prof = config['app']['def_prof'] 
     """
     Endpoint to create a record for an application based on its name and the record's ID.
     If the record already exists, it returns a message indicating that the record already exists.
@@ -190,22 +194,22 @@ async def modify_record(request: Request, app: str, nr: str, prof: str | None = 
             if (user == None):
                 user = "server"
             executable.set_parameter("user", proc.make_string_value(user))
+            if 'cmdi_version' in config["app"]:
+                executable.set_parameter("vers", proc.make_string_value(config['app']['cmdi_version']))
             executable.set_parameter("self", proc.make_string_value(f"unl://{nr}"))
             if prof != None and js["prof"] != None and prof != js["prof"]:
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"The profile in the path (or the app default) and the profile in the JSON differ! ({prof}!={js['prof']})")
             executable.set_parameter("prof", proc.make_string_value(prof.strip()))
-            if (when!=None):
-                executable.set_parameter("when", proc.make_string_value(when.strip()))
-            elif (js['when']!=None):
-                executable.set_parameter("when", proc.make_string_value(js['when'].strip()))
-            else:
-                old = proc.parse_xml(xml_file_name=record_file)
-                xpproc = proc.new_xpath_processor()
-                xpproc.set_cwd(os.getcwd())
-                xpproc.declare_namespace('clariah','http://www.clariah.eu/')
-                xpproc.declare_namespace('cmd','http://www.clarin.eu/cmd/')
-                xpproc.set_context(xdm_item=old)
-                when = xpproc.evaluate_single("string((/cmd:CMD/cmd:Header/cmd:MdCreationDate/@clariah:epoch,/cmd:CMD/cmd:Header/cmd:MdCreationDate,'unknown')[1])").get_string_value()
+            if (when==None):
+                if (js['when']!=None):
+                    when = js['when']
+                else:
+                    old = proc.parse_xml(xml_file_name=record_file)
+                    xpproc = proc.new_xpath_processor()
+                    xpproc.set_cwd(os.getcwd())
+                    xpproc.set_context(xdm_item=old)
+                    when = xpproc.evaluate_single("string((/*:CMD/*:Header/*:MdCreationDate/@*:epoch,/*:CMD/*:Header/*:MdCreationDate,'unknown')[1])").get_string_value()
+            executable.set_parameter("when", proc.make_string_value(when.strip()))
             null = proc.parse_xml(xml_text="<null/>")
             record_body = executable.transform_to_string(xdm_node=null)
     else:
@@ -373,6 +377,7 @@ async def get_app(request: Request, app: str, user: Optional[str] = Depends(get_
             executable.set_parameter("base", proc.make_string_value(settings.url_base))
             convert_toml_to_xml(f"{settings.URL_DATA_APPS}/{app}/config.toml",f"{settings.URL_DATA_APPS}/{app}/config.xml")
             config = proc.parse_xml(xml_file_name=f"{settings.URL_DATA_APPS}/{app}/config.xml")
+            executable.set_parameter("config", config)
             executable.set_parameter("app", proc.make_string_value(app))
             null = proc.parse_xml(xml_text="<null/>")
             result = executable.transform_to_string(xdm_node=null)

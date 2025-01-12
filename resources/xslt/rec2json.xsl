@@ -3,8 +3,6 @@
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
     xmlns:math="http://www.w3.org/2005/xpath-functions/math"
     xmlns:js="http://www.w3.org/2005/xpath-functions"
-    xmlns:cmd="http://www.clarin.eu/cmd/"
-    xmlns:clariah="http://www.clariah.eu/"
     exclude-result-prefixes="xs math js"
     version="3.0">
     
@@ -29,14 +27,14 @@
         </xsl:copy>
     </xsl:template>
     
-    <xsl:template match="/cmd:CMD">
+    <xsl:template match="/*:CMD">
         <xsl:variable name="rec">
             <js:map>
                 <xsl:if test="js:normalize-space($rec-nr)!=''">
                     <js:string key="nr" xsl:expand-text="yes">{js:normalize-space($rec-nr)}</js:string>
                 </xsl:if>
-                <js:string key="id" xsl:expand-text="yes">{cmd:Header/cmd:MdProfile}</js:string>
-                <js:string key="when" xsl:expand-text="yes">{(cmd:Header/cmd:MdCreationDate/@clariah:epoch,cmd:Header/cmd:MdCreationDate)[1]}</js:string>
+                <js:string key="id" xsl:expand-text="yes">{*:Header/*:MdProfile}</js:string>
+                <js:string key="when" xsl:expand-text="yes">{(*:Header/*:MdCreationDate/@*:epoch,*:Header/*:MdCreationDate)[1]}</js:string>
             <xsl:apply-templates select="$prof-xml" mode="prof"/>
             <js:array key="record">
                 <xsl:apply-templates/>

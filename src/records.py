@@ -5,6 +5,7 @@ from src.commons import settings, convert_toml_to_xml
 from src.profiles import prof_xml
 
 def rec_html(app,prof,nr):
+    logging.info(f"app[{app}] prof[{prof}] rec[{nr}] get HTML")
     record_file = f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}/records/record-{nr}.xml"
     with open(record_file, 'r') as file:
         rec = file.read()
@@ -15,7 +16,8 @@ def rec_html(app,prof,nr):
             xpproc.declare_namespace('clariah','http://www.clariah.eu/')
             xpproc.declare_namespace('cmd','http://www.clarin.eu/cmd/')
             xpproc.set_context(xdm_item=rec)
-            prof = xpproc.evaluate_single("string(/cmd:CMD/cmd:Header/cmd:MdProfile)").get_string_value()
+            if prof == None:
+                prof = xpproc.evaluate_single("string(/*:CMD/*:Header/*:MdProfile)").get_string_value()
             xsltproc = proc.new_xslt30_processor()
             xsltproc.set_cwd(os.getcwd())
             executable = xsltproc.compile_stylesheet(stylesheet_file=f"{settings.xslt_dir}/toHTML.xsl")

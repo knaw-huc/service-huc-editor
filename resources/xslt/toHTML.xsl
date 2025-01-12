@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-    xmlns:cmd="http://www.clarin.eu/cmd/"
     xmlns:clariah="http://www.clariah.eu/"
-    exclude-result-prefixes="cmd"
+    exclude-result-prefixes="clariah"
     version="3.0">
     
     <xsl:param name="cwd" select="'file:/Users/menzowi/Documents/Projects/huc-cmdi-editor/service/'"/>
@@ -17,6 +16,25 @@
     <xsl:param name="tweak-uri" select="''"/>
     <xsl:param name="tweak-doc" select="document($tweak-uri)"/>
     
+    <xsl:variable name="cmd-ns" select="
+        if ($config//app/cmdi_version = '1.2')  then
+        'http://www.clarin.eu/cmd/1'
+        else
+        'http://www.clarin.eu/cmd/'"/>
+    <xsl:variable name="cmdp-ns" select="
+        if ($config//app/cmdi_version = '1.2')  then
+        concat('http://www.clarin.eu/cmd/1/profiles/',$prof)
+        else
+        ()"/>              
+    <xsl:variable name="NS" as="element(*:ns)">
+        <xsl:element namespace="{$cmd-ns}" name="cmd:ns">
+            <xsl:if test="exists($cmdp-ns)">
+                <xsl:namespace name="cmdp" select="$cmdp-ns"/>
+            </xsl:if>
+        </xsl:element>
+    </xsl:variable>
+    
+    
     <xsl:output method="html"/>
     
     <xsl:template match="text()"/>
@@ -27,7 +45,7 @@
             xpath[{$config/config/app/prof/*[prof=$prof]/title}]
         </xsl:comment>
         <xsl:variable name="xpath" select="$config/config/app/prof/*[prof=$prof]/title"/>
-        <xsl:evaluate xpath="$xpath" context-item="."/>
+        <xsl:evaluate xpath="$xpath" context-item="." namespace-context="$NS"/>
     </xsl:template>
     
     <xsl:template match="/">
@@ -43,7 +61,7 @@
                     <xsl:call-template name="title"/>
                 </h1>
                 <dl>
-                    <xsl:apply-templates select="/cmd:CMD/cmd:Components/*">
+                    <xsl:apply-templates select="/*:CMD/*:Components/*">
                         <xsl:with-param name="tweak" select="$tweak-doc/ComponentSpec"/>
                     </xsl:apply-templates>
                 </dl>
