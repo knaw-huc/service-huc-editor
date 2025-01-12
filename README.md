@@ -259,7 +259,7 @@ title="string((/cmd:CMD/cmd:Components//cmd:*[empty(cmd:*)][normalize-space(text
 #title="string((/cmd:CMD/cmd:Components//cmdp:*[empty(cmdp:*)][normalize-space(text())!=''])[1])" #for CMDI version 1.2
 ```
 
-The `title` XPath is used to retrieve the title of the record in the HTML and PDF views (**note:** the `cmd` and `cmdp` namespaces are available and set compliant with [the configured CMDI version](#the-cmdi-version-in-the-app)).
+The `title` XPath is used to retrieve the title of the record in the HTML and PDF views (**note:** the `cmd` and `cmdp` namespace prefixes are available and set compliant with [the configured CMDI version](#the-cmdi-version-in-the-app)).
 
 
 #### The columns in the record list
@@ -277,7 +277,7 @@ filter="true"
 where
 
 - ``who`` is the id of the column;
-- ``xpath`` retrieves the value from the record (**note:** the `cmd` and `cmdp` namespaces are available and set compliant with [the configured CMDI version](#the-cmdi-version-in-the-app));
+- ``xpath`` retrieves the value from the record (**note:** the `cmd` and `cmdp` namespace prefixes are available and set compliant with [the configured CMDI version](#the-cmdi-version-in-the-app));
 - ``label`` is the header of the column;
 - ``sort`` indicates if the column is sortable by clicking on the header
 - ``filter`` indicates if the column has a filter where you can type (``true``) or a dropdown of the possible values (``'select'``, **note:** the single quotes are mandatory!)
