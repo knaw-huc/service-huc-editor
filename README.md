@@ -183,9 +183,9 @@ Currently you can specify an ``autocompleteURL`` in the ``http://www.clariah.eu/
 
 The URI follows the follow pattern:
 - ``proxy``: use the CCF proxy
-- the proxy recipe, e.g., [`skosmos`](./src/public.py#L32)
-- a specific instance of the recipe, e.g., [``sd``]./resources/proxies/skosmos-sd.toml) (see [](./resources/proxies/) for an overview)
-- a vocab in that instance, e.g., ``tadirah``
+- the proxy `recipe`, e.g., [`skosmos`](./src/public.py#L32)
+- a specific `instance` of the recipe, e.g., [``sd``](./resources/proxies/skosmos-sd.toml) (see [./resources/proxies/](./resources/proxies/) for an overview)
+- a vocab in that instance, e.g., [``tadirah``](https://skosmos.sd.di.huc.knaw.nl/tadirah)
 
 **Note:** add the ``cue:class="skosType"`` to get an icon to open up a dialog for browsing the vocabulary next to the default autocomplete.
 
