@@ -5,8 +5,10 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="3.0">
     
-    <xsl:param name="tweakFile" select="'file:/Users/menzowi/Documents/Projects/huc-cmdi-editor/service/data/profiles/clarin.eu:cr1:p_1708423613599/tweaks/tweak-1.xml'"/>
+    <xsl:param name="tweakFile" select="'file:/Users/menzowi/Documents/GitHub/niod-dre-yugo-editor/data/apps/yugo/profiles/clarin.eu:cr1:p_1721373443955/tweaks/tweak-1.xml'"/>
     <xsl:variable name="tweak" select="document($tweakFile)"/>
+    
+    <xsl:variable name="DEBUG" select="false()" static="yes"/>
     
     <xsl:template match="node() | @*" mode="#all">
         <xsl:copy>
@@ -193,16 +195,16 @@
         <xsl:param name="tweak" tunnel="yes"/>
         <xsl:variable name="cue" select="local-name()"/>
         <xsl:variable name="myTweak" select="$tweak/@cue:*[local-name()=$cue]"/>
-        <xsl:message>DBG: cue[<xsl:value-of select="$cue"/>] tweak[<xsl:value-of select="$myTweak"/>]</xsl:message>
+        <xsl:message use-when="$DEBUG">DBG: cue[<xsl:value-of select="$cue"/>] tweak[<xsl:value-of select="$myTweak"/>]</xsl:message>
         <xsl:choose>
             <xsl:when test="$myTweak">
                 <!-- keep the tweak cue -->
-                <xsl:message>DBG: keep tweak cue[<xsl:value-of select="$cue"/>]=[<xsl:value-of select="$myTweak"/>]</xsl:message>
+                <xsl:message use-when="$DEBUG">DBG: keep tweak cue[<xsl:value-of select="$cue"/>]=[<xsl:value-of select="$myTweak"/>]</xsl:message>
                 <xsl:apply-templates select="$myTweak" mode="copy"/>
             </xsl:when>
             <xsl:otherwise>
                 <!-- keep the profile cue -->
-                <xsl:message>DBG: keep prof cue[<xsl:value-of select="$cue"/>]=[<xsl:value-of select="."/>]</xsl:message>
+                <xsl:message use-when="$DEBUG">DBG: keep prof cue[<xsl:value-of select="$cue"/>]=[<xsl:value-of select="."/>]</xsl:message>
                 <xsl:copy/>
             </xsl:otherwise>
         </xsl:choose>
@@ -212,16 +214,16 @@
         <xsl:param name="tweak" tunnel="yes"/>
         <xsl:variable name="cue" select="local-name()"/>
         <xsl:variable name="myTweak" select="$tweak/clariah:*[local-name()=$cue]"/>
-        <xsl:message>DBG: clariah cue[<xsl:value-of select="$cue"/>] tweak[<xsl:value-of select="$myTweak"/>]</xsl:message>
+        <xsl:message use-when="$DEBUG">DBG: clariah cue[<xsl:value-of select="$cue"/>] tweak[<xsl:value-of select="$myTweak"/>]</xsl:message>
         <xsl:choose>
             <xsl:when test="$myTweak">
                 <!-- keep the tweak cue -->
-                <xsl:message>DBG: keep tweak clariah cue[<xsl:value-of select="$cue"/>]=[<xsl:value-of select="$myTweak"/>]</xsl:message>
+                <xsl:message use-when="$DEBUG">DBG: keep tweak clariah cue[<xsl:value-of select="$cue"/>]=[<xsl:value-of select="$myTweak"/>]</xsl:message>
                 <xsl:apply-templates select="$myTweak" mode="copy"/>
             </xsl:when>
             <xsl:otherwise>
                 <!-- keep the profile cue -->
-                <xsl:message>DBG: keep prof clariah cue[<xsl:value-of select="$cue"/>]=[<xsl:value-of select="."/>]</xsl:message>
+                <xsl:message use-when="$DEBUG">DBG: keep prof clariah cue[<xsl:value-of select="$cue"/>]=[<xsl:value-of select="."/>]</xsl:message>
                 <xsl:copy>
                     <xsl:apply-templates select="node() | @*" mode="copy"/>
                 </xsl:copy>
@@ -241,15 +243,15 @@
         <xsl:param name="prof" tunnel="yes"/>
         <xsl:variable name="cue" select="local-name()"/>
         <xsl:variable name="myProf" select="$prof/@cue:*[local-name()=$cue]"/>
-        <xsl:message>DBG: cue[<xsl:value-of select="$cue"/>] prof[<xsl:value-of select="$myProf"/>]</xsl:message>
+        <xsl:message use-when="$DEBUG">DBG: cue[<xsl:value-of select="$cue"/>] prof[<xsl:value-of select="$myProf"/>]</xsl:message>
         <xsl:choose>
             <xsl:when test="$myProf">
                 <!-- will have been overwritten in the cue run -->
-                <xsl:message>DBG: keep prof cue[<xsl:value-of select="$cue"/>] already overwritten</xsl:message>
+                <xsl:message use-when="$DEBUG">DBG: keep prof cue[<xsl:value-of select="$cue"/>] already overwritten</xsl:message>
             </xsl:when>
             <xsl:otherwise>
                 <!-- keep the tweak cue -->
-                <xsl:message>DBG: keep tweak cue[<xsl:value-of select="$cue"/>]=[<xsl:value-of select="."/>]</xsl:message>
+                <xsl:message use-when="$DEBUG">DBG: keep tweak cue[<xsl:value-of select="$cue"/>]=[<xsl:value-of select="."/>]</xsl:message>
                 <xsl:copy/>
             </xsl:otherwise>
         </xsl:choose>
@@ -259,15 +261,15 @@
         <xsl:param name="prof" tunnel="yes"/>
         <xsl:variable name="cue" select="local-name()"/>
         <xsl:variable name="myProf" select="$prof/clariah:*[local-name()=$cue]"/>
-        <xsl:message>DBG: clariah cue[<xsl:value-of select="$cue"/>] prof[<xsl:value-of select="$myProf"/>]</xsl:message>
+        <xsl:message use-when="$DEBUG">DBG: clariah cue[<xsl:value-of select="$cue"/>] prof[<xsl:value-of select="$myProf"/>]</xsl:message>
         <xsl:choose>
             <xsl:when test="$myProf">
                 <!-- will have been overwritten in the cue run -->
-                <xsl:message>DBG: profile clariah cue[<xsl:value-of select="$cue"/>] already overwritten</xsl:message>
+                <xsl:message use-when="$DEBUG">DBG: profile clariah cue[<xsl:value-of select="$cue"/>] already overwritten</xsl:message>
             </xsl:when>
             <xsl:otherwise>
                 <!-- keep the tweak cue -->
-                <xsl:message>DBG: tweak clariah cue[<xsl:value-of select="$cue"/>]=[<xsl:value-of select="."/>]</xsl:message>
+                <xsl:message use-when="$DEBUG">DBG: tweak clariah cue[<xsl:value-of select="$cue"/>]=[<xsl:value-of select="."/>]</xsl:message>
                 <xsl:copy>
                     <xsl:apply-templates select="node() | @*" mode="copy"/>
                 </xsl:copy>
@@ -289,9 +291,10 @@
     
     <!-- value schemes -->
     
-    <xsl:template match="@ValueScheme">
+    <xsl:template match="@ValueScheme" mode="cmd">
         <xsl:param name="tweak" tunnel="yes"/>
         <xsl:variable name="myTweak" select="$tweak/@ValueScheme"/>
+        <xsl:message expand-text="yes" use-when="$DEBUG">DBG: the @ValueScheme[{.}] tweak @ValueScheme[{$myTweak}]</xsl:message>
         <xsl:choose>
             <xsl:when test=".!='string' and normalize-space($myTweak)!='' and $myTweak!='string'">
                 <xsl:message terminate="yes">ERR: only a string value scheme can be overwritten!</xsl:message>
@@ -311,7 +314,7 @@
     
     <!-- attribute required -->
     
-    <xsl:template match="@Required">
+    <xsl:template match="@Required" mode="cmd">
         <xsl:param name="tweak" tunnel="yes"/>
         <xsl:variable name="myTweak" select="$tweak/@Required"/>
         <xsl:choose>
