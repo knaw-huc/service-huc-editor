@@ -40,10 +40,10 @@
     <xsl:template match="text()"/>
     
     <xsl:template name="title">
-        <xsl:comment expand-text="yes">
+        <!--<xsl:comment expand-text="yes">
             prof[{$prof}]
             xpath[{$config/config/app/prof/*[prof=$prof]/title}]
-        </xsl:comment>
+        </xsl:comment>-->
         <xsl:variable name="xpath" select="$config/config/app/prof/*[prof=$prof]/title"/>
         <xsl:evaluate xpath="$xpath" context-item="." namespace-context="$NS"/>
     </xsl:template>
