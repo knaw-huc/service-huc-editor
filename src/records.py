@@ -45,6 +45,7 @@ def rec_editor(app,prof,nr):
         executable = xsltproc.compile_stylesheet(stylesheet_file=f"{settings.xslt_dir}/editor.xsl")
         executable.set_parameter("cwd", proc.make_string_value(os.getcwd()))
         executable.set_parameter("base", proc.make_string_value(settings.url_base))
+        executable.set_parameter("cdn", proc.make_string_value(settings.url_cdn))
         executable.set_parameter("app", proc.make_string_value(app))
         executable.set_parameter("prof", proc.make_string_value(prof))
         if nr:
