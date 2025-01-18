@@ -6,6 +6,7 @@
 
     <xsl:param name="cwd" select="'file:/Users/menzowi/Documents/Projects/huc-cmdi-editor/service/'"/>
     <xsl:param name="base" select="'http://localhost:1210'"/>
+    <xsl:param name="cdn" select="'https://cmdicdn.sd.di.huc.knaw.nl'"/>
     <xsl:param name="app" select="'adoptie'"/>
     <xsl:param name="nr" select="()"/>
     <xsl:param name="config" select="doc(concat($cwd, '/data/apps/', $app, '/config.xml'))"/>
@@ -29,16 +30,16 @@
                     </xsl:otherwise>
                 </xsl:choose>
                 
-                <link rel="stylesheet" href="https://cmdicdn.sd.di.huc.knaw.nl/css/ccfstyle.css" type="text/css"/>
-                <link rel="stylesheet" href="https://cmdicdn.sd.di.huc.knaw.nl/css/autocomplete.css" type="text/css"/>
-                <link rel="stylesheet" href="https://cmdicdn.sd.di.huc.knaw.nl/css/jquery-ui.css" type="text/css"/>
-                <script type="text/javascript" src="https://cmdicdn.sd.di.huc.knaw.nl/js/jquery-3.2.1.min.js"><xsl:comment>keep alive</xsl:comment></script>
-                <script type="text/javascript" src="https://cmdicdn.sd.di.huc.knaw.nl/js/jquery.autocomplete.js"><xsl:comment>keep alive</xsl:comment></script>
-                <script type="text/javascript" src="https://cmdicdn.sd.di.huc.knaw.nl/js/jquery-ui/jquery-ui.js"><xsl:comment>keep alive</xsl:comment></script>
+                <link rel="stylesheet" href="{$cdn}/css/ccfstyle.css" type="text/css"/>
+                <link rel="stylesheet" href="{$cdn}/css/autocomplete.css" type="text/css"/>
+                <link rel="stylesheet" href="{$cdn}/css/jquery-ui.css" type="text/css"/>
+                <script type="text/javascript" src="{$cdn}/js/jquery-3.2.1.min.js"><xsl:comment>keep alive</xsl:comment></script>
+                <script type="text/javascript" src="{$cdn}/js/jquery.autocomplete.js"><xsl:comment>keep alive</xsl:comment></script>
+                <script type="text/javascript" src="{$cdn}/js/jquery-ui/jquery-ui.js"><xsl:comment>keep alive</xsl:comment></script>
                 <script type="text/javascript" src="{$base}/static/js/ccf_config_en.js"><xsl:comment>keep alive</xsl:comment></script>
-                <script type="text/javascript" src="https://cmdicdn.sd.di.huc.knaw.nl/js/ccfparser.js"><xsl:comment>keep alive</xsl:comment></script>
-                <script type="text/javascript" src="https://cmdicdn.sd.di.huc.knaw.nl/js/plugins/skos_list/skos_list.js"><xsl:comment>keep alive</xsl:comment></script>
-                <link rel="stylesheet" href="https://cmdicdn.sd.di.huc.knaw.nl/js/plugins/skos_list/skos_list.css" type="text/css"/>
+                <script type="text/javascript" src="{$cdn}/js/ccfparser.js"><xsl:comment>keep alive</xsl:comment></script>
+                <script type="text/javascript" src="{$cdn}/js/plugins/skos_list/skos_list.js"><xsl:comment>keep alive</xsl:comment></script>
+                <link rel="stylesheet" href="{$cdn}/js/plugins/skos_list/skos_list.css" type="text/css"/>
                 
                 <script>
                     <xsl:text>
@@ -224,6 +225,7 @@
                 </script>
             </head>
             <body>
+                <iframe src="{$base}/static/status.html" style="border:none;height:3em;width:100%;"/>
                 <div id="wrapper">
                     <div id="header">{$config/config/app/title}</div>
                     <div id="user"/>
