@@ -7,8 +7,7 @@
     <xsl:param name="base" select="'http://localhost:1210'"/>
     <xsl:param name="app" select="'adoptie'"/>
     <xsl:param name="config" select="doc(concat($cwd, '/data/apps/', $app, '/config.xml'))"/>
-    <!--<xsl:param name="prof" select="$config/config/app/def_prof"/>
-    <xsl:param name="recs" select="concat($cwd, '/data/apps/', $app, '/profiles/', $prof, '/records')"/>-->
+    <xsl:param name="user" select="'anonymous'"/>
     
     <xsl:template name="main">
         <html lang="en" xsl:expand-text="yes">
@@ -94,9 +93,19 @@
                                         </xsl:for-each>
                                         <th>Creation date</th>
                                         <th>
-                                            <a href="{concat($base, '/app/', $app, '/profile/', $prof, '/record/editor')}" id="addRec">
-                                                <img src="{$base}/static/img/add.ico" height="16px" width="16px"/>
-                                            </a>
+                                            <xsl:choose>
+                                                <xsl:when test="$config/config/app/access/write='owner' and $user='anonymous'">
+                                                    <xsl:text>&#160;</xsl:text>
+                                                </xsl:when>
+                                                <xsl:when test="$config/config/app/access/write='user' and $user='anonymous'">
+                                                    <xsl:text>&#160;</xsl:text>
+                                                </xsl:when>
+                                                <xsl:otherwise>
+                                                    <a href="{concat($base, '/app/', $app, '/profile/', $prof, '/record/editor')}" id="addRec">
+                                                        <img src="{$base}/static/img/add.ico" height="16px" width="16px"/>
+                                                    </a>
+                                                </xsl:otherwise>
+                                            </xsl:choose>
                                         </th>
                                         <th/>
                                         <!--<th/>-->
@@ -111,41 +120,94 @@
                                         <xsl:variable name="rec" select="."/>
                                         <xsl:variable name="nr" select="replace(base-uri($rec), '.*/record-(\d+)\.xml', '$1')"/>
                                         <xsl:variable name="url" select="concat($base, '/app/', $app, '/profile/', $prof, '/record/', $nr)"/>
-                                        <xsl:comment>[{base-uri($rec)}][{$url}]</xsl:comment>
+                                        <xsl:variable name="owner" select="string((/*:CMD/*:Header/*:MdCreator,'server')[1])"/>
+                                        <xsl:comment>r[{$config/config/app/access/read}]w[{$config/config/app/access/write}][{$user}][{base-uri($rec)}][{$url}][{$owner}]</xsl:comment>
     
-                                        <tr>
-                                            <xsl:for-each select="$p/list/(* except ns)">
+                                        <xsl:if test="$config/config/app/access/read!='owner' or $config/config/app/access/write!='owner' or $owner=$user">
+                                            <tr>
+                                                <xsl:for-each select="$p/list/(* except ns)">
+                                                    <td>
+                                                        <xsl:variable name="xpath" select="xpath"/>
+                                                        <xsl:evaluate xpath="$xpath" context-item="$rec" namespace-context="$NS"/>
+                                                    </td>
+                                                </xsl:for-each>
+                                                <td>{/cmd:CMD/cmd:Header/cmd:MdCreationDate}</td>
                                                 <td>
-                                                    <xsl:variable name="xpath" select="xpath"/>
-                                                    <xsl:evaluate xpath="$xpath" context-item="$rec" namespace-context="$NS"/>
+                                                    <xsl:choose>
+                                                        <xsl:when test="$config/config/app/access/write='owner' and $user!=$owner">
+                                                            <xsl:text>&#160;</xsl:text>
+                                                        </xsl:when>
+                                                        <xsl:when test="$config/config/app/access/write='user' and $user='anonymous'">
+                                                            <xsl:text>&#160;</xsl:text>
+                                                        </xsl:when>
+                                                        <xsl:otherwise>
+                                                            <a href="{$url}/editor" title="Edit metadata">
+                                                                <img src="{$base}/static/img/edit.png" height="16px" width="16px"/>
+                                                            </a>
+                                                        </xsl:otherwise>
+                                                    </xsl:choose>
                                                 </td>
-                                            </xsl:for-each>
-                                            <td>{/cmd:CMD/cmd:Header/cmd:MdCreationDate}</td>
-                                            <td>
-                                                <a href="{$url}/editor" title="Edit metadata">
-                                                    <img src="{$base}/static/img/edit.png" height="16px" width="16px"/>
-                                                </a>
-                                            </td>
-                                            <!--<td>
+                                                <!--<td>
                                                 <a href="dwnldRec('{$nr}')" title="Download">
                                                     <img src="{$base}/static/img/download.png" height="16px" width="16px"/>
                                                 </a>
                                             </td>-->
-                                            <td>
-                                                <a title="Delete" class="myBtn delete" id="myBtn1" onclick="deleteRecord('{$url}');">
-                                                    <img src="{$base}/static/img/bin.png" height="16px" width="16px"/>
-                                                </a>
-                                            </td>
-                                            <td>
-                                                <a href="{$url}.xml" title="Show CMDI" target="_blank">CMDI</a>
-                                            </td>
-                                            <td>
-                                                <a href="{$url}.html" title="Show HTML" target="_blank">HTML</a>
-                                            </td>
-                                            <td>
-                                                <a href="{$url}.pdf" title="Show PDF" target="_blank">PDF</a>
-                                            </td>
-                                        </tr>
+                                                <td>
+                                                    <xsl:choose>
+                                                        <xsl:when test="$config/config/app/access/write='owner' and $user!=$owner">
+                                                            <xsl:text>&#160;</xsl:text>
+                                                        </xsl:when>
+                                                        <xsl:when test="$config/config/app/access/write='user' and $user='anonymous'">
+                                                            <xsl:text>&#160;</xsl:text>
+                                                        </xsl:when>
+                                                        <xsl:otherwise>
+                                                            <a title="Delete" class="myBtn delete" id="myBtn1" onclick="deleteRecord('{$url}');">
+                                                                <img src="{$base}/static/img/bin.png" height="16px" width="16px"/>
+                                                            </a>
+                                                        </xsl:otherwise>
+                                                    </xsl:choose>
+                                                </td>
+                                                <td>
+                                                    <xsl:choose>
+                                                        <xsl:when test="$config/config/app/access/read='owner' and $user!=$owner">
+                                                            <xsl:text>&#160;</xsl:text>
+                                                        </xsl:when>
+                                                        <xsl:when test="$config/config/app/access/read='user' and $user='anonymous'">
+                                                            <xsl:text>&#160;</xsl:text>
+                                                        </xsl:when>
+                                                        <xsl:otherwise>
+                                                            <a href="{$url}.xml" title="Show CMDI" target="_blank">CMDI</a>
+                                                        </xsl:otherwise>
+                                                    </xsl:choose>
+                                                </td>
+                                                <td>
+                                                    <xsl:choose>
+                                                        <xsl:when test="$config/config/app/access/read='owner' and $user!=$owner">
+                                                            <xsl:text>&#160;</xsl:text>
+                                                        </xsl:when>
+                                                        <xsl:when test="$config/config/app/access/read='user' and $user='anonymous'">
+                                                            <xsl:text>&#160;</xsl:text>
+                                                        </xsl:when>
+                                                        <xsl:otherwise>
+                                                            <a href="{$url}.html" title="Show HTML" target="_blank">HTML</a>
+                                                        </xsl:otherwise>
+                                                    </xsl:choose>
+                                                </td>
+                                                <td>
+                                                    <xsl:choose>
+                                                        <xsl:when test="$config/config/app/access/read='owner' and $user!=$owner">
+                                                            <xsl:text>&#160;</xsl:text>
+                                                        </xsl:when>
+                                                        <xsl:when test="$config/config/app/access/read='user' and $user='anonymous'">
+                                                            <xsl:text>&#160;</xsl:text>
+                                                        </xsl:when>
+                                                        <xsl:otherwise>
+                                                            <a href="{$url}.pdf" title="Show PDF" target="_blank">PDF</a>
+                                                        </xsl:otherwise>
+                                                    </xsl:choose>
+                                                </td>
+                                            </tr>
+                                        </xsl:if>    
                                     </xsl:for-each>
                                 </tbody>
                             </table>

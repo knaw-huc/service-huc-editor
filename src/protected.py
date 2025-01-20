@@ -155,14 +155,14 @@ async def create_record(request: Request, app: str, prof: str | None = None, red
 @router.put("/app/{app}/record/{nr}")
 @router.put("/app/{app}/profile/{prof}/record/{nr}")
 async def modify_record(request: Request, app: str, nr: str, prof: str | None = None, when: str | None = None, user: Optional[str] = Depends(get_user_with_app)):
-    if (not allowed(user,app,'write','any')):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
     config=None
     config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
     with open(config_file, 'r') as f:
         config = toml.load(f)
     if (prof == None):
         prof = config['app']['def_prof'] 
+    if (not allowed(user,app,'write','any',prof,nr)):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
     """
     Endpoint to create a record for an application based on its name and the record's ID.
     If the record already exists, it returns a message indicating that the record already exists.
@@ -232,13 +232,13 @@ async def modify_record(request: Request, app: str, nr: str, prof: str | None = 
 @router.delete("/app/{app}/record/{nr}")
 @router.delete("/app/{app}/profile/{prof}/record/{nr}")
 async def delete_record(request: Request, app: str, nr: str, prof: str | None=None, user: Optional[str] = Depends(get_user_with_app)):
-    if (not allowed(user,app,'write','any')):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
     if (prof == None):
         config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
         with open(config_file, 'r') as f:
             config = toml.load(f)
             prof = config['app']['def_prof'] 
+    if (not allowed(user,app,'write','any',prof,nr)):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
     """
     Endpoint to delete a record based on its ID.
     If the record does not exist, it returns a 404 error.
@@ -260,13 +260,13 @@ async def delete_record(request: Request, app: str, nr: str, prof: str | None=No
 @router.get('/app/{app}/record/{nr}/editor')
 @router.get('/app/{app}/profile/{prof}/record/{nr}/editor')
 def get_editor(request: Request, app: str, prof: str | None=None, nr: str | None=None, user: Optional[str] = Depends(get_user_with_app)):
-    if (not allowed(user,app,'write','any')):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
     if (prof == None):
         config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
         with open(config_file, 'r') as f:
             config = toml.load(f)
             prof = config['app']['def_prof'] 
+    if (not allowed(user,app,'write','any',prof,nr)):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
     if nr:
         logging.info(f"app[{app}] prof[{prof}] record[{nr}] editor")
         record_file = f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}/records/record-{nr}.xml"
@@ -289,8 +289,6 @@ class RecForm(str, Enum):
 @router.get('/app/{app}/record/{nr}')
 @router.get('/app/{app}/profile/{prof}/record/{nr}')
 def get_record(request: Request, app: str,  nr: str, prof: str | None=None, user: Optional[str] = Depends(get_user_with_app)):
-    if (not allowed(user,app,'read','any')):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
     if (prof == None):
         config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
         with open(config_file, 'r') as f:
@@ -305,6 +303,10 @@ def get_record(request: Request, app: str,  nr: str, prof: str | None=None, user
 
     if form not in ["json", "xml", "html", "pdf"]:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not supported")
+
+    if (not allowed(user,app,'read','any',prof,nr)):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
+
     """
     Endpoint to get a record based on its ID and the application name.
     This endpoint accepts the application name and the ID as path parameters.
@@ -379,6 +381,8 @@ async def get_app(request: Request, app: str, user: Optional[str] = Depends(get_
             config = proc.parse_xml(xml_file_name=f"{settings.URL_DATA_APPS}/{app}/config.xml")
             executable.set_parameter("config", config)
             executable.set_parameter("app", proc.make_string_value(app))
+            if (user != None):
+                executable.set_parameter("user", proc.make_string_value(user))
             null = proc.parse_xml(xml_text="<null/>")
             result = executable.transform_to_string(xdm_node=null)
             return HTMLResponse(content=result)
