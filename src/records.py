@@ -1,5 +1,7 @@
 import logging
 import os
+import datetime
+from datetime import timezone 
 from saxonche import PySaxonProcessor
 from src.commons import settings, convert_toml_to_xml
 from src.profiles import prof_xml
@@ -75,14 +77,14 @@ def rec_update(app: str, prof: str, nr: str, rec: str) -> str:
         xpproc.declare_namespace('cmd','http://www.clarin.eu/cmd/')
 
         xpproc.set_context(xdm_item=old)
-        oprof = xpproc.evaluate_single("string(/cmd:CMD/cmd:Header/cmd:MdProfile)").get_string_value()
-        owhen = xpproc.evaluate_single("string((/cmd:CMD/cmd:Header/cmd:MdCreationDate/@clariah:epoch,/cmd:CMD/cmd:Header/cmd:MdCreationDate,'unknown')[1])").get_string_value()
-        owho = xpproc.evaluate_single("string(/cmd:CMD/cmd:Header/cmd:MdCreator)").get_string_value()
+        oprof = xpproc.evaluate_single("string(/*:CMD/*:Header/*:MdProfile)").get_string_value()
+        owhen = xpproc.evaluate_single("string((/*:CMD/*:Header/*:MdCreationDate/@clariah:epoch,/*:CMD/*:Header/*:MdCreationDate,'unknown')[1])").get_string_value()
+        owho = xpproc.evaluate_single("string(/*:CMD/*:Header/*:MdCreator)").get_string_value()
 
         xpproc.set_context(xdm_item=new)
-        nprof = xpproc.evaluate_single("string(/cmd:CMD/cmd:Header/cmd:MdProfile)").get_string_value()
-        nwhen = xpproc.evaluate_single("string((/cmd:CMD/cmd:Header/cmd:MdCreationDate/@clariah:epoch,/cmd:CMD/cmd:Header/cmd:MdCreationDate,'unknown')[1])").get_string_value()
-        nwho = xpproc.evaluate_single("string(/cmd:CMD/cmd:Header/cmd:MdCreator)").get_string_value()
+        nprof = xpproc.evaluate_single("string(/*:CMD/*:Header/*:MdProfile)").get_string_value()
+        nwhen = xpproc.evaluate_single("string((/*:CMD/*:Header/*:MdCreationDate/@clariah:epoch,/*:CMD/*:Header/*:MdCreationDate,'unknown')[1])").get_string_value()
+        nwho = xpproc.evaluate_single("string(/*:CMD/*:Header/*:MdCreator)").get_string_value()
 
         logging.info(f"Updating app[{app}] record[{nr}]: profile check: old[{oprof}] new[{nprof}]!")
         if oprof!=nprof:
@@ -92,17 +94,17 @@ def rec_update(app: str, prof: str, nr: str, rec: str) -> str:
         logging.info(f"Updating app[{app}] record[{nr}]: when check: old[{owhen}] new[{nwhen}]!")
         if (owhen!=nwhen):
             logging.info(f"Updating app[{app}] record[{nr}]: when clash: old[{owhen}] new[{nwhen}]!")
-            return f"record[{nr}] has been updated on [{owhen if '-' in owhen else datetime.fromtimestamp(int(owhen), timezone.utc)}] by [{owho}] since the record from [{nwhen if '-' in nwhen else datetime.fromtimestamp(int(nwhen), timezone.utc)}] has been read for this update by [{nwho}]!"
+            return f"record[{nr}] has been updated on [{owhen if '-' in owhen else datetime.datetime.fromtimestamp(int(owhen), timezone.utc)}] by [{owho}] since the record has been read at [{nwhen if '-' in nwhen else datetime.datetime.fromtimestamp(int(nwhen), timezone.utc)}] for this update by [{nwho}]!"
 
         xsltproc = proc.new_xslt30_processor()
         xsltproc.set_cwd(os.getcwd())
         executable = xsltproc.compile_stylesheet(stylesheet_file=f"{settings.xslt_dir}/updrec.xsl")
-        executable.set_parameter("user", proc.make_string_value("service"))
+        executable.set_parameter("user", proc.make_string_value(nwho))
 
         # keep the history
         cur = proc.parse_xml(xml_file_name=record_file)
         xpproc.set_context(xdm_item=cur)
-        cwhen = xpproc.evaluate_single("string((/cmd:CMD/cmd:Header/cmd:MdCreationDate/@clariah:epoch,/cmd:CMD/cmd:Header/cmd:MdCreationDate,'unknown')[1])").get_string_value()
+        cwhen = xpproc.evaluate_single("string((/*:CMD/*:Header/*:MdCreationDate/@clariah:epoch,/*:CMD/*:Header/*:MdCreationDate,'unknown')[1])").get_string_value()
         history = f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}/records/record-{nr}.{cwhen}.xml"
         os.rename(record_file, history)
         logging.info(f"history kept[{history}")
@@ -110,6 +112,11 @@ def rec_update(app: str, prof: str, nr: str, rec: str) -> str:
         rec = executable.transform_to_string(xdm_node=new)
         with open(record_file, 'w') as file:
             file.write(rec)
-        logging.info(f"new version[{record_file}]")
+
+        r = proc.parse_xml(xml_text=rec)
+        xpproc.set_context(xdm_item=r)
+        rwhen = xpproc.evaluate_single("string((/*:CMD/*:Header/*:MdCreationDate/@clariah:epoch,/*:CMD/*:Header/*:MdCreationDate,'unknown')[1])").get_string_value()
+        ruser = xpproc.evaluate_single("string((/*:CMD/*:Header/*:MdCreator,'server')[1])").get_string_value()
+        logging.info(f"new version[{record_file}] when[{rwhen}] user[{ruser}]")
 
         return "OK"
