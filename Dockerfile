@@ -2,6 +2,10 @@ FROM python:3.12.3-bookworm
 
 ARG VERSION=0.1.10
 
+RUN apt-get update &&\
+	apt-get -y dist-upgrade &&\
+	apt-get -y install vim
+
 RUN useradd -ms /bin/bash huc
 
 USER huc
