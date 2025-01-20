@@ -147,6 +147,7 @@ async def create_app(request: Request, app: str, descr: str | None = None, prof:
                 await prof_save(app,config['app']['def_prof'])
             if config['app']['def_prof'] == 'clarin.eu:cr1:p_1721373444008':
                 shutil.copyfile(f"{settings.templates_dir}/HelloWorldTweak.xml",f"{settings.URL_DATA_APPS}/{app}/profiles/{config['app']['def_prof']}/tweaks/tweak-1.xml")
+                shutil.copyfile(f"{settings.templates_dir}/htp.test",f"{settings.URL_DATA_APPS}/{app}/htp.test")
 
         static_app_dir = f"{app_dir}/static"
         os.makedirs(static_app_dir)

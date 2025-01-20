@@ -30,7 +30,7 @@ Next to the docker container log there is a more extensive log inside the contai
 ## Default credentials:
 
 - admin API key: ``foobar``
-- ``htp.test``: user ``test`` with password ``test``
+- ``htp.test``: user ``test`` with password ``test`` and user ``demo`` with password ``demo``
 
 **ALWAYS** change these when running a CCF production deployment!
 

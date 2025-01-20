@@ -37,6 +37,11 @@ title="{functx:capitalize-first(functx:camel-case-to-words(string($app),' '))} E
 def_prof="{$prof}"
 cmdi_version="1.2"
 
+[app.access]
+#users="./htp.test" # location of the htpassword file, i.e. the "users" and "owner"
+read="any" # or "users" or "owner"
+write="any" # or "users" or "owner"
+
 [app.prof.{$app}]
 prof="{$prof}"
 title="string((/cmd:CMD/cmd:Components//cmdp:*[empty(cmdp:*)][normalize-space(text())!=''])[1])"
