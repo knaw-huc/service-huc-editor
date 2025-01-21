@@ -1,6 +1,7 @@
 import logging
 import os.path
 import shutil
+import time
 import json
 import toml
 
@@ -70,6 +71,15 @@ def get_user_with_app(app: str, credentials: HTTPBasicCredentials = Depends(secu
 @router.post("/app/{app}/record/", status_code=status.HTTP_201_CREATED)
 @router.post("/app/{app}/profile/{prof}/record/", status_code=status.HTTP_201_CREATED)
 async def create_record(request: Request, app: str, prof: str | None = None, redir: str | None = "yes", user: Optional[str] = Depends(get_user_with_app)):
+    record_body = await request.body()
+    trace_dir = f"{settings.URL_DATA_APPS}/{app}/trace"
+    if not os.path.exists(trace_dir):
+        os.makedirs(trace_dir)
+    epoch = time.time()
+    trace_file = f"{trace_dir}/create_record-{request.client.host}.{epoch}"
+    with open(trace_file, 'wb') as file:
+            file.write(record_body)
+
     if (not allowed(user,app,'write','any')):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
     config = None
@@ -107,8 +117,6 @@ async def create_record(request: Request, app: str, prof: str | None = None, red
     if not('application/xml' in request.headers['Content-Type'] or 'application/json' in request.headers['Content-Type']):
         return HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Content-Type must be application/xml or application/json!")
     
-    record_body = await request.body()
-
     if 'application/json' in request.headers['Content-Type']:
         logging.info(f"record[{nr}] JSON to XML]")
         logging.info(f"- body JSON[{json.dumps(json.loads(record_body))}]")
@@ -157,6 +165,15 @@ async def create_record(request: Request, app: str, prof: str | None = None, red
 @router.put("/app/{app}/record/{nr}")
 @router.put("/app/{app}/profile/{prof}/record/{nr}")
 async def modify_record(request: Request, app: str, nr: str, prof: str | None = None, when: str | None = None, user: Optional[str] = Depends(get_user_with_app)):
+    record_body = await request.body()
+    trace_dir = f"{settings.URL_DATA_APPS}/{app}/trace"
+    if not os.path.exists(trace_dir):
+        os.makedirs(trace_dir)
+    epoch = time.time()
+    trace_file = f"{trace_dir}/modify_record-{request.client.host}.{epoch}"
+    with open(trace_file, 'wb') as file:
+            file.write(record_body)
+
     config=None
     config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
     with open(config_file, 'r') as f:
@@ -178,8 +195,6 @@ async def modify_record(request: Request, app: str, nr: str, prof: str | None = 
     if not('application/xml' in request.headers['Content-Type'] or 'application/json' in request.headers['Content-Type']):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Content-Type must be application/xml or application/json!")
     
-    record_body = await request.body()
-
     if 'application/json' in request.headers['Content-Type']:
         with PySaxonProcessor(license=False) as proc:
             xsltproc = proc.new_xslt30_processor()
