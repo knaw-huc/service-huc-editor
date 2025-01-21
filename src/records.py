@@ -102,10 +102,13 @@ def rec_update(app: str, prof: str, nr: str, rec: str) -> str:
         executable.set_parameter("user", proc.make_string_value(nwho))
 
         # keep the history
+        history_dir = f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}/records/history"
+        if not os.path.exists(history_dir):
+            os.makedirs(history_dir)
         cur = proc.parse_xml(xml_file_name=record_file)
         xpproc.set_context(xdm_item=cur)
         cwhen = xpproc.evaluate_single("string((/*:CMD/*:Header/*:MdCreationDate/@clariah:epoch,/*:CMD/*:Header/*:MdCreationDate,'unknown')[1])").get_string_value()
-        history = f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}/records/record-{nr}.{cwhen}.xml"
+        history = f"{history_dir}/record-{nr}.{cwhen}.xml"
         os.rename(record_file, history)
         logging.info(f"history kept[{history}")
 

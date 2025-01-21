@@ -97,9 +97,11 @@ async def create_record(request: Request, app: str, prof: str | None = None, red
 
     nr = 1
     record_file = f"{record_dir}/record-{nr}.xml"
-    while os.path.exists(record_file) or os.path.exists(f"{record_file}.deleted"):
+    deleted = f"{record_dir}/history/record-{nr}.xml.deleted"
+    while os.path.exists(record_file) or os.path.exists(deleted):
         nr = nr + 1
         record_file = f"{record_dir}/record-{nr}.xml"
+        deleted = f"{record_dir}/history/record-{nr}.xml.deleted"
     logging.info(f"app[{app}] record[{nr}] create")
 
     if not('application/xml' in request.headers['Content-Type'] or 'application/json' in request.headers['Content-Type']):
@@ -249,9 +251,14 @@ async def delete_record(request: Request, app: str, nr: str, prof: str | None=No
         logging.info(f"{record_file} not found!")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
-    if os.path.exists(f"{record_file}.deleted"):
-        os.remove(f"{record_file}.deleted")
-    os.rename(record_file,f"{record_file}.deleted")
+    history_dir = f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}/records/history"
+    if not os.path.exists(history_dir):
+        os.makedirs(history_dir)
+
+    deleted = f"{history_dir}/record-{nr}.xml.deleted"
+    if os.path.exists(deleted):
+        os.remove(deleted)
+    os.rename(record_file,deleted)
 
     return JSONResponse({"message": f"app[{app}] prof[{prof}] record[{nr}] deleted"})
 
