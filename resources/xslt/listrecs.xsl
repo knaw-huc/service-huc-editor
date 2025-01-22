@@ -101,9 +101,20 @@
                                                     <xsl:text>&#160;</xsl:text>
                                                 </xsl:when>
                                                 <xsl:otherwise>
-                                                    <a href="{concat($base, '/app/', $app, '/profile/', $prof, '/record/editor')}" id="addRec">
-                                                        <img src="{$base}/static/img/add.ico" height="16px" width="16px"/>
-                                                    </a>
+                                                    <xsl:choose>
+                                                        <xsl:when test="$config/config/app/access/write='owner' and $user='anonymous'">
+                                                            <xsl:text>&#160;</xsl:text>
+                                                        </xsl:when>
+                                                        <xsl:when test="$config/config/app/access/write='user' and $user='anonymous'">
+                                                            <xsl:text>&#160;</xsl:text>
+                                                        </xsl:when>
+                                                        <xsl:otherwise>
+                                                            <a href="{concat($base, '/app/', $app, '/profile/', $prof, '/record/editor')}" id="addRec">
+                                                                <img src="{$base}/static/img/add.ico" height="16px" width="16px"/>
+                                                            </a>
+                                                        </xsl:otherwise>
+                                                    </xsl:choose>
+                                                    
                                                 </xsl:otherwise>
                                             </xsl:choose>
                                         </th>
@@ -121,9 +132,9 @@
                                         <xsl:variable name="nr" select="replace(base-uri($rec), '.*/record-(\d+)\.xml', '$1')"/>
                                         <xsl:variable name="url" select="concat($base, '/app/', $app, '/profile/', $prof, '/record/', $nr)"/>
                                         <xsl:variable name="owner" select="string((/*:CMD/*:Header/*:MdCreator,'server')[1])"/>
-                                        <xsl:comment>r[{$config/config/app/access/read}]w[{$config/config/app/access/write}][{$user}][{base-uri($rec)}][{$url}][{$owner}]</xsl:comment>
+                                        <xsl:comment>r[{($config/config/app/access/read,'any')[1]}]w[{($config/config/app/access/wtite,'any')[1]}][{$user}][{base-uri($rec)}][{$url}][{$owner}]</xsl:comment>
     
-                                        <xsl:if test="$config/config/app/access/read!='owner' or $config/config/app/access/write!='owner' or $owner=$user">
+                                        <xsl:if test="($config/config/app/access/read,'any')[1]!='owner' or ($config/config/app/access/write,'any')[1]!='owner' or $owner=$user">
                                             <tr>
                                                 <xsl:for-each select="$p/list/(* except ns)">
                                                     <td>
@@ -134,10 +145,10 @@
                                                 <td>{/cmd:CMD/cmd:Header/cmd:MdCreationDate}</td>
                                                 <td>
                                                     <xsl:choose>
-                                                        <xsl:when test="$config/config/app/access/write='owner' and $user!=$owner">
+                                                        <xsl:when test="($config/config/app/access/write,'any')[1]='owner' and $user!=$owner">
                                                             <xsl:text>&#160;</xsl:text>
                                                         </xsl:when>
-                                                        <xsl:when test="$config/config/app/access/write='user' and $user='anonymous'">
+                                                        <xsl:when test="($config/config/app/access/write,'any')[1]='user' and $user='anonymous'">
                                                             <xsl:text>&#160;</xsl:text>
                                                         </xsl:when>
                                                         <xsl:otherwise>
@@ -154,10 +165,10 @@
                                             </td>-->
                                                 <td>
                                                     <xsl:choose>
-                                                        <xsl:when test="$config/config/app/access/write='owner' and $user!=$owner">
+                                                        <xsl:when test="($config/config/app/access/write,'any')[1]='owner' and $user!=$owner">
                                                             <xsl:text>&#160;</xsl:text>
                                                         </xsl:when>
-                                                        <xsl:when test="$config/config/app/access/write='user' and $user='anonymous'">
+                                                        <xsl:when test="($config/config/app/access/write,'any')[1]='user' and $user='anonymous'">
                                                             <xsl:text>&#160;</xsl:text>
                                                         </xsl:when>
                                                         <xsl:otherwise>
@@ -169,10 +180,10 @@
                                                 </td>
                                                 <td>
                                                     <xsl:choose>
-                                                        <xsl:when test="$config/config/app/access/read='owner' and $user!=$owner">
+                                                        <xsl:when test="($config/config/app/access/read,'any')[1]='owner' and $user!=$owner">
                                                             <xsl:text>&#160;</xsl:text>
                                                         </xsl:when>
-                                                        <xsl:when test="$config/config/app/access/read='user' and $user='anonymous'">
+                                                        <xsl:when test="($config/config/app/access/read,'any')[1]='user' and $user='anonymous'">
                                                             <xsl:text>&#160;</xsl:text>
                                                         </xsl:when>
                                                         <xsl:otherwise>
@@ -182,10 +193,10 @@
                                                 </td>
                                                 <td>
                                                     <xsl:choose>
-                                                        <xsl:when test="$config/config/app/access/read='owner' and $user!=$owner">
+                                                        <xsl:when test="($config/config/app/access/read,'any')[1]='owner' and $user!=$owner">
                                                             <xsl:text>&#160;</xsl:text>
                                                         </xsl:when>
-                                                        <xsl:when test="$config/config/app/access/read='user' and $user='anonymous'">
+                                                        <xsl:when test="($config/config/app/access/read,'any')[1]='user' and $user='anonymous'">
                                                             <xsl:text>&#160;</xsl:text>
                                                         </xsl:when>
                                                         <xsl:otherwise>
@@ -195,10 +206,10 @@
                                                 </td>
                                                 <td>
                                                     <xsl:choose>
-                                                        <xsl:when test="$config/config/app/access/read='owner' and $user!=$owner">
+                                                        <xsl:when test="($config/config/app/access/read,'any')[1]='owner' and $user!=$owner">
                                                             <xsl:text>&#160;</xsl:text>
                                                         </xsl:when>
-                                                        <xsl:when test="$config/config/app/access/read='user' and $user='anonymous'">
+                                                        <xsl:when test="($config/config/app/access/read,'any')[1]='user' and $user='anonymous'">
                                                             <xsl:text>&#160;</xsl:text>
                                                         </xsl:when>
                                                         <xsl:otherwise>
