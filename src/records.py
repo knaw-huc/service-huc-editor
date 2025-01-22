@@ -122,4 +122,4 @@ def rec_update(app: str, prof: str, nr: str, rec: str) -> str:
         ruser = xpproc.evaluate_single("string((/*:CMD/*:Header/*:MdCreator,'server')[1])").get_string_value()
         logging.info(f"new version[{record_file}] when[{rwhen}] user[{ruser}]")
 
-        return "OK"
+        return "OK", rwhen
