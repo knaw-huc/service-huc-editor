@@ -94,7 +94,7 @@ def rec_update(app: str, prof: str, nr: str, rec: str) -> str:
         logging.info(f"Updating app[{app}] record[{nr}]: when check: old[{owhen}] new[{nwhen}]!")
         if (owhen!=nwhen):
             logging.info(f"Updating app[{app}] record[{nr}]: when clash: old[{owhen}] new[{nwhen}]!")
-            return f"record[{nr}] has been updated on [{owhen if '-' in owhen else datetime.datetime.fromtimestamp(int(owhen), timezone.utc)}] by [{owho}] since the record (version from [{nwhen if '-' in nwhen else datetime.datetime.fromtimestamp(int(nwhen), timezone.utc)}]) has been read at for this update by [{nwho}]!"
+            return f"record[{nr}] has been updated on [{owhen if '-' in owhen else datetime.datetime.fromtimestamp(int(owhen), timezone.utc)}] by [{owho}] since the record (version from [{nwhen if '-' in nwhen else datetime.datetime.fromtimestamp(int(nwhen), timezone.utc)}]) has been read at for this update by [{nwho}]!", "unknown"
 
         xsltproc = proc.new_xslt30_processor()
         xsltproc.set_cwd(os.getcwd())

@@ -116,8 +116,10 @@
                                 }}
                             }});
                             outRec = {{prof: inRec.id, record: rec}};
-                            if (inRec.when!==undefined)
+                            if (inRec.when!==undefined) {{
                                 outRec.when = inRec.when;
+                                //alert("DBG: outRec.when["+outRec.when+"]");
+                            }}
                             console.log(outRec);
                             out = JSON.stringify(outRec);
                             localStorage.setItem("{$rec-url}@{$epoch}.out",out);
@@ -133,6 +135,8 @@
                                     data: out,
                                     success: function (msg) {{
                                         //location.reload();
+                                        inRec.when = msg.when
+                                        //alert("DBG: inRec.when["+inRec.when+"]");
                                     }},
                                     error: function (err) {{
                                         alert ("ERR: the "+action+" failed! ["+err.responseJSON.detail+"]");
@@ -152,6 +156,8 @@
                                     data: out,
                                     success: function (msg) {{
                                         console.log(msg);
+                                        inRec.when = msg.when
+                                        //alert("DBG: inRec.when["+inRec.when+"]");
                                         window.location.replace("./"+msg.nr+"/editor");
                                     }},
                                     error: function (err) {{
