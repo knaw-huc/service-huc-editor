@@ -163,6 +163,7 @@ async def create_record(request: Request, app: str, prof: str | None = None, red
     
     with PySaxonProcessor(license=False) as proc:
         xpproc = proc.new_xpath_processor()
+        xpproc.declare_namespace('clariah','http://www.clariah.eu/')
         xpproc.set_context(file_name=record_file)
         when = xpproc.evaluate_single("string((/*:CMD/*:Header/*:MdCreationDate/@clariah:epoch,/*:CMD/*:Header/*:MdCreationDate,'unknown')[1])").get_string_value()
         return JSONResponse({"message": f"App[{app}] prof[{prof}] record[{nr}] created","nr": nr,"when":when})
@@ -242,7 +243,7 @@ async def modify_record(request: Request, app: str, nr: str, prof: str | None = 
     #   return HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid XML")
 
     res, when = rec_update(app, prof, nr, record_body)
-    logging.info(f"update app[{app}] record[{nr}] msg[{err}]")
+    logging.info(f"update app[{app}] record[{nr}] msg[{res}]")
     if (res.strip() == "404"):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Record[{nr}] version was not saved as previous version couldn't be found!")
     elif (res.strip() != "OK"):
