@@ -6,7 +6,7 @@
 1. Start the docker container:
 
 ```sh
-docker run -p 1210:1210 --name=ccf --rm -it ghcr.io/knaw-huc/service-huc-editor:2.0-RC3
+docker run -p 1210:1210 --name=ccf --rm -it ghcr.io/knaw-huc/service-huc-editor:2.0-RC4
 ```
 
 2. Initialize the HelloWorld app:
@@ -318,8 +318,8 @@ write="users"
 
 where
 - ``users`` points to the htpassword file;
-- ``read`` indicates who have read access: authenticated ``users`` or ``any`` (default)
-- ``write`` indicates who have write access: authenticated ``users`` or ``any`` (default)
+- ``read`` indicates who have read access: authenticated ``users``, ``owner`` or ``any`` (default)
+- ``write`` indicates who have write access: authenticated ``users``, ``owner`` or ``any`` (default)
  
 #### Hooks
 
