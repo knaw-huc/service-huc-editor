@@ -160,7 +160,12 @@ async def create_record(request: Request, app: str, prof: str | None = None, red
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=err)
         if redir.strip() != "no":
             return RedirectResponse(url=f"./{nr}")
-    return JSONResponse({"message": f"App[{app}] prof[{prof}] record[{nr}] created","nr": nr})
+    
+    with PySaxonProcessor(license=False) as proc:
+        xpproc = proc.new_xpath_processor()
+        xpproc.set_context(file_name=record_file)
+        when = xpproc.evaluate_single("string((/*:CMD/*:Header/*:MdCreationDate/@clariah:epoch,/*:CMD/*:Header/*:MdCreationDate,'unknown')[1])").get_string_value()
+        return JSONResponse({"message": f"App[{app}] prof[{prof}] record[{nr}] created","nr": nr,"when":when})
 
 @router.put("/app/{app}/record/{nr}")
 @router.put("/app/{app}/profile/{prof}/record/{nr}")
@@ -236,14 +241,14 @@ async def modify_record(request: Request, app: str, nr: str, prof: str | None = 
     # if not valid:
     #   return HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid XML")
 
-    err = rec_update(app, prof, nr, record_body)
+    res, when = rec_update(app, prof, nr, record_body)
     logging.info(f"update app[{app}] record[{nr}] msg[{err}]")
-    if (err.strip() == "404"):
+    if (res.strip() == "404"):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Record[{nr}] version was not saved as previous version couldn't be found!")
-    elif (err.strip() != "OK"):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=err)
+    elif (res.strip() != "OK"):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=res)
        
-    return JSONResponse({"message": f"App[{app}] record[{nr}] modified"})
+    return JSONResponse({"message": f"App[{app}] record[{nr}] modified", "when": when})
 
 
 @router.delete("/app/{app}/record/{nr}")
