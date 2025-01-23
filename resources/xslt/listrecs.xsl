@@ -52,6 +52,7 @@
                  </script>
             </head>
             <body>
+                <iframe src="{$base}/static/status.html" style="border:none;height:3em;width:100%;"/>
                 <div id="wrapper">
                     <div id="header">{$config/config/app/title}</div>
                     <div id="user"/>
