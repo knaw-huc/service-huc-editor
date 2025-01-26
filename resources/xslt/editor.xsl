@@ -39,8 +39,7 @@
                 <script type="text/javascript" src="{$base}/static/js/ccf_config_en.js"><xsl:comment>keep alive</xsl:comment></script>
                 <script type="text/javascript" src="{$cdn}/js/ccfparser.js"><xsl:comment>keep alive</xsl:comment></script>
                 <script type="text/javascript" src="{$cdn}/js/plugins/skos_list/skos_list.js"><xsl:comment>keep alive</xsl:comment></script>
-                <link rel="stylesheet" href="{$cdn}/js/plugins/skos_list/skos_list.css" type="text/css"/>
-                
+                <link rel="stylesheet" href="{$cdn}/js/plugins/skos_list/skos_list.css" type="text/css"/>                
                 <script>
                     <xsl:text>
                         var inRec = null;
