@@ -79,13 +79,13 @@ app.include_router(
 
 app.include_router(
     admin.router,
-    tags=["Protected"],
+    tags=["Admin"],
     prefix="",
     dependencies=[Depends(auth_header)]
 )
 app.include_router(
     protected.router,
-    tags=["unProtected"],
+    tags=["Protected"],
     prefix=""
 )
 
