@@ -49,6 +49,9 @@ def prof_xml(app: str, id: str):
                     executable.set_parameter("tweakFile", proc.make_string_value(str(tf)))
                     pnode = proc.parse_xml(xml_text=prof)
                     prof = executable.transform_to_string(xdm_node=pnode)
+            executable = xsltproc.compile_stylesheet(stylesheet_file=f"{settings.xslt_dir}/lastTweak.xsl")
+            pnode = proc.parse_xml(xml_text=prof)
+            prof = executable.transform_to_string(xdm_node=pnode)
         return prof
     return None
 
