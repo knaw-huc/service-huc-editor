@@ -323,26 +323,30 @@ where
  
 #### Hooks
 
-**Note:** under development!
+For all CRUD (Create, Read, Update, Delete) _pre_ and _post_ python hooks are supported:
 
 ```toml
 [app.hooks.record]
-create_pre="create_record_pre"
+reate_pre="create_record_pre"
 create_post="create_record_post"
 #read_pre=
 read_post="count"
 #update_pre=
-#update_post=
+update_post="count"
 #delete_pre=
-#delete_post=
+delete_post="count"
+
 ```
+
+The _pre_ hooks recieve the records as a [PyXdmNode](https://www.saxonica.com/saxon-c/doc11/html/saxonc.html#PyXdmNode), so ith can be inspected or even modified. Return the (modified) record to let the CRUD action take place, return ``None`` and a _message_ to abort the CRUD action. The _post_ hook cannot influence the CRUD action anymore.
 
 Place ``hooks.py`` in  in the ``src/`` directory within the `app` directory, e.g., ``.../apps/vocabs/src/hooks.py``.
 
 ```py
 import logging
+from saxonche import PyXdmNode
 
-def create_record_pre(crud:str, app: str, prof: str, nr:str, rec, user:str):
+def create_record_pre(crud:str, app: str, prof: str, nr:str, user:str, rec:PyXdmNode):
     #inspect/modify rec
     return rec, "OK"
     # or return None, "create not allowed!"
@@ -357,11 +361,11 @@ def count(crud:str, app: str, prof: str, nr:str, rec, user:str):
 
 ### Configure the services
 
-Global settings can be edited in the [](./conf/settings.toml) TOML file.
+Global settings can be edited in the [./conf/settings.toml](./conf/settings.toml) TOML file.
 
 #### Access to the admin API
 
-The token for the admin API is set in the [](./conf/.secrets.toml):
+The token for the admin API is set in the [./conf/.secrets.toml](./conf/.secrets.toml):
 
 ```toml
 [default]
