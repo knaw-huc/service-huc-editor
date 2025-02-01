@@ -22,7 +22,7 @@ from weasyprint import HTML
 from typing import Optional
 from enum import Enum
 
-from src.commons import settings, convert_toml_to_xml, call_record_create_hook, allowed
+from src.commons import settings, convert_toml_to_xml, call_record_hook, allowed
 from src.records import rec_html, rec_editor, rec_update
 from src.profiles import prof_json
 
@@ -35,6 +35,9 @@ security = HTTPBasic(auto_error=False)
 
 def get_current_user(app: str, credentials: Optional[HTTPBasicCredentials] = Depends(security)):
     if not credentials:
+        # is er dan een token?
+        # zo ja:
+        #  heef de app config een def_user geef die dan terug anders de globale def_user
         logging.debug("---no credentials---")
         return None
 
@@ -140,33 +143,41 @@ async def create_record(request: Request, app: str, prof: str | None = None, red
             executable.set_parameter("self", proc.make_string_value(f"unl://{nr}"))
             executable.set_parameter("prof", proc.make_string_value(prof.strip()))
             null = proc.parse_xml(xml_text="<null/>")
-            record_body = executable.transform_to_string(xdm_node=null)
+            rec = executable.transform_to_value(xdm_node=null)
+            rec, msg = call_record_hook("create_pre",app,prof,nr,user,rec)
+            if rec == None:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
+
         with open(record_file, 'w') as file:
-            file.write(record_body)
-            config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
-            with open(config_file, 'r') as f:
-                config = toml.load(f)
-                if "hooks" in config['app'] and "record" in config["app"]["hooks"] and "create" in config["app"]["hooks"]["record"]:
-                    logging.info(f"call_record_create_hook(hook[{config['app']['hooks']['record']['create']}],app[{app}],rec[{nr}])")
-                    call_record_create_hook(config['app']['hooks']['record']['create'],app,prof,nr)
-    else:
-        with open(record_file, 'wb') as file:
-            file.write(record_body)
-        err = rec_update(app, nr, record_body.decode())
-        logging.info(f"update app[{app}] prof[{prof}] record[{nr}] msg[{err}]")
-        if (err.strip() == "404"):
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Initial record[{nr}] version was not saved!")
-        elif (err.strip() != "OK"):
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=err)
-        if redir.strip() != "no":
-            return RedirectResponse(url=f"./{nr}")
+            file.write(str(rec))
+        logging.info(f"created[JSON] app[{app}] prof[{prof}] record[{nr}]")
+
+    else: # XML input
+        with PySaxonProcessor(license=False) as proc:
+            rec = proc.parse_xml(xml_text=record_body)
+        rec, msg = call_record_hook("create_pre",app,prof,nr,user,rec)
+        if rec == None:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
+        with open(record_file, 'w') as file:
+            file.write(str(rec))
+            # update to add the epoch
+            res, when = rec_update(app, nr, str(rec))
+            logging.info(f"created[XML] app[{app}] prof[{prof}] record[{nr}] msg[{res}]")
+            if (res.strip() == "404"):
+                raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Initial record[{nr}] version was not saved!")
+            elif (res.strip() != "OK"):
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=err)
     
+    call_record_hook("create_post",app,prof,nr,user)
+    headers = {}
+    if redir.strip() != "no":
+        headers = {"Location": f"./{nr}"}
     with PySaxonProcessor(license=False) as proc:
         xpproc = proc.new_xpath_processor()
         xpproc.declare_namespace('clariah','http://www.clariah.eu/')
         xpproc.set_context(file_name=record_file)
         when = xpproc.evaluate_single("string((/*:CMD/*:Header/*:MdCreationDate/@clariah:epoch,/*:CMD/*:Header/*:MdCreationDate,'unknown')[1])").get_string_value()
-        return JSONResponse({"message": f"App[{app}] prof[{prof}] record[{nr}] created","nr": nr,"when":when})
+        return JSONResponse(status_code=201,headers=headers,content={"message": f"app[{app}] prof[{prof}] record[{nr}] created","nr": nr,"when":when})
 
 @router.put("/app/{app}/record/{nr}")
 @router.put("/app/{app}/profile/{prof}/record/{nr}")
@@ -241,15 +252,22 @@ async def modify_record(request: Request, app: str, nr: str, prof: str | None = 
     # TODO: validate result
     # if not valid:
     #   return HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid XML")
+    with PySaxonProcessor(license=False) as proc:
+        rec = proc.parse_xml(xml_text=record_body)
+        rec, msg = call_record_hook("update_pre",app,prof,nr,user,rec)
+        if rec == None:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
 
-    res, when = rec_update(app, prof, nr, record_body)
-    logging.info(f"update app[{app}] record[{nr}] msg[{res}]")
-    if (res.strip() == "404"):
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Record[{nr}] version was not saved as previous version couldn't be found!")
-    elif (res.strip() != "OK"):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=res)
-       
-    return JSONResponse({"message": f"App[{app}] record[{nr}] modified", "when": when})
+        res, when = rec_update(app, prof, nr, str(rec))
+        logging.info(f"updated app[{app}] record[{nr}] msg[{res}]")
+        if (res.strip() == "404"):
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Record[{nr}] version was not saved as previous version couldn't be found!")
+        elif (res.strip() != "OK"):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=res)
+
+        call_record_hook("update_post",app,prof,nr,user)
+
+        return JSONResponse({"message": f"App[{app}] record[{nr}] modified", "when": when})
 
 
 @router.delete("/app/{app}/record/{nr}")
@@ -276,10 +294,18 @@ async def delete_record(request: Request, app: str, nr: str, prof: str | None=No
     if not os.path.exists(history_dir):
         os.makedirs(history_dir)
 
+    with PySaxonProcessor(license=False) as proc:
+        rec = proc.parse_xml(xml_file_name=record_file)
+        rec, msg = call_record_hook("delete_pre",app,prof,nr,user,rec)
+        if rec == None:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
+        
     deleted = f"{history_dir}/record-{nr}.xml.deleted"
     if os.path.exists(deleted):
         os.remove(deleted)
     os.rename(record_file,deleted)
+
+    all_record_hook("delete_post",app,prof,nr,user)
 
     return JSONResponse({"message": f"app[{app}] prof[{prof}] record[{nr}] deleted"})
 
@@ -348,35 +374,43 @@ def get_record(request: Request, app: str,  nr: str, prof: str | None=None, user
         logging.debug(f"{record_file} doesn't exist")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     
-    if form == "json" or "application/json" in request.headers.get("accept", ""):
-        with PySaxonProcessor(license=False) as proc:
-            rec = proc.parse_xml(xml_file_name=record_file)
-            prof_doc = prof_json(app, prof)
-            xsltproc = proc.new_xslt30_processor()
-            xsltproc.set_cwd(os.getcwd())
-            executable = xsltproc.compile_stylesheet(stylesheet_file=f"{settings.xslt_dir}/rec2json.xsl")
-            executable.set_parameter("prof-doc", proc.make_string_value(prof_doc))
-            executable.set_parameter("rec-nr", proc.make_string_value(nr))
-            result = executable.transform_to_string(xdm_node=rec)
-            return JSONResponse(content=jsonable_encoder(json.loads(result)))
-    elif form == RecForm.pdf or "application/pdf" in request.headers.get("accept", ""):
-            html = rec_html(app,prof,nr)
-            pdf = HTML(string=html).write_pdf()
-            headers = {'Content-Disposition': f'inline; filename="{app}-record-{nr}.pdf"'}
-            return Response(pdf, headers=headers, media_type='application/pdf')
-    # FF sends an Accept header with text/html and application/xml, we prefer html, 
-    # but first check for an explicit xml request
-    elif form == RecForm.xml:
-        with open(record_file, 'r') as file:
-            rec = file.read()
-            return Response(content=rec, media_type="application/xml")
-    elif form == RecForm.html or "text/html" in request.headers.get("accept", ""):
-            html = rec_html(app,prof,nr)
-            return HTMLResponse(content=html)
-    elif form == RecForm.xml or "application/xml" in request.headers.get("accept", ""):
-        with open(record_file, 'r') as file:
-            rec = file.read()
-            return Response(content=rec, media_type="application/xml")
+    with PySaxonProcessor(license=False) as proc:
+        rec = proc.parse_xml(xml_file_name=record_file)
+        rec, msg = call_record_hook("read_pre",app,prof,nr,user,rec)
+        if rec == None:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
+        if form == "json" or "application/json" in request.headers.get("accept", ""):
+                prof_doc = prof_json(app, prof)
+                xsltproc = proc.new_xslt30_processor()
+                xsltproc.set_cwd(os.getcwd())
+                executable = xsltproc.compile_stylesheet(stylesheet_file=f"{settings.xslt_dir}/rec2json.xsl")
+                executable.set_parameter("prof-doc", proc.make_string_value(prof_doc))
+                executable.set_parameter("rec-nr", proc.make_string_value(nr))
+                result = executable.transform_to_string(xdm_node=rec)
+                call_record_hook("read_post",app,prof,nr,user)
+                return JSONResponse(content=jsonable_encoder(json.loads(result)))
+        elif form == RecForm.pdf or "application/pdf" in request.headers.get("accept", ""):
+                html = rec_html(app,prof,nr)
+                pdf = HTML(string=html).write_pdf()
+                headers = {'Content-Disposition': f'inline; filename="{app}-record-{nr}.pdf"'}
+                call_record_hook("read_post",app,prof,nr,user)
+                return Response(pdf, headers=headers, media_type='application/pdf')
+        # FF sends an Accept header with text/html and application/xml, we prefer html, 
+        # but first check for an explicit xml request
+        elif form == RecForm.xml:
+            with open(record_file, 'r') as file:
+                rec = file.read()
+                call_record_hook("read_post",app,prof,nr,user)
+                return Response(content=rec, media_type="application/xml")
+        elif form == RecForm.html or "text/html" in request.headers.get("accept", ""):
+                html = rec_html(app,prof,nr)
+                call_record_hook("read_post",app,prof,nr,user)
+                return HTMLResponse(content=html)
+        elif form == RecForm.xml or "application/xml" in request.headers.get("accept", ""):
+            with open(record_file, 'r') as file:
+                rec = file.read()
+                call_record_hook("read_post",app,prof,nr,user)
+                return Response(content=rec, media_type="application/xml")
 
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not supported")
 

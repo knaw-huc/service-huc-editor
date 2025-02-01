@@ -327,10 +327,14 @@ where
 
 ```toml
 [app.hooks.record]
-create="create_record"
-#read=
-#update=
-#delete=
+create_pre="create_record_pre"
+create_post="create_record_post"
+#read_pre=
+read_post="count"
+#update_pre=
+#update_post=
+#delete_pre=
+#delete_post=
 ```
 
 Place ``hooks.py`` in  in the ``src/`` directory within the `app` directory, e.g., ``.../apps/vocabs/src/hooks.py``.
@@ -338,8 +342,17 @@ Place ``hooks.py`` in  in the ``src/`` directory within the `app` directory, e.g
 ```py
 import logging
 
-def create_record(app: str, prof: str, rec: str):
-    logging.debug((f"record[{rec}] created!"))
+def create_record_pre(crud:str, app: str, prof: str, nr:str, rec, user:str):
+    #inspect/modify rec
+    return rec, "OK"
+    # or return None, "create not allowed!"
+
+def create_record_post(crud:str, app: str, prof: str, nr:str, user:str):
+    logging.debug((f"record[{nr}] created!"))
+
+cnt = 0
+def count(crud:str, app: str, prof: str, nr:str, rec, user:str):
+   cnt = cnt+1
 ```
 
 ### Configure the services

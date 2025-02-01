@@ -1,10 +1,7 @@
 import logging
 import os.path
 import shutil
-import json
 import toml
-
-from datetime import datetime, timezone
 
 from fastapi import APIRouter, HTTPException, Request, Response
 
@@ -14,9 +11,8 @@ from starlette import status
 from starlette.responses import JSONResponse, RedirectResponse
 from starlette.staticfiles import StaticFiles
 
-from src.commons import settings, convert_toml_to_xml, call_record_create_hook
+from src.commons import settings, convert_toml_to_xml
 from src.profiles import prof_save
-from src.records import rec_update
 
 router = APIRouter()
 
