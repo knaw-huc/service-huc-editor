@@ -27,9 +27,7 @@ curl -v -X PUT -H 'Authorization: Bearer foobar' http://localhost:1210/app/Hello
 
 Next to the docker container log there is a more extensive log inside the container at `/home/huc/huc-editor-service/logs/huc-editor-service.log`
 
-# Setup your own
-
-## Create or select a CMDI profile
+## Setup your own: create or select a CMDI profile
 
 Create or select a [CMDI](http://www.clarin.eu/cmdi/) profile in/from the [Component Registry](https://catalog.clarin.eu/ds/ComponentRegistry/)
 
