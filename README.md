@@ -27,9 +27,9 @@ curl -v -X PUT -H 'Authorization: Bearer foobar' http://localhost:1210/app/Hello
 
 Next to the docker container log there is a more extensive log inside the container at `/home/huc/huc-editor-service/logs/huc-editor-service.log`
 
-## Setup your own
+# Setup your own
 
-### Create or select a CMDI profile
+## Create or select a CMDI profile
 
 Create or select a [CMDI](http://www.clarin.eu/cmdi/) profile in/from the [Component Registry](https://catalog.clarin.eu/ds/ComponentRegistry/)
 
@@ -50,7 +50,7 @@ Remember the ID of your profile, which can be seen in its XML representation, e.
 </ComponentSpec>
 ```
 
-### Start the service
+## Start the service
 
 With release image:
 ```sh
@@ -67,13 +67,13 @@ This mounts both the local
 - conf directory, containing the global configuration
 - data directory, which will contain the app configuration, the profile, its tweak(s) and records
 
-### Initialize your app
+## Initialize your app
 
 ```sh
 curl -v -X PUT -H 'Authorization: Bearer foobar' http://0.0.0.0:1210/app/myApp?prof=clarin.eu:cr1:p_1721373444008&desrc="my Application"
 ```
 
-### Tweak the profile
+## Tweak the profile
 
 To add cues to the profile you can download a template tweak file for your profile:
 
@@ -133,7 +133,7 @@ Here some example tweak files can be found:
 
 The next sections list the cues you can add to elements and components. 
 
-#### CMDI cues
+### CMDI cues
 
 Since CMDI 1.2 cues for tools can be specified. CCF supports the following cues using this mechanism:
 
@@ -150,9 +150,9 @@ Cues are attributes in the namespace ``http://www.clarin.eu/cmd/cues/1`` on the 
 <Element name="begeleidendeInstantiesPersonen" xmlns:cue="http://www.clarin.eu/cmd/cues/1" cue:displayOrder="45" cue:inputWidth="80" cue:inputHeight="6">
 ```
 
-#### CCF cues
+### CCF cues
 
-##### Multilingual labels
+#### Multilingual labels
 
 CMDI cues being attributes don't work together with ``xml:lang`` language attributes. To resolve this CCF uses the ``label`` element in the ``http://www.clariah.eu/`` namespace for multilingual labels, e.g.,
 
@@ -163,7 +163,7 @@ CMDI cues being attributes don't work together with ``xml:lang`` language attrib
 </Element>
 ```
 
-##### Vocabularies
+#### Vocabularies
 
 **Note:** CCF doesn't support the CMDI external vocabularies syntax yet!
 
@@ -183,7 +183,7 @@ The URI follows the follow pattern:
 
 **Note:** add the ``cue:class="skosType"`` to get an icon to open up a dialog for browsing the vocabulary next to the default autocomplete.
 
-#### CMDI auto values
+### CMDI auto values
 
 CMDI 1.2 also added a way to specify auto values for an element, here the CCF supports:
 
@@ -195,13 +195,13 @@ CMDI 1.2 also added a way to specify auto values for an element, here the CCF su
 </Element>
 ```
 
-#### Other tweaks
+### Other tweaks
 
 In the tweak file propererties of elements can be changed within limits:
 - minimum and maximum cardinality within the original bounds
 - a vocabulary can be added as long as the values match the original value scheme
 
-### Configure the app
+## Configure the app
 
 The configuration of the app can be retrieved:
 
@@ -226,7 +226,7 @@ Here are some example configurations:
 - [niod yugo dre](https://github.com/knaw-huc/niod-dre-yugo-editor/blob/main/data/apps/yugo/config.toml)
 
 
-#### The CMDI version in the app
+### The CMDI version in the app
 
 Set the version of CMDI to be used for record serialisation.
 
@@ -235,7 +235,7 @@ Set the version of CMDI to be used for record serialisation.
 cmdi_version="1.2" #or 1.1, which is (for legacy reasons) the default
 ```
 
-#### The profiles in the app
+### The profiles in the app
 
 An app is based on one or more CMD profiles. There should be at least one profile and one profile should be the default:
 
@@ -255,8 +255,7 @@ title="string((/cmd:CMD/cmd:Components//cmd:*[empty(cmd:*)][normalize-space(text
 
 The `title` XPath is used to retrieve the title of the record in the HTML and PDF views (**note:** the `cmd` and `cmdp` namespace prefixes are available and set compliant with [the configured CMDI version](#the-cmdi-version-in-the-app)).
 
-
-#### The columns in the record list
+### The columns in the record list
 
 The per profile  record list contains by default the creation date of the record, but other fields can be added in the apps configuration, e.g.,
 
@@ -276,7 +275,7 @@ where
 - ``sort`` indicates if the column is sortable by clicking on the header
 - ``filter`` indicates if the column has a filter where you can type (``true``) or a dropdown of the possible values (``'select'``, **note:** the single quotes are mandatory!)
 
-#### Styling
+### Styling
 
 Set a CSS style that overwrites the default CSS style, e.g.:
 
@@ -287,7 +286,7 @@ style="data-envelopes.css"
 
 This CSS file should be placed in the ``static/css/`` directory within the `app` directory, e.g., ``.../apps/data-envelopes/static/css/data-envelopes.css``.
 
-#### Access
+### Access
 
 **Note:** CCF doesn't support SSO yet!
 
@@ -312,14 +311,14 @@ where
 - ``write`` indicates who have write access: authenticated ``users``, ``owner`` or ``any`` (default)
  
 
-##### Default credentials
+#### Default credentials
 
 In the ``htp.test`` the following test users are available:
 
 - user ``test`` with password ``test``
 - user ``demo`` with password ``demo``
 
-#### Hooks
+### Hooks
 
 For all CRUD (Create, Read, Update, Delete) _pre_ and _post_ python hooks are supported:
 
@@ -357,9 +356,9 @@ def count(crud:str, app: str, prof: str, nr:str, rec, user:str):
    cnt = cnt+1
 ```
 
-### Configure the services
+## Configure the services
 
-#### Default credentials
+### Default credentials
 
 - admin API key: ``foobar``
 
@@ -368,7 +367,7 @@ def count(crud:str, app: str, prof: str, nr:str, rec, user:str):
 
 Global settings can be edited in the [./conf/settings.toml](./conf/settings.toml) TOML file.
 
-#### Access to the admin API
+### Access to the admin API
 
 The token for the admin API is set in the [./conf/.secrets.toml](./conf/.secrets.toml):
 
