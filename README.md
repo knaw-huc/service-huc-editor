@@ -27,16 +27,6 @@ curl -v -X PUT -H 'Authorization: Bearer foobar' http://localhost:1210/app/Hello
 
 Next to the docker container log there is a more extensive log inside the container at `/home/huc/huc-editor-service/logs/huc-editor-service.log`
 
-## Default credentials:
-
-- admin API key: ``foobar``
-- ``htp.test``: user ``test`` with password ``test`` and user ``demo`` with password ``demo``
-
-**ALWAYS** change these when running a CCF production deployment!
-
-- [admin API key](#access-to-the-admin-api)
-- [user access](#access)
-
 ## Setup your own
 
 ### Create or select a CMDI profile
@@ -321,6 +311,14 @@ where
 - ``read`` indicates who have read access: authenticated ``users``, ``owner`` or ``any`` (default)
 - ``write`` indicates who have write access: authenticated ``users``, ``owner`` or ``any`` (default)
  
+
+##### Default credentials
+
+In the ``htp.test`` the following test users are available:
+
+- user ``test`` with password ``test``
+- user ``demo`` with password ``demo``
+
 #### Hooks
 
 For all CRUD (Create, Read, Update, Delete) _pre_ and _post_ python hooks are supported:
@@ -360,6 +358,13 @@ def count(crud:str, app: str, prof: str, nr:str, rec, user:str):
 ```
 
 ### Configure the services
+
+#### Default credentials
+
+- admin API key: ``foobar``
+
+**ALWAYS** change these when running a CCF production deployment!
+
 
 Global settings can be edited in the [./conf/settings.toml](./conf/settings.toml) TOML file.
 
