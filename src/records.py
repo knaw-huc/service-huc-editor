@@ -79,12 +79,12 @@ def rec_update(app: str, prof: str, nr: str, rec: str) -> str:
         xpproc.set_context(xdm_item=old)
         oprof = xpproc.evaluate_single("string(/*:CMD/*:Header/*:MdProfile)").get_string_value()
         owhen = xpproc.evaluate_single("string((/*:CMD/*:Header/*:MdCreationDate/@clariah:epoch,/*:CMD/*:Header/*:MdCreationDate,'unknown')[1])").get_string_value()
-        owho = xpproc.evaluate_single("string(/*:CMD/*:Header/*:MdCreator)").get_string_value()
+        owho = xpproc.evaluate_single(f"string((/*:CMD/*:Header/*:MdCreator,'{def_user()}')[1])").get_string_value()
 
         xpproc.set_context(xdm_item=new)
         nprof = xpproc.evaluate_single("string(/*:CMD/*:Header/*:MdProfile)").get_string_value()
         nwhen = xpproc.evaluate_single("string((/*:CMD/*:Header/*:MdCreationDate/@clariah:epoch,/*:CMD/*:Header/*:MdCreationDate,'unknown')[1])").get_string_value()
-        nwho = xpproc.evaluate_single("string(/*:CMD/*:Header/*:MdCreator)").get_string_value()
+        nwho = xpproc.evaluate_single(f"string((/*:CMD/*:Header/*:MdCreator,'{def_user()}')[1])").get_string_value()
 
         logging.info(f"Updating app[{app}] record[{nr}]: profile check: old[{oprof}] new[{nprof}]!")
         if oprof!=nprof:
@@ -119,7 +119,7 @@ def rec_update(app: str, prof: str, nr: str, rec: str) -> str:
         r = proc.parse_xml(xml_text=rec)
         xpproc.set_context(xdm_item=r)
         rwhen = xpproc.evaluate_single("string((/*:CMD/*:Header/*:MdCreationDate/@clariah:epoch,/*:CMD/*:Header/*:MdCreationDate,'unknown')[1])").get_string_value()
-        ruser = xpproc.evaluate_single("string((/*:CMD/*:Header/*:MdCreator,'server')[1])").get_string_value()
+        ruser = xpproc.evaluate_single(f"string((/*:CMD/*:Header/*:MdCreator,'{def_user()}')[1])").get_string_value()
         logging.info(f"new version[{record_file}] when[{rwhen}] user[{ruser}]")
 
         return "OK", rwhen

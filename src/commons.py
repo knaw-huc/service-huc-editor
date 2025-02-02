@@ -14,6 +14,8 @@ import requests as req
 import toml
 import xml.etree.ElementTree as ET
 
+from src.commons import settings
+
 os.environ["BASE_DIR"] = os.getenv("BASE_DIR", os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 settings = Dynaconf(
@@ -174,7 +176,7 @@ def allowed(user,app,action,default,prof=None,nr=None):
                     xpproc.declare_namespace('clariah','http://www.clariah.eu/')
                     xpproc.declare_namespace('cmd','http://www.clarin.eu/cmd/')
                     xpproc.set_context(xdm_item=rec)
-                    owner = xpproc.evaluate_single("string((/*:CMD/*:Header/*:MdCreator,'server')[1])").get_string_value()
+                    owner = xpproc.evaluate_single(f"string((/*:CMD/*:Header/*:MdCreator,'{def_user()}')[1])").get_string_value()
                     if owner == user:
                         return True
         elif mode == "owner" and user!=None:
@@ -184,3 +186,13 @@ def allowed(user,app,action,default,prof=None,nr=None):
         elif mode == "any":
             return True
     return False
+    
+def def_user(app):
+    config_app_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
+    with open(config_app_file, 'r') as config:
+        if 'def_user' in config["app"]:
+            return config["app"]['def_user']
+        elif 'def_user' in settings["app"]:
+            return settings["app"]['def_user']
+        return "server"
+  

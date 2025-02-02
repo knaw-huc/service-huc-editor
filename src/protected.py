@@ -138,7 +138,7 @@ async def create_record(request: Request, app: str, prof: str | None = None, red
             if 'cmdi_version' in config["app"]:
                 executable.set_parameter("vers", proc.make_string_value(config['app']['cmdi_version']))
             if (user == None):
-                user = "server"
+                user = def_user()
             executable.set_parameter("user", proc.make_string_value(user))
             executable.set_parameter("self", proc.make_string_value(f"unl://{nr}"))
             executable.set_parameter("prof", proc.make_string_value(prof.strip()))
@@ -226,7 +226,7 @@ async def modify_record(request: Request, app: str, nr: str, prof: str | None = 
             logging.info(f"- record JSON[{json.dumps(rec)}]")
             executable.set_parameter("js-doc", proc.make_string_value(json.dumps(rec)))
             if (user == None):
-                user = "server"
+                user = def_user()
             executable.set_parameter("user", proc.make_string_value(user))
             if 'cmdi_version' in config["app"]:
                 executable.set_parameter("vers", proc.make_string_value(config['app']['cmdi_version']))
@@ -445,6 +445,8 @@ async def get_app(request: Request, app: str, user: Optional[str] = Depends(get_
             executable.set_parameter("app", proc.make_string_value(app))
             if (user != None):
                 executable.set_parameter("user", proc.make_string_value(user))
+            else:
+                executable.set_parameter("user", proc.make_string_value(def_user()))
             null = proc.parse_xml(xml_text="<null/>")
             result = executable.transform_to_string(xdm_node=null)
             return HTMLResponse(content=result)

@@ -4,6 +4,8 @@ service_name = "huc-editor-service"
 fastapi_title = "HuC Editor API Service"
 fastapi_description = ""
 
+def_user="server"
+
 url_base = "@format {env[BASE_URL]}"
 url_clarin_component_registry = "https://catalog.clarin.eu/ds/ComponentRegistry/rest/registry/1.x/profiles/%s/xml"
 url_data_apps = "@format ///{env[BASE_DIR]}/data/apps"
