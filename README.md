@@ -1,33 +1,37 @@
 # CLARIAH CMDI Forms: services
 *CCF backend services*
 
-## Run the demo: Hello World Form
+#Run the demo:
 
-1. Start the docker container:
+##Hello World Form
+
+###1. Start the docker container:
 
 ```sh
 docker run -p 1210:1210 --name=ccf --rm -it ghcr.io/knaw-huc/service-huc-editor:2.0-RC4
 ```
 
-2. Initialize the HelloWorld app:
+###2. Initialize the HelloWorld app:
 
 ```sh
 curl -v -X PUT -H 'Authorization: Bearer foobar' http://localhost:1210/app/HelloWorld
 ```
 
-3. Visit the HelloWorld app:
+###3. Visit the HelloWorld app:
 
 [http://localhost:1210/app/HelloWorld](http://localhost:1210/app/HelloWorld)
 
-4. Visit the API documentation:
+###4. Visit the API documentation:
 
 [http://localhost:1210/docs#/](http://localhost:1210/docs#/)
 
-5. Take a look at the logs:
+###5. Take a look at the logs:
 
 Next to the docker container log there is a more extensive log inside the container at `/home/huc/huc-editor-service/logs/huc-editor-service.log`
 
-## Setup your own: create or select a CMDI profile
+# Setup your own:
+
+##Create or select a CMDI profile
 
 Create or select a [CMDI](http://www.clarin.eu/cmdi/) profile in/from the [Component Registry](https://catalog.clarin.eu/ds/ComponentRegistry/)
 
@@ -298,7 +302,7 @@ To configure access control in the config add an ``app.access`` section, e.g.:
 
 ```toml
 [app.access]
-users="./htp"
+users="./htp.test" 
 read="users"
 write="users" 
 ```
@@ -311,10 +315,12 @@ where
 
 #### Default credentials
 
-In the ``htp.test`` the following test users are available:
+In the ``htp.test`` htpassword file the following test users are available:
 
 - user ``test`` with password ``test``
 - user ``demo`` with password ``demo``
+
+**ALWAYS** change these when running a CCF production deployment!
 
 ### Hooks
 
@@ -362,7 +368,6 @@ def count(crud:str, app: str, prof: str, nr:str, rec, user:str):
 
 **ALWAYS** change these when running a CCF production deployment!
 
-
 Global settings can be edited in the [./conf/settings.toml](./conf/settings.toml) TOML file.
 
 ### Access to the admin API
@@ -373,5 +378,3 @@ The token for the admin API is set in the [./conf/.secrets.toml](./conf/.secrets
 [default]
 SERVICE_HUC_EDITOR_API_KEY="foobar"
 ```
-
-**Note:** you MUST change this token in production!
