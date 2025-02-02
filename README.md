@@ -1,31 +1,30 @@
-# CLARIAH CMDI Forms: services
-*CCF backend services*
+# CLARIAH CMDI Forms: backend services
 
-#Run the demo:
+# Run the demo:
 
-##Hello World Form
+## Hello World Form
 
-###1. Start the docker container:
+### 1. Start the docker container:
 
 ```sh
 docker run -p 1210:1210 --name=ccf --rm -it ghcr.io/knaw-huc/service-huc-editor:2.0-RC4
 ```
 
-###2. Initialize the HelloWorld app:
+### 2. Initialize the HelloWorld app:
 
 ```sh
 curl -v -X PUT -H 'Authorization: Bearer foobar' http://localhost:1210/app/HelloWorld
 ```
 
-###3. Visit the HelloWorld app:
+### 3. Visit the HelloWorld app:
 
 [http://localhost:1210/app/HelloWorld](http://localhost:1210/app/HelloWorld)
 
-###4. Visit the API documentation:
+### 4. Visit the API documentation:
 
 [http://localhost:1210/docs#/](http://localhost:1210/docs#/)
 
-###5. Take a look at the logs:
+### 5. Take a look at the logs:
 
 Next to the docker container log there is a more extensive log inside the container at `/home/huc/huc-editor-service/logs/huc-editor-service.log`
 
