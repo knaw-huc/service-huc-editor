@@ -31,7 +31,7 @@ Next to the docker container log there is a more extensive log inside the contai
 
 Create or select a [CMDI](http://www.clarin.eu/cmdi/) profile in/from the [Component Registry](https://catalog.clarin.eu/ds/ComponentRegistry/)
 
-**Note: CCF limitations!**
+**Note: CCF has some limitations!**
 * don't use attributes, as they are tied to XML and don't have a decent counterpart in JSON, RDF, ...
 
 Remember the ID of your profile, which can be seen in its XML representation, e.g. `clarin.eu:cr1:p_1721373444008`:
