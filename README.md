@@ -46,7 +46,7 @@ Remember the ID of your profile, which can be seen in its XML representation, e.
 ```
 
 **Note: CCF has some limitations!**
-* don't use attributes, as they are tied to XML and don't have a decent counterpart in JSON, RDF, ...
+- don't use attributes, as they are tied too close to XML and don't have a decent counterpart in JSON, RDF, ...
 
 ## Start the service
 
