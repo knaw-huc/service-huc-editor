@@ -22,7 +22,7 @@ from weasyprint import HTML
 from typing import Optional
 from enum import Enum
 
-from src.commons import settings, convert_toml_to_xml, call_record_hook, allowed
+from src.commons import settings, convert_toml_to_xml, call_record_hook, allowed, def_user
 from src.records import rec_html, rec_editor, rec_update
 from src.profiles import prof_json
 
@@ -138,7 +138,7 @@ async def create_record(request: Request, app: str, prof: str | None = None, red
             if 'cmdi_version' in config["app"]:
                 executable.set_parameter("vers", proc.make_string_value(config['app']['cmdi_version']))
             if (user == None):
-                user = def_user()
+                user = def_user(app)
             executable.set_parameter("user", proc.make_string_value(user))
             executable.set_parameter("self", proc.make_string_value(f"unl://{nr}"))
             executable.set_parameter("prof", proc.make_string_value(prof.strip()))
@@ -226,7 +226,7 @@ async def modify_record(request: Request, app: str, nr: str, prof: str | None = 
             logging.info(f"- record JSON[{json.dumps(rec)}]")
             executable.set_parameter("js-doc", proc.make_string_value(json.dumps(rec)))
             if (user == None):
-                user = def_user()
+                user = def_user(app)
             executable.set_parameter("user", proc.make_string_value(user))
             if 'cmdi_version' in config["app"]:
                 executable.set_parameter("vers", proc.make_string_value(config['app']['cmdi_version']))

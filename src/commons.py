@@ -176,7 +176,7 @@ def allowed(user,app,action,default,prof=None,nr=None):
                     xpproc.declare_namespace('clariah','http://www.clariah.eu/')
                     xpproc.declare_namespace('cmd','http://www.clarin.eu/cmd/')
                     xpproc.set_context(xdm_item=rec)
-                    owner = xpproc.evaluate_single(f"string((/*:CMD/*:Header/*:MdCreator,'{def_user()}')[1])").get_string_value()
+                    owner = xpproc.evaluate_single(f"string((/*:CMD/*:Header/*:MdCreator,'{def_user(app)}')[1])").get_string_value()
                     if owner == user:
                         return True
         elif mode == "owner" and user!=None:
