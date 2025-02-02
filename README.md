@@ -273,7 +273,7 @@ The per profile  record list contains by default the creation date of the record
 ```toml
 [app.prof.HelloWorld.list.who]
 xpath="string(/cmd:CMD/cmd:Components/cmd:ShowcaseForm/cmd:Hello)" # for CMDI 1.1
-# xpath="string(/cmd:CMD/cmd:Components/cmdp:ShowcaseForm/cmdp:Hello)" # for CMDI 1.1
+# xpath="string(/cmd:CMD/cmd:Components/cmdp:ShowcaseForm/cmdp:Hello)" # for CMDI 1.2
 label="Hello"
 sort="true"
 filter="true"
