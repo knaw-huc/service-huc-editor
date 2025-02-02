@@ -189,7 +189,8 @@ def allowed(user,app,action,default,prof=None,nr=None):
     
 def def_user(app):
     config_app_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
-    with open(config_app_file, 'r') as config:
+    with open(config_app_file, 'r') as f:
+        config = toml.load(f)
         if 'def_user' in config["app"]:
             return config["app"]['def_user']
         elif 'def_user' in settings["app"]:
