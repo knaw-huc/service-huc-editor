@@ -1,7 +1,7 @@
 # CLARIAH CMDI Forms: services
 *CCF backend services*
 
-## demo: run the Hello World Form
+## Run the demo: Hello World Form
 
 1. Start the docker container:
 
