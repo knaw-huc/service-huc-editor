@@ -77,7 +77,7 @@ To add cues to the profile you can download a template tweak file for your profi
 
 [http://localhost:1210/app/helloWorld/profile/clarin.eu:cr1:p_1721373444008/tweak/template](http://localhost:1210/app/helloWorld/profile/clarin.eu:cr1:p_1721373444008/tweak/template)
 
-This template replicates the full structure of the profile, but this is not needed: only the path to the components or the elements that are tweaked are needed.
+For convenience this template replicates the full structure of the profile, but this is actually not needed: you can limit this to only the paths to the components or the elements that are tweaked. For example, only add label tweaks to the ``Hello`` element: 
 
 ```xml
 <ComponentSpec xmlns:clariah="http://www.clariah.eu/" xmlns:cue="http://www.clarin.eu/cmd/cues/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" isProfile="true" CMDVersion="1.2" CMDOriginalVersion="1.2" xsi:noNamespaceSchemaLocation="https://infra.clarin.eu/CMDI/1.x/xsd/cmd-component.xsd">
