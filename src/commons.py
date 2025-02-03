@@ -14,8 +14,6 @@ import requests as req
 import toml
 import xml.etree.ElementTree as ET
 
-from src.commons import settings
-
 os.environ["BASE_DIR"] = os.getenv("BASE_DIR", os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 settings = Dynaconf(

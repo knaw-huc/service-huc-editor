@@ -3,7 +3,7 @@ import os
 import datetime
 from datetime import timezone 
 from saxonche import PySaxonProcessor
-from src.commons import settings, convert_toml_to_xml
+from src.commons import settings, convert_toml_to_xml, def_user
 from src.profiles import prof_xml
 
 def rec_html(app,prof,nr):
