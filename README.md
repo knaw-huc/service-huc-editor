@@ -5,7 +5,7 @@
 ## 1. Start the docker container:
 
 ```sh
-docker run -p 1210:1210 --name=ccf --rm -it ghcr.io/knaw-huc/service-huc-editor:2.0-RC4
+docker run -p 1210:1210 --name=ccf --rm -it ghcr.io/knaw-huc/service-huc-editor:2.0-RC5
 ```
 
 ## 2. Initialize the HelloWorld app:
@@ -53,7 +53,7 @@ Remember the ID of your profile, which can be seen in its XML representation, e.
 
 With release image:
 ```sh
-docker run -v ./conf:/home/huc/huc-editor-service/conf -v ./data:/home/huc/huc-editor-service/data -p 1210:1210 --name=ccf --rm -it ghcr.io/knaw-huc/service-huc-editor:2.0-RC4
+docker run -v ./conf:/home/huc/huc-editor-service/conf -v ./data:/home/huc/huc-editor-service/data -p 1210:1210 --name=ccf --rm -it ghcr.io/knaw-huc/service-huc-editor:2.0-RC5
 ```
 
 With local image:
