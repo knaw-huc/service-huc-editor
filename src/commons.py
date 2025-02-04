@@ -21,6 +21,11 @@ settings = Dynaconf(
     root_path=os.getenv("BASE_DIR"), environments=True
 )
 
+api_keys = [
+    settings.SERVICE_HUC_EDITOR_API_KEY
+]  # Todo: This is encrypted in the .secrets.toml
+
+
 logging.basicConfig(filename=settings.log_file, level=settings.log_level,
                     format=settings.log_format)
 data = {}
@@ -194,4 +199,3 @@ def def_user(app):
         elif 'def_user' in settings["app"]:
             return settings["app"]['def_user']
         return "server"
-  

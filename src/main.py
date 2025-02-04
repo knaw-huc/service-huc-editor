@@ -1,15 +1,10 @@
-import logging
 import os
-from contextlib import asynccontextmanager
 
-import uvicorn
-from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
 from typing import Annotated
-import emoji
 import importlib.metadata
-from src.commons import settings, data
+from src.commons import api_keys
 import importlib.metadata
 import logging
 from contextlib import asynccontextmanager
@@ -18,18 +13,13 @@ import emoji
 import uvicorn
 from fastapi import FastAPI, Request, HTTPException, Depends, status
 
-from src.commons import settings, data
+from src.commons import settings
 
 __version__ = importlib.metadata.metadata(settings.SERVICE_NAME)["version"]
 
 from starlette.middleware.cors import CORSMiddleware
 
 from src import public, protected, admin
-
-api_keys = [
-    settings.SERVICE_HUC_EDITOR_API_KEY
-]  # Todo: This is encrypted in the .secrets.toml
-
 
 security = HTTPBearer()
 

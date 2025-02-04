@@ -22,7 +22,7 @@ from weasyprint import HTML
 from typing import Optional
 from enum import Enum
 
-from src.commons import settings, convert_toml_to_xml, call_record_hook, allowed, def_user
+from src.commons import settings, convert_toml_to_xml, call_record_hook, allowed, def_user, api_keys
 from src.records import rec_html, rec_editor, rec_update
 from src.profiles import prof_json
 
@@ -30,6 +30,9 @@ router = APIRouter()
 
 from fastapi import Depends
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+
+bearer_security = HTTPBearer(auto_error=False)
 
 security = HTTPBasic(auto_error=False)
 
@@ -68,8 +71,25 @@ def get_current_user(app: str, credentials: Optional[HTTPBasicCredentials] = Dep
 
     return credentials.username
 
-def get_user_with_app(app: str, credentials: HTTPBasicCredentials = Depends(security)):
-    return get_current_user(app, credentials)
+def get_user_with_app(app: str, basic_credentials: Optional[HTTPBasicCredentials] = Depends(security), bearer_credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_security)):
+    if basic_credentials:
+        return get_current_user(app, basic_credentials)
+    elif bearer_credentials:
+        # Handle bearer token authentication
+        token = bearer_credentials.credentials
+        # Implement your token validation logic
+        return decode_token(token, app)
+
+    else:
+        return None
+
+def decode_token(token: str, app: str):
+    if token not in api_keys:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Forbidden"
+        )
+    return def_user(app)
 
 @router.post("/app/{app}/record/", status_code=status.HTTP_201_CREATED)
 @router.post("/app/{app}/profile/{prof}/record/", status_code=status.HTTP_201_CREATED)
