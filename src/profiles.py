@@ -50,6 +50,7 @@ def prof_xml(app: str, id: str):
                     pnode = proc.parse_xml(xml_text=prof)
                     prof = executable.transform_to_string(xdm_node=pnode)
             executable = xsltproc.compile_stylesheet(stylesheet_file=f"{settings.xslt_dir}/lastTweak.xsl")
+            logging.info(f"profile[{id}] applied lastTweak")
             pnode = proc.parse_xml(xml_text=prof)
             prof = executable.transform_to_string(xdm_node=pnode)
         return prof
