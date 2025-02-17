@@ -466,7 +466,7 @@ async def get_app(request: Request, app: str, user: Optional[str] = Depends(get_
             if (user != None):
                 executable.set_parameter("user", proc.make_string_value(user))
             else:
-                executable.set_parameter("user", proc.make_string_value(def_user()))
+                executable.set_parameter("user", proc.make_string_value(def_user(app)))
             null = proc.parse_xml(xml_text="<null/>")
             result = executable.transform_to_string(xdm_node=null)
             return HTMLResponse(content=result)
