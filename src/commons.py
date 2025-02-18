@@ -196,6 +196,6 @@ def def_user(app):
         config = toml.load(f)
         if 'def_user' in config["app"]:
             return config["app"]['def_user']
-        elif 'def_user' in settings["app"]:
-            return settings["app"]['def_user']
+        elif 'def_user' in settings:
+            return settings.def_user
         return "server"

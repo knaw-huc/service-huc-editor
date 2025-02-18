@@ -77,11 +77,13 @@ def get_proxy(inst:str,vocab:str | None=None,q: str | None = "*"):
 
         js = json.loads(r.text)
 
-        lbls = []
+        entries = []
         for res in js['results']:
-            lbls.append(res['prefLabel'])
+            data = {'label': res['prefLabel'],'uri': res['uri']}
+            entry = {'value': data['label'],'data': data}
+            entries.append(entry)
 
-        res = {'query':"unit", 'suggestions':lbls}
+        res = {'query':"unit", 'suggestions':entries}
          
         return JSONResponse(jsonable_encoder(res))
 

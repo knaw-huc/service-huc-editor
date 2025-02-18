@@ -184,6 +184,9 @@
                         <xsl:when test="@key = 'lang'">
                             <xsl:attribute name="xml:lang" select="."/>
                         </xsl:when>
+                        <xsl:when test="@key = 'uri'">
+                            <xsl:attribute namespace="{$cmd-ns}" name="cmd:valueConceptLink" select="."/>
+                        </xsl:when>
                         <xsl:otherwise>
                             <xsl:comment>
                                 <xsl:attribute name="{@key}" select="."/>
