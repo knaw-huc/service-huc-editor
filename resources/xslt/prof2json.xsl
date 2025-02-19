@@ -146,7 +146,7 @@
     <xsl:template match="AutoValue">
         <xsl:choose>
             <xsl:when test="string(.) = 'now'">
-                <js:string key="autoValue" xsl:expand-text="yes">{current-date()}</js:string>
+                <js:string key="autoValue" xsl:expand-text="yes">{format-date(current-date(),'[Y]-[M01]-[D01]')}</js:string>
             </xsl:when>
             <xsl:otherwise>
                 <js:string key="autoValue" xsl:expand-text="yes">{string(.)}</js:string>
