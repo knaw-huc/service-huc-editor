@@ -79,6 +79,14 @@
         </xsl:choose>
     </xsl:template>
     
+    <xsl:template match="@*:valueConceptLink">
+        <js:string key="uri" xsl:expand-text="yes">{string(.)}</js:string>
+    </xsl:template>
+    
+    <xsl:template match="@xml:lang">
+        <js:string key="xml:lang" xsl:expand-text="yes">{string(.)}</js:string>
+    </xsl:template>
+    
     <xsl:template match="@*">
         <js:string key="{local-name()}" xsl:expand-text="yes">{string(.)}</js:string>
     </xsl:template>
