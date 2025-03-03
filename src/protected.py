@@ -472,3 +472,47 @@ async def get_app(request: Request, app: str, user: Optional[str] = Depends(get_
             return HTMLResponse(content=result)
             
     raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED)
+
+@router.get('/app/{app}/entity/')
+@router.get('/app/{app}/profile/{prof}/entity/')
+@router.get('/app/{app}/profile/{prof}/entity/{ent}')
+async def get_refs(request: Request, app: str, prof: str | None=None, ent: str | None=None, user: Optional[str] = Depends(get_user_with_app)):
+    if (not allowed(user,app,'read','any')):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
+    config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
+    with open(config_file, 'r') as f:
+        if (prof == None):
+                config = toml.load(f)
+                prof = config['app']['def_prof'] 
+        if (ent == None):
+            for key in config["app"]["prof"].keys():
+                if config["app"]["prof"][key]["prof"] == prof:
+                    ent=key
+        logging.info(f"app[{app}] prof[{prof}] enity[{ent}] user[{user}] accept[{request.headers.get("accept", "")}]")
+        with PySaxonProcessor(license=False) as proc:
+            xsltproc = proc.new_xslt30_processor()
+            xsltproc.set_cwd(os.getcwd())
+            executable = xsltproc.compile_stylesheet(stylesheet_file=f"{settings.xslt_dir}/listents.xsl")
+            executable.set_parameter("cwd", proc.make_string_value(os.getcwd()))
+            executable.set_parameter("base", proc.make_string_value(settings.url_base))
+            convert_toml_to_xml(f"{settings.URL_DATA_APPS}/{app}/config.toml",f"{settings.URL_DATA_APPS}/{app}/config.xml")
+            config = proc.parse_xml(xml_file_name=f"{settings.URL_DATA_APPS}/{app}/config.xml")
+            executable.set_parameter("config", config)
+            executable.set_parameter("app", proc.make_string_value(app))
+            executable.set_parameter("prof", proc.make_string_value(prof))
+            executable.set_parameter("ent", proc.make_string_value(ent))
+            if (user != None):
+                executable.set_parameter("user", proc.make_string_value(user))
+            else:
+                executable.set_parameter("user", proc.make_string_value(def_user(app)))
+            null = proc.parse_xml(xml_text="<null/>")
+            result = executable.transform_to_string(xdm_node=null)
+            logging.info(f"result[{result}]")
+            return JSONResponse(content=jsonable_encoder(json.loads(result)))
+   
+    
+@router.get('/app/{app}/entity/{id}')
+@router.get('/app/{app}/profile/{prof}/entity/{id}')
+@router.get('/app/{app}/profile/{prof}/entity/{ent}/{id}')
+async def get_ref(request: Request, app: str, id:str, prof: str | None=None, ent: str | None=None, user: Optional[str] = Depends(get_user_with_app)):
+    raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED)
