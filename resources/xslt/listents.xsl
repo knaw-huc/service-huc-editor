@@ -12,6 +12,7 @@
     <xsl:param name="app" select="'HelloWorld'"/>
     <xsl:param name="prof" select="'clarin.eu:cr1:p_1721373444008'"/>
     <xsl:param name="ent" select="'HelloWorld'"/>
+    <xsl:param name="query" select="'*'"/>
     <xsl:param name="config" select="doc(concat($cwd, '/data/apps/', $app, '/config.xml'))"/>
     <xsl:param name="user" select="'anonymous'"/>
 
@@ -78,32 +79,66 @@
                                 <xsl:variable name="inst" select="."/>
                                 <!--<xsl:copy-of select="$inst"/>-->
                                 <xsl:message expand-text="yes">?DBG: inst[{$inst}][{local-name($inst)}]</xsl:message>
-                                <js:map>
-                                    <xsl:variable name="lbl">
-                                        <xsl:evaluate xpath="$txp" context-item="$inst" namespace-context="$NS" as="item()*"/>
-                                    </xsl:variable>
-                                    <xsl:message expand-text="yes">?DBG: txp[{$txp}][{$lbl}]</xsl:message>
-                                    <js:string key="value">
-                                        <xsl:value-of select="$lbl"/>
-                                    </js:string>
-                                    <js:map key="data">
-                                        <js:string key="label">
+                                <xsl:variable name="lbl">
+                                    <xsl:evaluate xpath="$txp" context-item="$inst" namespace-context="$NS" as="item()*"/>
+                                </xsl:variable>
+                                <xsl:variable name="incl" as="xs:boolean">
+                                    <xsl:choose>
+                                        <xsl:when test="$query='*'">
+                                            <xsl:message>?DBG: any</xsl:message>
+                                            <xsl:sequence select="true()"/>
+                                        </xsl:when>
+                                        <xsl:when test="starts-with(normalize-space($query),'*') and ends-with(normalize-space($query),'*')">
+                                            <!-- anywhere -->
+                                            <xsl:message>?DBG: anywhere</xsl:message>
+                                            <xsl:variable name="q" select="replace(normalize-space($query),'^\*(.*)\*$','$1')"/>
+                                            <xsl:sequence select="contains(lower-case(normalize-space($lbl)),lower-case($q))"/>
+                                        </xsl:when>
+                                        <xsl:when test="ends-with(normalize-space($query),'*')">
+                                            <!-- start -->
+                                            <xsl:message>?DBG: start</xsl:message>
+                                            <xsl:variable name="q" select="replace(normalize-space($query),'^(.*)\*$','$1')"/>
+                                            <xsl:sequence select="starts-with(lower-case(normalize-space($lbl)),lower-case($q))"/>
+                                        </xsl:when>
+                                        <xsl:when test="starts-with(normalize-space($query),'*')">
+                                            <!-- end -->
+                                            <xsl:message>?DBG: end</xsl:message>
+                                            <xsl:variable name="q" select="replace(normalize-space($query),'^\*(.*)$','$1')"/>
+                                            <xsl:sequence select="ends-with(lower-case(normalize-space($lbl)),lower-case($q))"/>
+                                        </xsl:when>
+                                        <xsl:otherwise>
+                                            <!-- exact match -->
+                                            <xsl:message>?DBG: exact</xsl:message>
+                                            <xsl:sequence select="lower-case(normalize-space($lbl))=lower-case(normalize-space($query))"/>
+                                        </xsl:otherwise>
+                                    </xsl:choose>
+                                </xsl:variable>
+                                <xsl:message expand-text="yes">?DBG: label[{lower-case(normalize-space($lbl))}] query[{lower-case(normalize-space($query))}] include[{$incl}]</xsl:message>
+                                <xsl:if test="$incl">
+                                    <js:map>
+                                        <xsl:message expand-text="yes">?DBG: txp[{$txp}][{$lbl}]</xsl:message>
+                                        <js:string key="value">
                                             <xsl:value-of select="$lbl"/>
                                         </js:string>
-                                        <js:string key="uri">
-                                            <xsl:variable name="uri">
-                                            </xsl:variable>
-                                            <xsl:choose>
-                                                <xsl:when test="$uri">
-                                                    <xsl:value-of select="$uri"/>
-                                                </xsl:when>
-                                                <xsl:otherwise>
-                                                    <xsl:evaluate xpath="$ixp" context-item="$rec" namespace-context="$NS" as="item()*"/>
-                                                </xsl:otherwise>
-                                            </xsl:choose>
-                                        </js:string>
+                                        <js:map key="data">
+                                            <js:string key="label">
+                                                <xsl:value-of select="$lbl"/>
+                                            </js:string>
+                                            <js:string key="uri">
+                                                <xsl:variable name="uri">
+                                                </xsl:variable>
+                                                <xsl:choose>
+                                                    <xsl:when test="$uri">
+                                                        <xsl:value-of select="$uri"/>
+                                                    </xsl:when>
+                                                    <xsl:otherwise>
+                                                        <xsl:evaluate xpath="$ixp" context-item="$rec" namespace-context="$NS" as="item()*"/>
+                                                    </xsl:otherwise>
+                                                </xsl:choose>
+                                            </js:string>
+                                        </js:map>
                                     </js:map>
-                                </js:map>
+                                </xsl:if> 
                             </xsl:for-each>
                         </xsl:if>
                     </xsl:for-each> 

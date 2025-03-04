@@ -476,7 +476,7 @@ async def get_app(request: Request, app: str, user: Optional[str] = Depends(get_
 @router.get('/app/{app}/entity/')
 @router.get('/app/{app}/profile/{prof}/entity/')
 @router.get('/app/{app}/profile/{prof}/entity/{ent}')
-async def get_refs(request: Request, app: str, prof: str | None=None, ent: str | None=None, user: Optional[str] = Depends(get_user_with_app)):
+async def get_refs(request: Request, app: str, prof: str | None=None, ent: str | None=None, q: str | None = "*", user: Optional[str] = Depends(get_user_with_app)):
     if (not allowed(user,app,'read','any')):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
     config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
@@ -488,7 +488,11 @@ async def get_refs(request: Request, app: str, prof: str | None=None, ent: str |
             for key in config["app"]["prof"].keys():
                 if config["app"]["prof"][key]["prof"] == prof:
                     ent=key
-        logging.info(f"app[{app}] prof[{prof}] enity[{ent}] user[{user}] accept[{request.headers.get("accept", "")}]")
+        if q.startswith('^'):
+            q = q.removeprefix('^') + "*"
+        elif not('*' in q):
+            q = "*" + q + "*"
+        logging.info(f"app[{app}] prof[{prof}] enity[{ent}] query[{q}] user[{user}] accept[{request.headers.get("accept", "")}]")
         with PySaxonProcessor(license=False) as proc:
             xsltproc = proc.new_xslt30_processor()
             xsltproc.set_cwd(os.getcwd())
@@ -501,6 +505,7 @@ async def get_refs(request: Request, app: str, prof: str | None=None, ent: str |
             executable.set_parameter("app", proc.make_string_value(app))
             executable.set_parameter("prof", proc.make_string_value(prof))
             executable.set_parameter("ent", proc.make_string_value(ent))
+            executable.set_parameter("query", proc.make_string_value(q))
             if (user != None):
                 executable.set_parameter("user", proc.make_string_value(user))
             else:
