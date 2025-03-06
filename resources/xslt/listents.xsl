@@ -125,16 +125,10 @@
                                                 <xsl:value-of select="$lbl"/>
                                             </js:string>
                                             <js:string key="uri">
-                                                <xsl:variable name="uri">
-                                                </xsl:variable>
-                                                <xsl:choose>
-                                                    <xsl:when test="$uri">
-                                                        <xsl:value-of select="$uri"/>
-                                                    </xsl:when>
-                                                    <xsl:otherwise>
-                                                        <xsl:evaluate xpath="$ixp" context-item="$rec" namespace-context="$NS" as="item()*"/>
-                                                    </xsl:otherwise>
-                                                </xsl:choose>
+                                                <xsl:variable name="id">
+                                                    <xsl:evaluate xpath="$ixp" context-item="$rec" namespace-context="$NS" as="item()*"/>
+                                                </xsl:variable> 
+                                                <xsl:text expand-text="yes">ref:/app/{$app}/profile/{$prof}/entity/{$ent}/{replace($id,'unl://','')}</xsl:text>
                                             </js:string>
                                         </js:map>
                                     </js:map>
