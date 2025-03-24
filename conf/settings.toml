@@ -11,6 +11,7 @@ url_clarin_component_registry = "https://catalog.clarin.eu/ds/ComponentRegistry/
 url_data_apps = "@format ///{env[BASE_DIR]}/data/apps"
 url_cdn = "https://cmdicdn.sd.di.huc.knaw.nl"
 #url_cdn="http://localhost:1310"
+#url_cdn="http://alpha-cmdicdn.sd.di.huc.knaw.nl"
 
 disable_authentication = false
 
