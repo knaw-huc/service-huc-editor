@@ -7,11 +7,11 @@
 
     <xsl:output method="text" encoding="UTF-8"/>
 
-    <xsl:param name="cwd" select="'file:/Users/menzowi/Documents/GitHub/service-huc-editor'"/>
+    <xsl:param name="cwd" select="'file:/Users/menzowi/Documents/GitHub/niod-dre-yugo-editor'"/>
     <xsl:param name="base" select="'http://localhost:1210'"/>
-    <xsl:param name="app" select="'HelloWorld'"/>
-    <xsl:param name="prof" select="'clarin.eu:cr1:p_1721373444008'"/>
-    <xsl:param name="ent" select="'HelloWorld'"/>
+    <xsl:param name="app" select="'yugo'"/>
+    <xsl:param name="prof" select="'clarin.eu:cr1:p_1721373443934'"/>
+    <xsl:param name="ent" select="'collection'"/>
     <xsl:param name="query" select="'*'"/>
     <xsl:param name="config" select="doc(concat($cwd, '/data/apps/', $app, '/config.xml'))"/>
     <xsl:param name="user" select="'anonymous'"/>
@@ -65,25 +65,35 @@
                                 <xsl:message expand-text="yes">?DBG path[{.}]</xsl:message>
                             </xsl:for-each>-->
                             <!--<xsl:variable name="insts" select="//*[ends-with(concat('/',string-join(ancestor-or-self::*/local-name(),'/')),($entity,concat('/',//*:Components/*/local-name()))[1])]"/>-->
-                            <xsl:variable name="insts">
+                            <xsl:variable name="insts" as="item()*">
                                 <xsl:choose>
                                     <xsl:when test="$exp">
-                                        <xsl:evaluate xpath="$exp" context-item="$rec" namespace-context="$NS"/>
+                                        <xsl:message expand-text="yes">?DBG: use exp[{$exp}]</xsl:message>
+                                        <xsl:evaluate xpath="$exp" context-item="$rec" namespace-context="$NS" as="item()*"/>
                                     </xsl:when>
                                     <xsl:otherwise>
+                                        <xsl:message expand-text="yes">?DBG: use builtin</xsl:message>
                                         <xsl:evaluate xpath="'/*:CMD/*:Components/*'" context-item="$rec" namespace-context="$NS" as="item()*"/>
                                     </xsl:otherwise>
                                 </xsl:choose>
                             </xsl:variable>
+                            <xsl:message expand-text="yes">?DBG: insts[{count($insts)}]</xsl:message>
                             <xsl:for-each select="$insts">
                                 <xsl:variable name="inst" select="."/>
                                 <!--<xsl:copy-of select="$inst"/>-->
                                 <xsl:message expand-text="yes">?DBG: inst[{$inst}][{local-name($inst)}]</xsl:message>
-                                <xsl:variable name="lbl">
+                                <xsl:variable name="lbl" as="item()*">
                                     <xsl:evaluate xpath="$txp" context-item="$inst" namespace-context="$NS" as="item()*"/>
                                 </xsl:variable>
+                                <xsl:variable name="id" as="item()*">
+                                    <xsl:evaluate xpath="$ixp" context-item="$inst" namespace-context="$NS" as="item()*"/>
+                                </xsl:variable>                          
                                 <xsl:variable name="incl" as="xs:boolean">
                                     <xsl:choose>
+                                        <xsl:when test="normalize-space($id)=''">
+                                            <xsl:message>?DBG: no id</xsl:message>
+                                            <xsl:sequence select="false()"/>
+                                        </xsl:when>
                                         <xsl:when test="$query='*'">
                                             <xsl:message>?DBG: any</xsl:message>
                                             <xsl:sequence select="true()"/>
@@ -125,9 +135,6 @@
                                                 <xsl:value-of select="$lbl"/>
                                             </js:string>
                                             <js:string key="uri">
-                                                <xsl:variable name="id">
-                                                    <xsl:evaluate xpath="$ixp" context-item="$rec" namespace-context="$NS" as="item()*"/>
-                                                </xsl:variable> 
                                                 <xsl:text expand-text="yes">ref:/app/{$app}/profile/{$prof}/entity/{$ent}/{replace($id,'unl://','')}</xsl:text>
                                             </js:string>
                                         </js:map>
