@@ -49,9 +49,12 @@ app.mount("/static", StaticFiles(directory=settings.static_dir), name="static")
 for root, dirs, files in os.walk(settings.URL_DATA_APPS):
     if 'static' in dirs:
         static_path = os.path.join(root, 'static')
-        logging.info(f"Found 'static' directory at: {static_path}")
-        app.mount(f"/app/{os.path.basename(root)}/static", StaticFiles(directory=static_path), name="static")
-        logging.info(f"Mounted {os.path.basename(root)} static directory at: {static_path}")
+        static_path_app = os.path.basename(root)
+        if static_path_app == 'resources':
+            static_path_app = os.path.basename(os.path.abspath(os.path.join(root, os.pardir)))
+        logging.info(f"Found 'static' directory at: {static_path} for {static_path_app}")
+        app.mount(f"/app/{static_path_app}/static", StaticFiles(directory=static_path), name="static")
+        logging.info(f"Mounted {static_path_app} static directory at: {static_path}")
 
 app.add_middleware(
     CORSMiddleware,
