@@ -145,7 +145,7 @@ async def create_app(request: Request, app: str, descr: str | None = None, prof:
                 shutil.copyfile(f"{settings.templates_dir}/HelloWorldTweak.xml",f"{settings.URL_DATA_APPS}/{app}/profiles/{config['app']['def_prof']}/tweaks/tweak-1.xml")
                 shutil.copyfile(f"{settings.templates_dir}/htp.test",f"{settings.URL_DATA_APPS}/{app}/htp.test")
 
-        static_app_dir = f"{app_dir}/static"
+        static_app_dir = f"{app_dir}/resources/static"
         os.makedirs(static_app_dir)
         try:
             apps = request.app

@@ -1,6 +1,7 @@
 import logging
 import os
 import datetime
+import toml
 from datetime import timezone 
 from saxonche import PySaxonProcessor
 from src.commons import settings, convert_toml_to_xml, def_user
@@ -22,7 +23,26 @@ def rec_html(app,prof,nr):
                 prof = xpproc.evaluate_single("string(/*:CMD/*:Header/*:MdProfile)").get_string_value()
             xsltproc = proc.new_xslt30_processor()
             xsltproc.set_cwd(os.getcwd())
-            executable = xsltproc.compile_stylesheet(stylesheet_file=f"{settings.xslt_dir}/toHTML.xsl")
+            sheet=f"{settings.xslt_dir}/toHTML.xsl"
+            config_app_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
+            if not os.path.isfile(config_app_file):
+                logging.error(f"config file {config_app_file} doesn't exist")
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="App config file not found")
+            logging.info(f"config[{config_app_file}]")
+            with open(config_app_file, 'r') as f:
+                config = toml.load(f)
+                if 'prof' in config["app"]:
+                    for profile in config['app']['prof'].keys():
+                        logging.info(f"profile[{profile}]")
+                        if config["app"]["prof"][profile]["prof"]==prof:
+                            logging.info(f"profile[{profile}={prof}]")
+                            if "html" in config["app"]["prof"][profile].keys():
+                                overload = f"{settings.URL_DATA_APPS}/{app}/resources/xslt/{config['app']["prof"][profile]["html"]}"
+                                logging.info(f"HTML overload[{overload}]")
+                                if os.path.isfile(overload):
+                                    sheet = overload
+            logging.info(f"HTML[{sheet}]")
+            executable = xsltproc.compile_stylesheet(stylesheet_file=sheet)
             executable.set_parameter("cwd", proc.make_string_value(os.getcwd()))
             executable.set_parameter("base", proc.make_string_value(settings.url_base))
             executable.set_parameter("app", proc.make_string_value(app))
@@ -31,7 +51,7 @@ def rec_html(app,prof,nr):
             prof = prof_xml(app, prof)
             prof = proc.parse_xml(xml_text=prof)
             executable.set_parameter("tweak-doc",prof) 
-            convert_toml_to_xml(f"{settings.URL_DATA_APPS}/{app}/config.toml",f"{settings.URL_DATA_APPS}/{app}/config.xml")
+            convert_toml_to_xml(toml_file=config_app_file,xml_file=f"{settings.URL_DATA_APPS}/{app}/config.xml")
             config = proc.parse_xml(xml_file_name=f"{settings.URL_DATA_APPS}/{app}/config.xml")
             executable.set_parameter("config", config)
             return executable.transform_to_string(xdm_node=rec)

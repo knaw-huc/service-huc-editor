@@ -26,7 +26,7 @@
         concat('http://www.clarin.eu/cmd/1/profiles/',$prof)
         else
         ()"/>              
-    <xsl:variable name="NS" as="element(*:ns)">
+    <xsl:variable name="NS" as="element()">
         <xsl:element namespace="{$cmd-ns}" name="cmd:ns">
             <xsl:if test="exists($cmdp-ns)">
                 <xsl:namespace name="cmdp" select="$cmdp-ns"/>
