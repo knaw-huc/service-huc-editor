@@ -244,7 +244,7 @@
         </xsl:element>
     </xsl:template>
     
-    <!-- put payload in the profile namespace -->
+    <!-- put payload in the profile namespace & lookup vocab term URIs-->
     <xsl:template match="/cmd0:CMD/cmd0:Components//*" priority="2">
         <xsl:variable name="cur" select="."/>
         <xsl:variable name="tweak" select="if (exists($editor-tweak)) then ($editor-tweak) else (doc($editor-tweak-xml))"/>
@@ -253,11 +253,18 @@
         <xsl:choose>
             <xsl:when test="normalize-space($elem/clariah:autoCompleteURI)!=''">
                 <xsl:variable name="q" select="concat(resolve-uri(string($elem/clariah:autoCompleteURI),$editor-base),'?q=',encode-for-uri(string($cur)))"/>
-                <xsl:for-each select="json-to-xml(unparsed-text($q))//js:map[js:string[@key='label']=string($cur)]/js:string[@key='uri']">
+                <xsl:variable name="uris" select="json-to-xml(unparsed-text($q))//js:map[js:string[@key='label']=string($cur)]/js:string[@key='uri']"/>
+                <xsl:choose>
+                    <xsl:when test="count($uris) eq 0">
+                        <xsl:message expand-text="yes">WRN: record[{/*:CMD/*:Header/*:MdSelfLink}#{string-join(ancestor-or-self::*[. >> /cmd0:CMD/cmd0:Components]/local-name(),'/')}] term[{$cur}] has [{count($uris)}] matches! [{string-join($uris,', ')}]</xsl:message>
+                        <xsl:copy-of select="$cur"/>
+                    </xsl:when>
+                    <xsl:when test="count($uris) gt 1">
+                        <xsl:message expand-text="yes">WRN:  record[{/*:CMD/*:Header/*:MdSelfLink}#{string-join(ancestor-or-self::*[. >> /cmd0:CMD/cmd0:Components]/local-name(),'/')}]] term[{$cur}] has [{count($uris)}] matches! [{string-join($uris,', ')}]</xsl:message>
+                    </xsl:when>
+                </xsl:choose>
+                <xsl:for-each select="$uris">
                     <xsl:variable name="uri" select="."/>
-                    <xsl:if test="count($uri) gt 1">
-                        <xsl:message expand-text="yes">WRN: term[{$cur}] has [{count($uri)}] matches! [{string-join($uri,', ')}]</xsl:message>
-                    </xsl:if>
                     <xsl:for-each select="$cur">
                         <xsl:element namespace="{$cmd-profile-uri}" name="cmdp:{local-name()}">
                             <xsl:attribute namespace="{$cmd-uri}" name="cmd:valueConceptLink" select="$uri"/>
