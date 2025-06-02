@@ -5,7 +5,7 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="3.0">
     
-    <xsl:param name="tweakFile" select="'file:/Users/menzowi/Documents/GitHub/niod-dre-yugo-editor/data/apps/yugo/profiles/clarin.eu:cr1:p_1721373443955/tweaks/tweak-1.xml'"/>
+    <xsl:param name="tweakFile" select="'file:/Users/menzowi/Documents/GitHub/niod-dre-yugo-editor/data/apps/yugo/profiles/clarin.eu:cr1:p_1733830015132/tweaks/tweak-1.xml'"/>
     <xsl:variable name="tweak" select="document($tweakFile)"/>
     
     <xsl:variable name="DEBUG" select="false()" static="yes"/>
@@ -281,9 +281,9 @@
     
     <xsl:template match="text()" mode="cmd"/>
     
-    <xsl:template match="@*" mode="cmd">
+    <!--<xsl:template match="@*" mode="cmd">
         <xsl:copy/>
-    </xsl:template>
+    </xsl:template>-->
         
     <!-- skip cues -->
     
@@ -304,6 +304,9 @@
                     <xsl:message>WRN: the tweaked ValueScheme element is ignored as the @ValueScheme is overwritten!</xsl:message>
                 </xsl:if>
                 <xsl:apply-templates select="$myTweak" mode="copy"/>
+            </xsl:when>
+            <xsl:when test=".='string' and $tweak/ValueScheme">
+                <!-- skip @ValueScheme as there is a tweaked ValueScheme element -->
             </xsl:when>
             <xsl:otherwise>
                 <xsl:copy/>
