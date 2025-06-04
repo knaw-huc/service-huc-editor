@@ -159,14 +159,25 @@ def call_action_hook(action:str,app:str,prof:str,user:str):
     config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
     with open(config_file, 'r') as f:
         config = toml.load(f)
-        if "hooks" in config['app'] and "action" in config["app"]["hooks"] and action in config["app"]["hooks"]["action"] and "hook" in config["app"]["hooks"]["action"][action]:
+        logging.info('config: %s',config)
+        if "hooks" in config['app']:
+            if "action" in config["app"]["hooks"]:
+                if action in config["app"]["hooks"]["action"]:
+                    if "hook" in config["app"]["hooks"]["action"][action]:
             # import hook from data/apps/app/src/hooks.py
-            mod = importlib.import_module(f"apps.{app}.src.hooks")
+                        mod = importlib.import_module(f"apps.{app}.src.hooks")
             # call hook(app,rec)
-            func = getattr(mod,hook)
-            return func(app,prof,user)
+                        func = getattr(mod,config["app"]["hooks"]["action"][action]["hook"])
+                        logging.info(f' calling hook[{config["app"]["hooks"]["action"][action]["hook"]}]!')
+                        return func(app,prof,user)
+                    else:
+                        logging.info(f"no action hook[{action}]!")
+                else:
+                    logging.info(f" no action {action}!")
+            else:
+                logging.info(f" no action!")
         else:
-            logging.info(f"no action hook[{action}]!")
+            logging.info(f"no hooks!")
             return None
 
 def allowed(user,app,action,default,prof=None,nr=None):
