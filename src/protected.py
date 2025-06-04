@@ -22,7 +22,7 @@ from weasyprint import HTML
 from typing import Optional
 from enum import Enum
 
-from src.commons import settings, convert_toml_to_xml, call_record_hook, allowed, def_user, api_keys, call_action_hook
+from src.commons import settings, convert_toml_to_xml, call_record_hook, allowed, def_user, api_keys
 from src.records import rec_html, rec_editor, rec_update
 from src.profiles import prof_json
 
