@@ -55,12 +55,14 @@
                 <iframe src="{$base}/static/status.html" style="border:none;height:3em;width:100%;"/>
                 <div id="wrapper">
                     <div id="header">{$config/config/app/title}</div>
+ 
                     <div id="user"/>
                     <div id="homeBtn"/>
                     <div id="content">
                         <xsl:for-each select="$config/config/app/prof/*">
                             <xsl:variable name="p" select="."/>
                             <xsl:variable name="prof" select="prof"/>
+                            <xsl:variable name="hooks" select="hooks"/>
                             <xsl:variable name="recs" select="concat($cwd, '/data/apps/', $app, '/profiles/', $prof, '/records')"/>
                             <xsl:variable name="cmd-ns" select="
                                 if ($config//app/cmdi_version = '1.2')  then
@@ -85,6 +87,11 @@
                                 # cmdp ns [{$cmdp-ns}]
                                 <xsl:copy-of select="$NS"/>
                             </xsl:comment>
+                            <!-- HIER DE LINK NAAR CSV? -->
+                            <xsl:for-each select="$config/config/app/hooks/action/*">
+                                <xsl:variable name="action" select="."/>
+                                <div xsl:expand-text="yes">[ <a href="{$base}/app/{$app}/profile/{$prof}/action/{local-name($action)}" class="action {local-name($action)}" id="action_{local-name($action)}">{$action/label}</a> ]</div>
+                            </xsl:for-each>
                             <h2 xsl:expand-text="yes">list of {(./label_en,local-name())[1]} records</h2>
                             <table id="records-{local-name()}" class="table table-bordered resultTable">
                                 <thead>
