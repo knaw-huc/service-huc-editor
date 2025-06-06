@@ -143,7 +143,7 @@
                                                         <xsl:evaluate xpath="$xpath" context-item="$rec" namespace-context="$NS"/>
                                                     </td>
                                                 </xsl:for-each>
-                                                <td>{/cmd:CMD/cmd:Header/cmd:MdCreationDate}</td>
+                                                <td>{/*:CMD/*:Header/*:MdCreationDate}</td>
                                                 <td>
                                                     <xsl:choose>
                                                         <xsl:when test="($config/config/app/access/write,'any')[1]='owner' and $user!=$owner">
