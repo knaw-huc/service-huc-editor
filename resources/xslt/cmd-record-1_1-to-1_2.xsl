@@ -256,11 +256,11 @@
                 <xsl:variable name="uris" select="json-to-xml(unparsed-text($q))//js:map[js:string[@key='label']=string($cur)]/js:string[@key='uri']"/>
                 <xsl:choose>
                     <xsl:when test="count($uris) eq 0">
-                        <xsl:message expand-text="yes">WRN: record[{/*:CMD/*:Header/*:MdSelfLink}#{string-join(ancestor-or-self::*[. >> /cmd0:CMD/cmd0:Components]/local-name(),'/')}] term[{$cur}] has [{count($uris)}] matches! [{string-join($uris,', ')}]</xsl:message>
+                        <xsl:message expand-text="yes">WRN: record[{/*:CMD/*:Header/*:MdSelfLink}#{string-join(ancestor-or-self::*[. >> /cmd0:CMD/cmd0:Components]/local-name(),'/')}] term[{$cur}] has [{count($uris)}] matches! [{$q}]->[{string-join($uris,', ')}]</xsl:message>
                         <xsl:copy-of select="$cur"/>
                     </xsl:when>
                     <xsl:when test="count($uris) gt 1">
-                        <xsl:message expand-text="yes">WRN:  record[{/*:CMD/*:Header/*:MdSelfLink}#{string-join(ancestor-or-self::*[. >> /cmd0:CMD/cmd0:Components]/local-name(),'/')}]] term[{$cur}] has [{count($uris)}] matches! [{string-join($uris,', ')}]</xsl:message>
+                        <xsl:message expand-text="yes">WRN:  record[{/*:CMD/*:Header/*:MdSelfLink}#{string-join(ancestor-or-self::*[. >> /cmd0:CMD/cmd0:Components]/local-name(),'/')}]] term[{$cur}] has [{count($uris)}] matches! [{$q}]->[{string-join($uris,', ')}]</xsl:message>
                     </xsl:when>
                 </xsl:choose>
                 <xsl:for-each select="$uris">
