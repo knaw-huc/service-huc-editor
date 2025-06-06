@@ -14,6 +14,8 @@ ENV PYTHONPATH=/home/huc/huc-editor-service:/home/huc/huc-editor-service/data
 ENV BASE_DIR=/home/huc/huc-editor-service
 ENV BASE_URL=${BASE_URL:-"http://localhost:1210"}
 
+RUN curl -sSL https://install.python-poetry.org | python -
+
 RUN mkdir dev
 ADD pyproject.toml dev/pyproject.toml
 ADD README.md dev/README.md
@@ -23,8 +25,6 @@ ADD logs dev/logs
 ADD resources dev/resources
 ADD src dev/src
 ADD tests dev/tests
-
-RUN curl -sSL https://install.python-poetry.org | python -
 
 RUN cd dev && \
     ${HOME}/.local/share/pypoetry/venv/bin/poetry install && \
