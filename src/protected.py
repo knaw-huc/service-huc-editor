@@ -22,7 +22,7 @@ from weasyprint import HTML
 from typing import Optional
 from enum import Enum
 
-from src.commons import settings, convert_toml_to_xml, call_record_hook, allowed, def_user, api_keys
+from src.commons import settings, convert_toml_to_xml, call_record_hook, call_action_hook, allowed, def_user, api_keys
 from src.records import rec_html, rec_editor, rec_update
 from src.profiles import prof_json
 
@@ -521,3 +521,18 @@ async def get_refs(request: Request, app: str, prof: str | None=None, ent: str |
 @router.get('/app/{app}/profile/{prof}/entity/{ent}/{id}')
 async def get_ref(request: Request, app: str, id:str, prof: str | None=None, ent: str | None=None, user: Optional[str] = Depends(get_user_with_app)):
     raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED)
+
+
+@router.get('/app/{app}/action/{action}')
+@router.get('/app/{app}/profile/{prof}/action/{action}')
+def get_record(request: Request, app: str, action: str, prof: str | None=None, user: Optional[str] = Depends(get_user_with_app)):
+    if (prof == None):
+        config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
+        with open(config_file, 'r') as f:
+            config = toml.load(f)
+            prof = config['app']['def_prof'] 
+    if (not allowed(user,app,'read','any')):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
+    
+    return call_action_hook(action,app,prof,user)
+
