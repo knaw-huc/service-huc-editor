@@ -1,0 +1,4 @@
+[base]
+title="OSM nominatim"
+url="http://sd-alpha-nominatim:8080"
+#url="http://host.docker.internal:1311"
