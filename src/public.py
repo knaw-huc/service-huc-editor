@@ -1,8 +1,10 @@
 import logging
 import os
 import json
+import urllib.parse
 import toml
 import requests
+import urllib
 
 from fastapi import APIRouter, HTTPException
 from fastapi.encoders import jsonable_encoder
@@ -29,9 +31,48 @@ def info():
     logging.debug("info")
     return {"name": "HuC Editor API Service", "version": data["service-version"]}
 
+@router.get('/proxy/nominatim/{inst}')
+def get_proxy_nominatim(inst:str,q: str | None = None):
+    logging.info(f"proxy nominatim[{inst}] vq[{q}]")
+    proxy_file = f"{settings.proxies_dir}/nominatim-{inst}.toml"
+    logging.info(f"proxy config[{proxy_file}]")
+    if not os.path.isfile(proxy_file):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    
+    entries = []
+
+    if q != None or q.strip() !='':
+    
+        with open(proxy_file, 'r') as f:
+            proxy = toml.load(f)
+
+            #url=f"{proxy['base']['url']}/search.php"
+            #params = {'q': q}
+            url=f"{proxy['base']['url']}/search.php?{urllib.parse.urlencode({'q': q})}"
+            logging.info(f"proxy[{url}]")
+
+            r = requests.get(url)
+            #r = requests.get(url, params=params)
+            #http://nominatim:8080/search.php?q=Jardin+Exotique%2C+Monaco
+            #r = requests.get('http://host.docker.internal:1311/search.php?q=Jardin+Exotique%2C+Monaco')
+            #http://host.docker.internal:1311/search.php?q=Jardin%20Exotique%2C%20Monaco
+            logging.info(f"proxy[{r.url}]=>[{r.text}]")
+
+            js = json.loads(r.text)
+
+            for res in js:
+                data = {'label': res['display_name'],'uri': f" https://www.openstreetmap.org/{res['osm_type']}/{res['osm_id']}"}
+                entry = {'value': data['label'],'data': data}
+                entries.append(entry)
+
+        res = {'query':"unit", 'suggestions':entries}
+         
+        return JSONResponse(jsonable_encoder(res))
+
+
 @router.get('/proxy/skosmos/{inst}/home')
 @router.get('/proxy/skosmos/{inst}/{vocab}/home')
-def get_proxy(inst:str,vocab:str | None=None):
+def get_proxy_skosmos_home(inst:str,vocab:str | None=None):
     logging.info(f"proxy skosmos[{inst}] vocab[{vocab}] home")
     proxy_file = f"{settings.proxies_dir}/skosmos-{inst}.toml"
     logging.info(f"proxy config[{proxy_file}]")
@@ -50,7 +91,7 @@ def get_proxy(inst:str,vocab:str | None=None):
 
 @router.get('/proxy/skosmos/{inst}')
 @router.get('/proxy/skosmos/{inst}/{vocab}')
-def get_proxy(inst:str,vocab:str | None=None,q: str | None = "*"):
+def get_proxy_skosmos(inst:str,vocab:str | None=None,q: str | None = "*"):
     logging.info(f"proxy skosmos[{inst}] vocab[{vocab}] q[{q}]")
     proxy_file = f"{settings.proxies_dir}/skosmos-{inst}.toml"
     logging.info(f"proxy config[{proxy_file}]")
