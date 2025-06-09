@@ -87,12 +87,24 @@
                                 # cmdp ns [{$cmdp-ns}]
                                 <xsl:copy-of select="$NS"/>
                             </xsl:comment>
-                            <!-- HIER DE LINK NAAR CSV? -->
-                            <xsl:for-each select="$config/config/app/hooks/action/*">
-                                <xsl:variable name="action" select="."/>
-                                <div xsl:expand-text="yes">[ <a href="{$base}/app/{$app}/profile/{$prof}/action/{local-name($action)}" class="action {local-name($action)}" id="action_{local-name($action)}">{$action/label}</a> ]</div>
-                            </xsl:for-each>
                             <h2 xsl:expand-text="yes">list of {(./label_en,local-name())[1]} records</h2>
+                            <div class="action_menu">
+                                <xsl:for-each select="$config/config/app/hooks/action/*">
+                                    <xsl:if test="position()=1">
+                                        <xsl:text>[ </xsl:text>
+                                    </xsl:if>
+                                    <xsl:variable name="action" select="."/>
+                                        <a  xsl:expand-text="yes" href="{$base}/app/{$app}/profile/{$prof}/action/{local-name($action)}" class="action {local-name($action)}" id="action_{local-name($action)}" target="action_{local-name($action)}">{$action/label}</a>
+                                    <xsl:choose>
+                                        <xsl:when test="last()">
+                                            <xsl:text> ]</xsl:text>
+                                        </xsl:when>
+                                        <xsl:otherwise>
+                                            <xsl:text> | </xsl:text>
+                                        </xsl:otherwise>
+                                    </xsl:choose>
+                                </xsl:for-each>
+                            </div>
                             <table id="records-{local-name()}" class="table table-bordered resultTable">
                                 <thead>
                                     <tr>
