@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+    xmlns:err="http://www.w3.org/2005/xqt-errors" 
     xmlns:clariah="http://www.clariah.eu/"
     exclude-result-prefixes="clariah"
     version="3.0">
@@ -45,7 +46,12 @@
             xpath[{$config/config/app/prof/*[prof=$prof]/title}]
         </xsl:comment>-->
         <xsl:variable name="xpath" select="$config/config/app/prof/*[prof=$prof]/title"/>
-        <xsl:evaluate xpath="$xpath" context-item="." namespace-context="$NS"/>
+        <xsl:try>
+            <xsl:evaluate xpath="$xpath" context-item="." namespace-context="$NS"/>
+            <xsl:catch>
+                <span class="err" expand-text="yes">ERR[{$err:code}]: {$err:description}</span>
+            </xsl:catch>
+        </xsl:try>
     </xsl:template>
     
     <xsl:template match="/">

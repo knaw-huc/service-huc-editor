@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:math="http://www.w3.org/2005/xpath-functions/math" xmlns:clariah="http://www.clariah.eu/" xmlns:cmd="http://www.clarin.eu/cmd/" exclude-result-prefixes="xs math" version="3.0">
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:err="http://www.w3.org/2005/xqt-errors" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:math="http://www.w3.org/2005/xpath-functions/math" xmlns:clariah="http://www.clariah.eu/" xmlns:cmd="http://www.clarin.eu/cmd/" exclude-result-prefixes="xs math" version="3.0">
 
     <xsl:output method="html"/>
 
@@ -159,7 +159,12 @@
                                                 <xsl:for-each select="$p/list/(* except ns)">
                                                     <td>
                                                         <xsl:variable name="xpath" select="xpath"/>
-                                                        <xsl:evaluate xpath="$xpath" context-item="$rec" namespace-context="$NS"/>
+                                                        <xsl:try>
+                                                            <xsl:evaluate xpath="$xpath" context-item="$rec" namespace-context="$NS"/>
+                                                            <xsl:catch>
+                                                                <span class="err" expand-text="yes">ERR[{$err:code}]: {$err:description}</span>
+                                                            </xsl:catch>
+                                                        </xsl:try>
                                                     </td>
                                                 </xsl:for-each>
                                                 <td>{/*:CMD/*:Header/*:MdCreationDate}</td>

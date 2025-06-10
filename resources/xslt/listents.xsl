@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+    xmlns:err="http://www.w3.org/2005/xqt-errors" 
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
     xmlns:math="http://www.w3.org/2005/xpath-functions/math" xmlns:clariah="http://www.clariah.eu/"
     xmlns:cmd="http://www.clarin.eu/cmd/" xmlns:js="http://www.w3.org/2005/xpath-functions"
@@ -69,11 +70,17 @@
                                 <xsl:choose>
                                     <xsl:when test="$exp">
                                         <xsl:message expand-text="yes">?DBG: use exp[{$exp}]</xsl:message>
-                                        <xsl:evaluate xpath="$exp" context-item="$rec" namespace-context="$NS" as="item()*"/>
+                                        <xsl:try>
+                                            <xsl:evaluate xpath="$exp" context-item="$rec" namespace-context="$NS" as="item()*"/>
+                                            <xsl:catch select="()"/>
+                                        </xsl:try>
                                     </xsl:when>
                                     <xsl:otherwise>
                                         <xsl:message expand-text="yes">?DBG: use builtin</xsl:message>
-                                        <xsl:evaluate xpath="'/*:CMD/*:Components/*'" context-item="$rec" namespace-context="$NS" as="item()*"/>
+                                        <xsl:try>
+                                            <xsl:evaluate xpath="'/*:CMD/*:Components/*'" context-item="$rec" namespace-context="$NS" as="item()*"/>
+                                            <xsl:catch select="()"/>
+                                        </xsl:try>
                                     </xsl:otherwise>
                                 </xsl:choose>
                             </xsl:variable>
@@ -83,10 +90,22 @@
                                 <!--<xsl:copy-of select="$inst"/>-->
                                 <xsl:message expand-text="yes">?DBG: inst[{$inst}][{local-name($inst)}]</xsl:message>
                                 <xsl:variable name="lbl" as="item()*">
-                                    <xsl:evaluate xpath="$txp" context-item="$inst" namespace-context="$NS" as="item()*"/>
+                                    <xsl:try>
+                                        <xsl:evaluate xpath="$txp" context-item="$inst" namespace-context="$NS" as="item()*"/>
+                                        <xsl:catch>
+                                            <xsl:message expand-text="yes">ERR: title xpath[{$txp}] failed! [{$err:code}]: {$err:description}</xsl:message>
+                                            <xsl:sequence select="concat('ERR[',$err:code,']: ',$err:description)"/>
+                                        </xsl:catch>
+                                    </xsl:try>
                                 </xsl:variable>
                                 <xsl:variable name="id" as="item()*">
-                                    <xsl:evaluate xpath="$ixp" context-item="$inst" namespace-context="$NS" as="item()*"/>
+                                    <xsl:try>
+                                        <xsl:evaluate xpath="$ixp" context-item="$inst" namespace-context="$NS" as="item()*"/>
+                                        <xsl:catch>
+                                            <xsl:message expand-text="yes">ERR: id xpath[{$ixp}] failed! [{$err:code}]: {$err:description}</xsl:message>
+                                            <xsl:sequence select="'err'"/>
+                                        </xsl:catch>
+                                    </xsl:try>
                                 </xsl:variable>                          
                                 <xsl:variable name="incl" as="xs:boolean">
                                     <xsl:choose>
