@@ -9,9 +9,7 @@ def_user="server"
 url_base = "@format {env[BASE_URL]}"
 url_clarin_component_registry = "https://catalog.clarin.eu/ds/ComponentRegistry/rest/registry/1.x/profiles/%s/xml"
 url_data_apps = "@format ///{env[BASE_DIR]}/data/apps"
-url_cdn = "https://cmdicdn.sd.di.huc.knaw.nl"
-#url_cdn="http://localhost:1310"
-#url_cdn="http://alpha-cmdicdn.sd.di.huc.knaw.nl"
+url_cdn = "@jinja {{env['CDN_URL'] or 'https://cmdicdn.sd.di.huc.knaw.nl'}}"
 
 disable_authentication = false
 
