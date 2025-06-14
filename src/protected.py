@@ -24,7 +24,7 @@ from enum import Enum
 
 from src.commons import settings, convert_toml_to_xml, call_record_hook, call_action_hook, allowed, def_user, api_keys
 from src.records import rec_html, rec_editor, rec_update
-from src.profiles import prof_json
+from src.profiles import prof_json, prof_xml
 
 router = APIRouter()
 
@@ -187,7 +187,25 @@ async def create_record(request: Request, app: str, prof: str | None = None, red
                 raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Initial record[{nr}] version was not saved!")
             elif (res.strip() != "OK"):
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=err)
-    
+
+    with PySaxonProcessor(license=False) as proc:
+        rec = proc.parse_xml(xml_uri=record_file)
+        tweak = prof_xml(app, prof)
+        tweak = proc.parse_xml(xml_text=tweak)
+        xsltproc = proc.new_xslt30_processor()
+        xsltproc.set_cwd(os.getcwd())
+        executable = xsltproc.compile_stylesheet(stylesheet_file=f"{settings.xslt_dir}/postTweak.xsl")
+        executable.set_parameter("cwd", proc.make_string_value(os.getcwd()))
+        executable.set_parameter("base", proc.make_string_value(settings.url_base))
+        executable.set_parameter("app", proc.make_string_value(app))
+        executable.set_parameter("prof", proc.make_string_value(prof))
+        executable.set_parameter("nr", proc.make_string_value(str(nr)))
+        executable.set_parameter("tweak-doc",tweak) 
+        null = proc.parse_xml(xml_text="<null/>")
+        rec = executable.transform_to_value(xdm_node=rec)
+        with open(record_file, 'w') as file:
+            file.write(str(rec))
+
     call_record_hook("create_post",app,prof,nr,user)
     headers = {}
     if redir.strip() != "no":
