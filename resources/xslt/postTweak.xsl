@@ -10,7 +10,7 @@
   <xsl:param name="tweak-doc" select="document($tweak-uri)"/>
   
   <xsl:param name="cwd" select="'file:/Users/menzowi/Documents/Projects/huc-cmdi-editor/service/'"/>
-  <xsl:param name="app" select="'adoptie'"/>
+  <xsl:param name="app" select="'yugo'"/>
   <xsl:param name="config" select="doc(concat($cwd, '/data/apps/', $app, '/config.xml'))"/>
   <xsl:param name="prof" select="$config/config/app/def_prof"/>
   
@@ -67,7 +67,7 @@
   
   <xsl:template match="node() | @*">
     <xsl:copy>
-      <xsl:apply-templates select="node() | @*"/>
+      <xsl:apply-templates select="@* | node()"/>
     </xsl:copy>
   </xsl:template>
   
@@ -101,6 +101,7 @@
           </xsl:otherwise>
         </xsl:choose>
       </xsl:for-each>
+      <xsl:apply-templates select="$this/@* except @*[local-name()=$t/AttributeList/Attribute/@name]"/>
       <xsl:apply-templates select="$this/text()"/>
       <xsl:for-each select="$t/Element">
         <xsl:variable name="e" select="."/>
@@ -113,7 +114,7 @@
           </xsl:when>
           <xsl:otherwise>
             <xsl:call-template name="handleElement">
-              <xsl:with-param name="context" select="$this"></xsl:with-param>
+              <xsl:with-param name="context" select="$this"/>
               <xsl:with-param name="tweak" select="$e"/> 
             </xsl:call-template>
           </xsl:otherwise>
