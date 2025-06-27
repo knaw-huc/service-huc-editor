@@ -5,7 +5,7 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="3.0">
     
-    <xsl:param name="tweakFile" select="'file:/Users/menzowi/Documents/GitHub/niod-dre-yugo-editor/data/apps/yugo/profiles/clarin.eu:cr1:p_1733830015132/tweaks/tweak-1.xml'"/>
+    <xsl:param name="tweakFile" select="'file:/Users/menzowi/Documents/GitHub/niod-dre-yugo-editor/data/apps/yugo/profiles/clarin.eu:cr1:p_1747312582429/tweaks/tweak-1.xml'"/>
     <xsl:variable name="tweak" select="document($tweakFile)"/>
     
     <xsl:variable name="DEBUG" select="false()" static="yes"/>
@@ -111,7 +111,9 @@
                     <xsl:apply-templates select="AutoValue" mode="copy"/>
                 </xsl:otherwise>
             </xsl:choose>
+            <xsl:message use-when="$DEBUG">DBG: element[<xsl:value-of select="@name"/>] @ValueScheme[<xsl:value-of select="@ValueScheme"/>] ValueScheme?[<xsl:value-of select="exists(ValueScheme)"/>] tweak[<xsl:value-of select="$myTweak/@name"/>] tweak @ValueScheme[<xsl:value-of select="$myTweak/@ValueScheme"/>] tweak ValueScheme?[<xsl:value-of select="exists($myTweak/ValueScheme)"/>]</xsl:message>
             <xsl:if test="@ValueScheme='string' or normalize-space(@ValueScheme)='' and not(ValueScheme) and $myTweak/ValueScheme">
+                <xsl:message use-when="$DEBUG">DBG: copy tweak ValueScheme</xsl:message>
                 <xsl:apply-templates select="$myTweak/ValueScheme" mode="copy"/>
             </xsl:if>
             <xsl:apply-templates select="* except clariah:* except AutoValue">
@@ -161,9 +163,11 @@
         <xsl:variable name="myTweak" select="$tweak/ValueScheme"/>
         <xsl:choose>
             <xsl:when test="$myTweak">
+                <xsl:message use-when="$DEBUG">DBG: copy the tweak ValueScheme</xsl:message>
                 <xsl:apply-templates select="$myTweak" mode="copy"/>                
             </xsl:when>
             <xsl:otherwise>
+                <xsl:message use-when="$DEBUG">DBG: copy the existing ValueScheme</xsl:message>
                 <xsl:copy>
                     <xsl:apply-templates select="@* | node()"/>
                 </xsl:copy>
@@ -307,6 +311,7 @@
             </xsl:when>
             <xsl:when test=".='string' and $tweak/ValueScheme">
                 <!-- skip @ValueScheme as there is a tweaked ValueScheme element -->
+                <xsl:message use-when="$DEBUG">DBG: skip @ValueScheme as there is a tweaked ValueScheme element</xsl:message>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:copy/>
