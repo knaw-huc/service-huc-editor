@@ -189,7 +189,7 @@ def get_profile_tweak(request: Request, app: str, prof: str, nr: str):
     If the profile exists but the tweak is not implemented yet, it returns a 501 error.
     """
     logging.info(f"profile[{prof}] tweak[{nr}]")
-    tweak_file =f"{settings.URL_DATA_APPS}/{app}/profiles/{id}/tweaks/tweak-{nr}.xml"
+    tweak_file =f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}/tweaks/tweak-{nr}.xml"
     if not os.path.exists(tweak_file):
         logging.debug(f"{tweak_file} doesn't exist")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
