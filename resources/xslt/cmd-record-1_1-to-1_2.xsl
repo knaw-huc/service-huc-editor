@@ -174,7 +174,7 @@
             </xsl:attribute>
             <xsl:apply-templates select="cmd0:Header"/>
             <xsl:apply-templates select="cmd0:Resources"/>
-            <xsl:apply-templates select="cmd0:Resources/cmd0:IsPartOfList"/>
+            <!--<xsl:apply-templates select="cmd0:Resources/cmd0:IsPartOfList"/>-->
             <xsl:apply-templates select="cmd0:Components"/>
         </cmd:CMD>
     </xsl:template>
@@ -253,14 +253,14 @@
         <xsl:choose>
             <xsl:when test="normalize-space($elem/clariah:autoCompleteURI)!=''">
                 <xsl:variable name="q" select="concat(resolve-uri(string($elem/clariah:autoCompleteURI),$editor-base),'?q=',encode-for-uri(string($cur)))"/>
-                <xsl:variable name="uris" select="json-to-xml(unparsed-text($q))//js:map[js:string[@key='label']=string($cur)]/js:string[@key='uri']"/>
+                <xsl:variable name="uris" select="json-to-xml(unparsed-text($q))//js:map[js:string[@key='label']=string($cur)]/js:string[@key='uri'][not(matches(.,'.*c=1\..*'))]"/>
                 <xsl:choose>
                     <xsl:when test="count($uris) eq 0">
                         <xsl:message expand-text="yes">WRN: record[{/*:CMD/*:Header/*:MdSelfLink}#{string-join(ancestor-or-self::*[. >> /cmd0:CMD/cmd0:Components]/local-name(),'/')}] term[{$cur}] has [{count($uris)}] matches! [{$q}]->[{string-join($uris,', ')}]</xsl:message>
                         <xsl:copy-of select="$cur"/>
                     </xsl:when>
                     <xsl:when test="count($uris) gt 1">
-                        <xsl:message expand-text="yes">WRN:  record[{/*:CMD/*:Header/*:MdSelfLink}#{string-join(ancestor-or-self::*[. >> /cmd0:CMD/cmd0:Components]/local-name(),'/')}]] term[{$cur}] has [{count($uris)}] matches! [{$q}]->[{string-join($uris,', ')}]</xsl:message>
+                        <xsl:message expand-text="yes">WRN: record[{/*:CMD/*:Header/*:MdSelfLink}#{string-join(ancestor-or-self::*[. >> /cmd0:CMD/cmd0:Components]/local-name(),'/')}]] term[{$cur}] has [{count($uris)}] matches! [{$q}]->[{string-join($uris,', ')}]</xsl:message>
                     </xsl:when>
                 </xsl:choose>
                 <xsl:for-each select="$uris">
