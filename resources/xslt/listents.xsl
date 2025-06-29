@@ -26,10 +26,10 @@
                          entry = {'value': data['label'],'data': data} -->
                     <xsl:variable name="conf" select="$config//prof//*[local-name()=$ent]"/>
                     <!-- entity xpath -->
-                    <xsl:variable name="exp" select="$conf/entity"/>
+                    <xsl:variable name="exp" select="($conf/entity,'//*:Components/*')[1]"/>
                     <xsl:message expand-text="yes">?DBG: entity[{$exp}]</xsl:message>
                     <!-- title xpath -->
-                    <xsl:variable name="txp" select="($conf/title,'string((.//*[empty(*)][normalize-space(text())!=''''])[1])')[1]"/>
+                    <xsl:variable name="txp" select="($conf/lookup,$conf/title,'string((.//*[empty(*)][normalize-space(text())!=''''])[1])')[1]"/>
                     <xsl:message expand-text="yes">?DBG: txp[{$txp}]</xsl:message>
                     <!-- id xpath -->
                     <xsl:variable name="ixp" select="($conf/id,'/*:CMD/*:Header/*:MdSelfLink/string()')[1]"/>
