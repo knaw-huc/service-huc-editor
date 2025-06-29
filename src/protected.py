@@ -491,7 +491,7 @@ async def get_app(request: Request, app: str, user: Optional[str] = Depends(get_
             
     raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED)
 
-@router.get('/app/{app}/entity/')
+@router.get('/app/{app}/entity/{ent}')
 @router.get('/app/{app}/profile/{prof}/entity/')
 @router.get('/app/{app}/profile/{prof}/entity/{ent}')
 async def get_refs(request: Request, app: str, prof: str | None=None, ent: str | None=None, q: str | None = "*", user: Optional[str] = Depends(get_user_with_app)):
@@ -506,6 +506,7 @@ async def get_refs(request: Request, app: str, prof: str | None=None, ent: str |
             for key in config["app"]["prof"].keys():
                 if config["app"]["prof"][key]["prof"] == prof:
                     ent=key
+        #TODO: check that prof and ent lead somewhere
         if q.startswith('^'):
             q = q.removeprefix('^') + "*"
         elif not('*' in q):
@@ -538,7 +539,20 @@ async def get_refs(request: Request, app: str, prof: str | None=None, ent: str |
 @router.get('/app/{app}/profile/{prof}/entity/{id}')
 @router.get('/app/{app}/profile/{prof}/entity/{ent}/{id}')
 async def get_ref(request: Request, app: str, id:str, prof: str | None=None, ent: str | None=None, user: Optional[str] = Depends(get_user_with_app)):
-    raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED)
+    if (not allowed(user,app,'read','any')):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
+    config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
+    with open(config_file, 'r') as f:
+        if (prof == None):
+                config = toml.load(f)
+                prof = config['app']['def_prof'] 
+        if (ent == None):
+            for key in config["app"]["prof"].keys():
+                if config["app"]["prof"][key]["prof"] == prof:
+                    ent=key
+        #TODO: check that prof and ent lead somewhere
+        logging.info(f"app[{app}] prof[{prof}] enity[{ent}] id[{id}] user[{user}] accept[{request.headers.get("accept", "")}]")
+        return RedirectResponse(url=f"/app/{app}/profile/{prof}/record/{id}") 
 
 
 @router.get('/app/{app}/action/{action}')
