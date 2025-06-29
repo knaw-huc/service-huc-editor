@@ -136,11 +136,13 @@
                                         //location.reload();
                                         inRec.when = msg.when
                                         //alert("DBG: inRec.when["+inRec.when+"]");
+                                        $(errorSpace).append("&lt;p style='color:green'>The record has been saved!&lt;/p>");
                                     }},
                                     error: function (err) {{
                                         alert ("ERR: the "+action+" failed! ["+err.responseJSON.detail+"]");
                                         obj = {{"error": err}};
                                         console.log(obj);
+                                        $(errorSpace).append("&lt;p style='color:red'>The record couldn't be saved! ["+err.responseJSON.detail+"]&lt;/p>");
                                     }}
                                 }}
                                 );
@@ -157,12 +159,14 @@
                                         console.log(msg);
                                         inRec.when = msg.when
                                         //alert("DBG: inRec.when["+inRec.when+"]");
+                                        $(errorSpace).append("&lt;p style='color:green'>The record has been saved!&lt;/p>");
                                         window.location.replace("./"+msg.nr+"/editor");
                                     }},
                                     error: function (err) {{
                                         alert ("ERR: the "+action+" failed! ["+err.responseJSON.detail+"]");
                                         obj = {{"error": err}};
                                         console.log(obj);
+                                        $(errorSpace).append("&lt;p style='color:red'>The record couldn't be saved! ["+err.responseJSON.detail+"]&lt;/p>");
                                     }}
                                 }}
                                 );
