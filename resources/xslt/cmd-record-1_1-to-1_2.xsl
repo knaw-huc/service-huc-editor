@@ -251,9 +251,16 @@
         <xsl:variable name="path" select="ancestor::*[. >> /cmd0:CMD/cmd0:Components]"/>
         <xsl:variable name="elem" select="$tweak//Element[@name=local-name($cur)][string-join(ancestor::Component/@name,'/')=string-join($path/local-name(),'/')]"/>
         <xsl:choose>
+            <xsl:when test="$cur/@cmd0:valueConceptLink">
+                <xsl:element namespace="{$cmd-profile-uri}" name="cmdp:{local-name()}">
+                    <xsl:apply-templates select="@* except @cmd0:valueConceptLink"/>
+                    <xsl:attribute name="cmd:valueConceptLink" select="@cmd0:valueConceptLink"/>
+                    <xsl:apply-templates select="node()"/>
+                </xsl:element>
+            </xsl:when>
             <xsl:when test="normalize-space($elem/clariah:autoCompleteURI)!=''">
                 <xsl:variable name="q" select="concat(resolve-uri(string($elem/clariah:autoCompleteURI),$editor-base),'?q=',encode-for-uri(string($cur)))"/>
-                <xsl:variable name="uris" select="json-to-xml(unparsed-text($q))//js:map[js:string[@key='label']=string($cur)]/js:string[@key='uri'][not(matches(.,'.*c=1\..*'))]"/>
+                <xsl:variable name="uris" select="json-to-xml(unparsed-text($q))//js:map[js:string[@key='label']=string($cur)]/js:string[@key='uri'](:[not(matches(.,'.*c=1\..*'))]:)"/>
                 <xsl:choose>
                     <xsl:when test="count($uris) eq 0">
                         <xsl:message expand-text="yes">WRN: record[{/*:CMD/*:Header/*:MdSelfLink}#{string-join(ancestor-or-self::*[. >> /cmd0:CMD/cmd0:Components]/local-name(),'/')}] term[{$cur}] has [{count($uris)}] matches! [{$q}]->[{string-join($uris,', ')}]</xsl:message>
