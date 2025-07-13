@@ -6,11 +6,13 @@ import re
 import ast
 import xml.dom.minidom
 
+
+
 from saxonche import PySaxonProcessor, PyXdmNode
 
 from dynaconf import Dynaconf
 import jinja2
-import requests as req
+from fastapi import Request
 
 import toml
 import xml.etree.ElementTree as ET
@@ -156,7 +158,7 @@ def call_record_post_hook(hook:str,crud:str,app:str,prof:str,nr:str,user:str ) -
     func = getattr(mod,hook)
     func(crud,app,prof,nr,user)
 
-def call_action_hook(action:str,app:str,prof:str,user:str):
+def call_action_hook(req: Request,action:str,app:str,prof:str,rec:str,user:str):
     config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
     with open(config_file, 'r') as f:
         config = toml.load(f)
@@ -165,12 +167,12 @@ def call_action_hook(action:str,app:str,prof:str,user:str):
             if "action" in config["app"]["hooks"]:
                 if action in config["app"]["hooks"]["action"]:
                     if "hook" in config["app"]["hooks"]["action"][action]:
-            # import hook from data/apps/app/src/hooks.py
+                        # import hook from data/apps/app/src/hooks.py
                         mod = importlib.import_module(f"apps.{app}.src.hooks")
-            # call hook(app,rec)
+                        # call hook(app,rec)
                         func = getattr(mod,config["app"]["hooks"]["action"][action]["hook"])
                         logging.info(f' calling hook[{config["app"]["hooks"]["action"][action]["hook"]}]!')
-                        return func(app,prof,user)
+                        return func(req,action,app,prof,rec,user)
                     else:
                         logging.info(f"no action hook[{action}]!")
                 else:
