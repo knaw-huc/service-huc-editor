@@ -556,15 +556,16 @@ async def get_ref(request: Request, app: str, id:str, prof: str | None=None, ent
 
 
 @router.get('/app/{app}/action/{action}')
+@router.get('/app/{app}/action/record/{nr}/{action}')
 @router.get('/app/{app}/profile/{prof}/action/{action}')
-def get_record(request: Request, app: str, action: str, prof: str | None=None, user: Optional[str] = Depends(get_user_with_app)):
-    if (prof == None):
+@router.get('/app/{app}/profile/{prof}/record/{nr}/action/{action}')
+def get_action(req: Request, app: str, action: str, prof: str | None=None, nr: str | None=None, user: Optional[str] = Depends(get_user_with_app)):
+    if (nr != None and prof == None):
         config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
         with open(config_file, 'r') as f:
             config = toml.load(f)
             prof = config['app']['def_prof'] 
     if (not allowed(user,app,'read','any')):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
-    
-    return call_action_hook(action,app,prof,user)
+    return call_action_hook(req,action,app,prof,nr,user)
 
