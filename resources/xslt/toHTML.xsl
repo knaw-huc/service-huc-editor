@@ -97,6 +97,20 @@
                         </xsl:apply-templates>
                     </dl>
                 </xsl:when>
+                <xsl:when test="normalize-space(@*:valueConceptLink)!=''">
+                    <xsl:choose>
+                        <xsl:when test="matches(@*:valueConceptLink,'^ref:/')">
+                            <a href="{normalize-space(replace(@*:valueConceptLink,'^ref:/','/'))}">
+                                <xsl:value-of select="."/>
+                            </a>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <a href="{normalize-space(@*:valueConceptLink)}" target="conceptlink">
+                                <xsl:value-of select="."/>
+                            </a>                            
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:when>
                 <xsl:otherwise>
                     <xsl:value-of select="."/>
                 </xsl:otherwise>
