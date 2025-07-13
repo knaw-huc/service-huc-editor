@@ -55,9 +55,26 @@
                 <iframe src="{$base}/static/status.html" style="border:none;height:3em;width:100%;"/>
                 <div id="wrapper">
                     <div id="header">{$config/config/app/title}</div>
- 
                     <div id="user"/>
                     <div id="homeBtn"/>
+                    <div class="action_menu">
+                        <xsl:for-each select="$config/config/app/hooks/action/*[level='app']">
+                            <xsl:if test="position()=1">
+                                <xsl:text>[ </xsl:text>
+                            </xsl:if>
+                            <xsl:variable name="action" select="."/>
+                            <a  xsl:expand-text="yes" href="{$base}/app/{$app}/action/{local-name($action)}" class="action {local-name($action)}" id="action_{local-name($action)}" target="action_{local-name($action)}">{$action/label}</a>
+                            <xsl:choose>
+                                <xsl:when test="last()">
+                                    <xsl:text> ]</xsl:text>
+                                </xsl:when>
+                                <xsl:otherwise>
+                                    <xsl:text> | </xsl:text>
+                                </xsl:otherwise>
+                            </xsl:choose>
+                        </xsl:for-each>
+                    </div>
+                    
                     <div id="content">
                         <xsl:for-each select="$config/config/app/prof/*">
                             <xsl:variable name="p" select="."/>
@@ -89,7 +106,7 @@
                             </xsl:comment>
                             <h2 xsl:expand-text="yes">list of {(./label_en,local-name())[1]} records</h2>
                             <div class="action_menu">
-                                <xsl:for-each select="$config/config/app/hooks/action/*">
+                                <xsl:for-each select="$config/config/app/hooks/action/*[normalize-space(level)='' or level='prof']">
                                     <xsl:if test="position()=1">
                                         <xsl:text>[ </xsl:text>
                                     </xsl:if>
@@ -143,6 +160,9 @@
                                         <th/>
                                         <th/>
                                         <th/>
+                                        <xsl:for-each select="$config/config/app/hooks/action/*[level='rec'][normalize-space(prof)='' or prof=$prof]">
+                                            <th/>
+                                        </xsl:for-each>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -242,6 +262,12 @@
                                                         </xsl:otherwise>
                                                     </xsl:choose>
                                                 </td>
+                                                <xsl:for-each select="$config/config/app/hooks/action/*[level='rec'][normalize-space(prof)='' or prof=$prof]">
+                                                    <xsl:variable name="action" select="."/>
+                                                    <td>
+                                                        <a xsl:expand-text="yes" href="{$base}/app/{$app}/profile/{$prof}/record/{$nr}/action/{local-name($action)}" class="action {local-name($action)}" id="action_{local-name($action)}" target="action_{local-name($action)}">{$action/label}</a>
+                                                    </td>
+                                                </xsl:for-each>                                                
                                             </tr>
                                         </xsl:if>    
                                     </xsl:for-each>
