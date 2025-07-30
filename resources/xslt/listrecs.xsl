@@ -264,9 +264,33 @@
                                                 </td>
                                                 <xsl:for-each select="$config/config/app/hooks/action/*[level='rec'][normalize-space(prof)='' or prof=$prof]">
                                                     <xsl:variable name="action" select="."/>
-                                                    <td>
-                                                        <a xsl:expand-text="yes" href="{$base}/app/{$app}/profile/{$prof}/record/{$nr}/action/{local-name($action)}" class="action {local-name($action)}" id="action_{local-name($action)}" target="action_{local-name($action)}">{$action/label}</a>
-                                                    </td>
+                                                    <xsl:variable name="enabled" as="xs:boolean">
+                                                        <xsl:choose>
+                                                            <xsl:when test="normalize-space($action/enable)!=''">
+                                                                <xsl:try>
+                                                                    <xsl:evaluate xpath="$action/enable" context-item="$rec" namespace-context="$NS"/>
+                                                                    <xsl:catch>
+                                                                        <xsl:message expand-text="yes">action[{local-name($action)}] ERR[{$err:code}]: {$err:description}</xsl:message>
+                                                                    </xsl:catch>
+                                                                </xsl:try>
+                                                            </xsl:when>
+                                                            <xsl:otherwise>
+                                                                <xsl:sequence select="true()"/>
+                                                            </xsl:otherwise>
+                                                        </xsl:choose>
+                                                    </xsl:variable>
+                                                    <xsl:choose>
+                                                        <xsl:when test="$enabled">
+                                                            <td>
+                                                                <a xsl:expand-text="yes" href="{$base}/app/{$app}/profile/{$prof}/record/{$nr}/action/{local-name($action)}" class="action {local-name($action)}" id="action_{local-name($action)}" target="action_{local-name($action)}">{$action/label}</a>
+                                                            </td>
+                                                        </xsl:when>
+                                                        <xsl:otherwise>
+                                                            <td>
+                                                                <a xsl:expand-text="yes" class="action {local-name($action)} disabled" id="action_{local-name($action)}">{$action/label}</a>
+                                                            </td>
+                                                        </xsl:otherwise>
+                                                    </xsl:choose>
                                                 </xsl:for-each>                                                
                                             </tr>
                                         </xsl:if>    
