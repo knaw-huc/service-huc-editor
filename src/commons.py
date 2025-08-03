@@ -167,12 +167,24 @@ def call_action_hook(req: Request,action:str,app:str,prof:str,rec:str,user:str):
             if "action" in config["app"]["hooks"]:
                 if action in config["app"]["hooks"]["action"]:
                     if "hook" in config["app"]["hooks"]["action"][action]:
-                        # import hook from data/apps/app/src/hooks.py
-                        mod = importlib.import_module(f"apps.{app}.src.hooks")
-                        # call hook(app,rec)
-                        func = getattr(mod,config["app"]["hooks"]["action"][action]["hook"])
-                        logging.info(f' calling hook[{config["app"]["hooks"]["action"][action]["hook"]}]!')
-                        return func(req,action,app,prof,rec,user)
+                        enabled = True
+                        if rec!=None:
+                            enable="true()"
+                            if "enable" in  config["app"]["hooks"]["action"][action]:
+                                enable = config["app"]["hooks"]["action"][action]["enable"]
+                            with PySaxonProcessor(license=False) as proc:
+                                xpproc = proc.new_xpath_processor()
+                                record_file = f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}/records/record-{rec}.xml"
+                                node = proc.parse_xml(xml_file_name=record_file)
+                                xpproc.set_context(xdm_item=node)
+                                enabled = xpproc.effective_boolean_value(enable)
+                        if enabled:
+                            # import hook from data/apps/app/src/hooks.py
+                            mod = importlib.import_module(f"apps.{app}.src.hooks")
+                            # call hook(app,rec)
+                            func = getattr(mod,config["app"]["hooks"]["action"][action]["hook"])
+                            logging.info(f' calling hook[{config["app"]["hooks"]["action"][action]["hook"]}]!')
+                            return func(req,action,app,prof,rec,user)
                     else:
                         logging.info(f"no action hook[{action}]!")
                 else:
