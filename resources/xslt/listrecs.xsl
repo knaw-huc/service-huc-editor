@@ -58,14 +58,14 @@
                     <div id="user"/>
                     <div id="homeBtn"/>
                     <div class="action_menu">
-                        <xsl:for-each select="$config/config/app/hooks/action/*[level='app']">
+                        <xsl:for-each select="$config/config/app/hooks/action/*[tokenize(level)='app']">
                             <xsl:if test="position()=1">
                                 <xsl:text>[ </xsl:text>
                             </xsl:if>
                             <xsl:variable name="action" select="."/>
-                            <a  xsl:expand-text="yes" href="{$base}/app/{$app}/action/{local-name($action)}" class="action {local-name($action)}" id="action_{local-name($action)}" target="action_{local-name($action)}">{$action/label}</a>
+                            <a xsl:expand-text="yes" href="{$base}/app/{$app}/action/{local-name($action)}" class="action {local-name($action)}" id="action_{local-name($action)}" target="action_{local-name($action)}">{$action/label}</a>
                             <xsl:choose>
-                                <xsl:when test="last()">
+                                <xsl:when test="position() = last()">
                                     <xsl:text> ]</xsl:text>
                                 </xsl:when>
                                 <xsl:otherwise>
@@ -106,12 +106,12 @@
                             </xsl:comment>
                             <h2 xsl:expand-text="yes">list of {(./label_en,local-name())[1]} records</h2>
                             <div class="action_menu">
-                                <xsl:for-each select="$config/config/app/hooks/action/*[normalize-space(level)='' or level='prof']">
+                                <xsl:for-each select="$config/config/app/hooks/action/*[normalize-space(level)='' or tokenize(level)='prof']">
                                     <xsl:if test="position()=1">
                                         <xsl:text>[ </xsl:text>
                                     </xsl:if>
                                     <xsl:variable name="action" select="."/>
-                                        <a  xsl:expand-text="yes" href="{$base}/app/{$app}/profile/{$prof}/action/{local-name($action)}" class="action {local-name($action)}" id="action_{local-name($action)}" target="action_{local-name($action)}">{$action/label}</a>
+                                        <a xsl:expand-text="yes" href="{$base}/app/{$app}/profile/{$prof}/action/{local-name($action)}" class="action {local-name($action)}" id="action_{local-name($action)}" target="action_{local-name($action)}">{$action/label}</a>
                                     <xsl:choose>
                                         <xsl:when test="last()">
                                             <xsl:text> ]</xsl:text>
@@ -160,7 +160,7 @@
                                         <th/>
                                         <th/>
                                         <th/>
-                                        <xsl:for-each select="$config/config/app/hooks/action/*[level='rec'][normalize-space(prof)='' or prof=$prof]">
+                                        <xsl:for-each select="$config/config/app/hooks/action/*[tokenize(level)='rec'][normalize-space(prof)='' or prof=$prof]">
                                             <th/>
                                         </xsl:for-each>
                                     </tr>
@@ -262,7 +262,7 @@
                                                         </xsl:otherwise>
                                                     </xsl:choose>
                                                 </td>
-                                                <xsl:for-each select="$config/config/app/hooks/action/*[level='rec'][normalize-space(prof)='' or prof=$prof]">
+                                                <xsl:for-each select="$config/config/app/hooks/action/*[tokenize(level)='rec'][normalize-space(prof)='' or prof=$prof]">
                                                     <xsl:variable name="action" select="."/>
                                                     <xsl:variable name="enabled" as="xs:boolean">
                                                         <xsl:choose>
