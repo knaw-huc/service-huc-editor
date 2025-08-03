@@ -34,6 +34,8 @@ weasyprint = "^62.3"
 toml = "^0.10.2"
 passlib = "^1.7.4"
 jinja2 = "^3.1.6"
+elasticsearch = "^8.17.2"
+
 
 [build-system]
 requires = ["poetry-core"]
