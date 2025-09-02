@@ -162,8 +162,8 @@ async def create_record(request: Request, app: str, prof: str | None = None, red
             executable.set_parameter("user", proc.make_string_value(user))
             executable.set_parameter("self", proc.make_string_value(f"unl://{nr}"))
             executable.set_parameter("prof", proc.make_string_value(prof.strip()))
-            null = proc.parse_xml(xml_text="<null/>")
-            rec = executable.transform_to_value(xdm_node=null)
+            rec = executable.call_template_returning_string("main")
+            logging.info(f"- record XML[{rec}]")
             rec, msg = call_record_hook("create_pre",app,prof,nr,user,rec)
             if rec == None:
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)

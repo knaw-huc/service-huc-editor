@@ -5,7 +5,7 @@
     xmlns:js="http://www.w3.org/2005/xpath-functions" exclude-result-prefixes="xs math functx"
     version="3.0">
 
-    <xsl:param name="js-uri" select="'file:/Users/menzowi/Documents/GitHub/hi-ddb-stalling-editor/scripts/new.json'"/>
+    <xsl:param name="js-uri" select="'file:/Users/menzowi/Documents/GitHub/hi-ddb-stalling-editor/scripts/new-output.json'"/>
     <xsl:param name="js-doc" select="
             if (js:unparsed-text-available($js-uri)) then
                 (unparsed-text($js-uri))
@@ -159,12 +159,6 @@
             </xsl:element>
         </xsl:element>
     </xsl:template>
-
-    <!--<xsl:template match="/">
-        <!-\-<xsl:copy-of select="$js-xml"/>-\->
-        <xsl:message>DBG: call main</xsl:message>
-        <xsl:call-template name="main"/>
-    </xsl:template>-->
 
     <xsl:template match="js:map[js:string[@key = 'type'] = 'component']">
         <xsl:element namespace="{$cmdp-ns}"
