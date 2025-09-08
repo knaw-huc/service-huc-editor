@@ -31,11 +31,10 @@ api_keys = [
 
 logging.basicConfig(filename=settings.log_file, level=settings.log_level,
                     format=settings.log_format)
+
 data = {}
-
-
-__version__ = importlib.metadata.metadata(settings.service_name)["version"]
-data.update({"service-version": __version__})
+#__version__ = importlib.metadata.metadata(settings.service_name)["version"]
+data.update({"service-version": "0.1.10"})
 
 
 def tweak_nr(tf):

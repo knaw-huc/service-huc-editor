@@ -15,7 +15,7 @@ from fastapi import FastAPI, Request, HTTPException, Depends, status
 
 from src.commons import settings
 
-__version__ = importlib.metadata.metadata(settings.SERVICE_NAME)["version"]
+__version__ = "0.1.10"
 
 from starlette.middleware.cors import CORSMiddleware
 

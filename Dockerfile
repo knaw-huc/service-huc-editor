@@ -1,10 +1,14 @@
-FROM ghcr.io/astral-sh/uv:python3.12-alpine
+FROM python:3.12.3-bookworm
 
 ARG VERSION=0.1.10
 
-#TODO: add vi(m)
+RUN apt-get update &&\
+	apt-get -y dist-upgrade vim 
 
-RUN adduser -D -s /bin/bash huc
+#RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+RUN pip install uv
+
+RUN useradd -ms /bin/bash huc
 
 USER huc
 WORKDIR /home/huc
@@ -24,11 +28,15 @@ ADD resources ${BASE_DIR}/resources
 ADD src ${BASE_DIR}/src
 ADD tests ${BASE_DIR}/tests
 ADD uv.lock ${BASE_DIR}/uv.lock
-
+USER root
+RUN chown -R huc:huc ${BASE_DIR}
+#RUN touch ${BASE_DIR}/logs/huc-editor-service.log
+USER huc
+       
 ENV UV_COMPILE_BYTECODE=1
 
 RUN uv sync --frozen --no-dev
 
 ENV PATH="${BASE_DIR}/.venv/bin:$PATH"
 
-ENTRYPOINT ["uvicorn", "src/main.py", "--host", "0.0.0.0", "--port", "8000", "--reload", "--workers", "4"]
+ENTRYPOINT ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "1210", "--reload", "--workers", "4"]
