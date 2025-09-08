@@ -268,7 +268,9 @@
                                                         <xsl:choose>
                                                             <xsl:when test="normalize-space($action/enable)!=''">
                                                                 <xsl:try>
-                                                                    <xsl:evaluate xpath="$action/enable" context-item="$rec" namespace-context="$NS"/>
+                                                                    <xsl:evaluate xpath="$action/enable" context-item="$rec" namespace-context="$NS">
+                                                                        <xsl:with-param name="self" select="$rec//*:MdSelfLink"/>
+                                                                    </xsl:evaluate>
                                                                     <xsl:catch>
                                                                         <xsl:message expand-text="yes">action[{local-name($action)}] ERR[{$err:code}]: {$err:description}</xsl:message>
                                                                     </xsl:catch>

@@ -1,42 +1,21 @@
 [project]
-name = "huc-editor-service"
-
-[tool.poetry]
-version = "0.1.10"
-description = ""
-authors = ["ekoi <eko.indarto@dans.knaw.nl>"]
+name = "service-huc-editor"
+version = "0.1.0"
+description = "Add your description here"
 readme = "README.md"
-include = ["resources/*", "logs/*", "data/*", "conf/*"]
-packages = [
-    { include = "src" }
+requires-python = ">=3.12"
+dependencies = [
+    "dynaconf>=3.2.11",
+    "elasticsearch>=9.1.0",
+    "emoji>=2.14.1",
+    "fastapi>=0.116.1",
+    "jinja2>=3.1.6",
+    "lxml>=6.0.1",
+    "passlib>=1.7.4",
+    "pytest>=8.4.2",
+    "requests>=2.32.5",
+    "saxonche>=12.8.0",
+    "toml>=0.10.2",
+    "uvicorn>=0.35.0",
+    "weasyprint>=66.0",
 ]
-
-
-[project.urls]
-Homepage = "https://github.com/knaw-huc/clariah-cmdi-forms"
-Documentation = "https://readthedocs.org"
-Repository = "https://github.com/knaw-huc/service-huc-editor/blob/main/README.md"
-Issues = "https://github.com/knaw-huc/service-huc-editor/issues"
-Changelog = "https://github.com/knaw-huc/service-huc-editor/master/CHANGELOG.md"
-
-
-[tool.poetry.dependencies]
-python = "^3.12"
-fastapi = "^0.111.0"
-uvicorn = "^0.29.0"
-dynaconf = "^3.2.5"
-lxml = "^5.2.2"
-emoji = "^2.12.1"
-saxonche = "^12.4.2"
-requests = "^2.32.2"
-pytest = "^8.2.1"
-weasyprint = "^62.3"
-toml = "^0.10.2"
-passlib = "^1.7.4"
-jinja2 = "^3.1.6"
-elasticsearch = "^8.17.2"
-
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"

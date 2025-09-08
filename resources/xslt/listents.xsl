@@ -8,11 +8,11 @@
 
     <xsl:output method="text" encoding="UTF-8"/>
 
-    <xsl:param name="cwd" select="'file:/Users/menzowi/Documents/GitHub/niod-dre-yugo-editor'"/>
+    <xsl:param name="cwd" select="'file:/Users/menzowi/Documents/GitHub/hi-ddb-stalling-editor'"/>
     <xsl:param name="base" select="'http://localhost:1210'"/>
-    <xsl:param name="app" select="'yugo'"/>
-    <xsl:param name="prof" select="'clarin.eu:cr1:p_1721373443934'"/>
-    <xsl:param name="ent" select="'collection'"/>
+    <xsl:param name="app" select="'stalling'"/>
+    <xsl:param name="prof" select="'clarin.eu:cr1:p_1708423613607'"/>
+    <xsl:param name="ent" select="'envelop'"/>
     <xsl:param name="query" select="'*'"/>
     <xsl:param name="config" select="doc(concat($cwd, '/data/apps/', $app, '/config.xml'))"/>
     <xsl:param name="user" select="'anonymous'"/>
@@ -71,7 +71,9 @@
                                     <xsl:when test="$exp">
                                         <xsl:message expand-text="yes">?DBG: use exp[{$exp}]</xsl:message>
                                         <xsl:try>
-                                            <xsl:evaluate xpath="$exp" context-item="$rec" namespace-context="$NS" as="item()*"/>
+                                            <xsl:evaluate xpath="$exp" context-item="$rec" namespace-context="$NS" as="item()*">
+                                                <xsl:with-param name="self" select="$rec//*:MdSelfLink"/>
+                                            </xsl:evaluate>
                                             <xsl:catch select="()"/>
                                         </xsl:try>
                                     </xsl:when>
@@ -91,7 +93,9 @@
                                 <xsl:message expand-text="yes">?DBG: inst[{$inst}][{local-name($inst)}]</xsl:message>
                                 <xsl:variable name="lbl" as="item()*">
                                     <xsl:try>
-                                        <xsl:evaluate xpath="$txp" context-item="$inst" namespace-context="$NS" as="item()*"/>
+                                        <xsl:evaluate xpath="$txp" context-item="$inst" namespace-context="$NS" as="item()*">
+                                            <xsl:with-param name="self" select="$rec//*:MdSelfLink"/>
+                                        </xsl:evaluate>
                                         <xsl:catch>
                                             <xsl:message expand-text="yes">ERR: title xpath[{$txp}] failed! [{$err:code}]: {$err:description}</xsl:message>
                                             <xsl:sequence select="concat('ERR[',$err:code,']: ',$err:description)"/>
@@ -100,7 +104,9 @@
                                 </xsl:variable>
                                 <xsl:variable name="id" as="item()*">
                                     <xsl:try>
-                                        <xsl:evaluate xpath="$ixp" context-item="$inst" namespace-context="$NS" as="item()*"/>
+                                        <xsl:evaluate xpath="$ixp" context-item="$inst" namespace-context="$NS" as="item()*">
+                                            <xsl:with-param name="self" select="$rec//*:MdSelfLink"/>
+                                        </xsl:evaluate>
                                         <xsl:catch>
                                             <xsl:message expand-text="yes">ERR: id xpath[{$ixp}] failed! [{$err:code}]: {$err:description}</xsl:message>
                                             <xsl:sequence select="'err'"/>

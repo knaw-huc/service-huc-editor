@@ -86,4 +86,4 @@ if __name__ == "__main__":
     logging.info("Start")
     print(emoji.emojize(':thumbs_up:'))
 
-    uvicorn.run("src.main:app", host="0.0.0.0", port=1210, reload=False, forwarded_allow_ips='*')
+    uvicorn.run("src.main:app", host="0.0.0.0", port=1210, reload=False, forwarded_allow_ips='*',workers=4)
