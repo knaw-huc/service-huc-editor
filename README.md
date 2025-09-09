@@ -5,7 +5,7 @@
 ## 1. Start the docker container:
 
 ```sh
-docker run -p 1210:1210 --name=ccf --rm -it ghcr.io/knaw-huc/service-huc-editor:2.0-RC5
+docker run -p 1210:1210 --name=ccf --rm -it ghcr.io/knaw-huc/service-huc-editor:2.0-RC9
 ```
 
 ## 2. Initialize the HelloWorld app:
