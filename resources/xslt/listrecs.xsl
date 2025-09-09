@@ -267,6 +267,7 @@
                                                     <xsl:variable name="enabled" as="xs:boolean">
                                                         <xsl:choose>
                                                             <xsl:when test="normalize-space($action/enable)!=''">
+                                                                <xsl:message expand-text="yes">action[{local-name($action)}] DBG:eval[{$action/enable}]rec[{$rec//*:MdSelfLink}]</xsl:message>
                                                                 <xsl:try>
                                                                     <xsl:evaluate xpath="$action/enable" context-item="$rec" namespace-context="$NS">
                                                                         <xsl:with-param name="self" select="$rec//*:MdSelfLink"/>

@@ -176,6 +176,9 @@ def call_action_hook(req: Request,action:str,app:str,prof:str,rec:str,user:str):
                                 record_file = f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}/records/record-{rec}.xml"
                                 node = proc.parse_xml(xml_file_name=record_file)
                                 xpproc.set_context(xdm_item=node)
+                                self = xpproc.evaluate_single('//*:MdSelfLink')
+                                xpproc.declare_variable('self')
+                                xpproc.set_parameter('self',self)
                                 enabled = xpproc.effective_boolean_value(enable)
                         if enabled:
                             # import hook from data/apps/app/src/hooks.py
