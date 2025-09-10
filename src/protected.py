@@ -282,8 +282,8 @@ async def modify_record(request: Request, app: str, nr: str, prof: str | None = 
                     xpproc.set_context(xdm_item=old)
                     when = xpproc.evaluate_single("string((/*:CMD/*:Header/*:MdCreationDate/@*:epoch,/*:CMD/*:Header/*:MdCreationDate,'unknown')[1])").get_string_value()
             executable.set_parameter("when", proc.make_string_value(when.strip()))
-            null = proc.parse_xml(xml_text="<null/>")
-            record_body = executable.transform_to_string(xdm_node=null)
+            record_body = executable.call_template_returning_string("main")
+            logging.info(f"- record XML[{rec}]")
     else:
         record_body = record_body.decode()
 
@@ -565,7 +565,7 @@ def get_action(req: Request, app: str, action: str, prof: str | None=None, nr: s
         with open(config_file, 'r') as f:
             config = toml.load(f)
             prof = config['app']['def_prof'] 
-    if (not allowed(user,app,'read','any')):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
+    #if (not allowed(user,app,'read','any')):
+    #    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
     return call_action_hook(req,action,app,prof,nr,user)
 
