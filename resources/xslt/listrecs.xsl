@@ -113,7 +113,7 @@
                                     <xsl:variable name="action" select="."/>
                                         <a xsl:expand-text="yes" href="{$base}/app/{$app}/profile/{$prof}/action/{local-name($action)}" class="action {local-name($action)}" id="action_{local-name($action)}" target="action_{local-name($action)}">{$action/label}</a>
                                     <xsl:choose>
-                                        <xsl:when test="last()">
+                                        <xsl:when test="position() = last()">
                                             <xsl:text> ]</xsl:text>
                                         </xsl:when>
                                         <xsl:otherwise>
