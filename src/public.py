@@ -70,6 +70,32 @@ def get_proxy_nominatim(inst:str,q: str | None = None):
         return JSONResponse(jsonable_encoder(res))
 
 
+@router.get('/proxy/skosmos/{inst}/index')
+@router.get('/proxy/skosmos/{inst}/{vocab}/index')
+def get_proxy_skosmos_index(inst:str,vocab:str | None=None):
+    logging.info(f"proxy skosmos[{inst}] vocab[{vocab}] index")
+    proxy_file = f"{settings.proxies_dir}/skosmos-{inst}.toml"
+    logging.info(f"proxy config[{proxy_file}]")
+    if not os.path.isfile(proxy_file):
+        return HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    
+    with open(proxy_file, 'r') as f:
+        proxy = toml.load(f)
+
+        if vocab == None:
+            vocab = proxy['base']['default']
+
+        url=f"{proxy['base']['url']}/rest/v1/{vocab}/index/"
+        r = requests.get(url)
+        logging.info(f"proxy[{r.url}] [{r.text}]")
+
+        js = json.loads(r.text)
+        res = {'index': ''.join(js['indexLetters'])}
+        logging.info(f"proxy[{r.url}] [{r.text}] index[{res}]")
+
+        return JSONResponse(jsonable_encoder(res))
+        
+
 @router.get('/proxy/skosmos/{inst}/home')
 @router.get('/proxy/skosmos/{inst}/{vocab}/home')
 def get_proxy_skosmos_home(inst:str,vocab:str | None=None):
@@ -88,7 +114,6 @@ def get_proxy_skosmos_home(inst:str,vocab:str | None=None):
         url=f"{proxy['base']['url']}/{vocab}/en/"
         return RedirectResponse(url=url)
         
-
 @router.get('/proxy/skosmos/{inst}')
 @router.get('/proxy/skosmos/{inst}/{vocab}')
 def get_proxy_skosmos(inst:str,vocab:str | None=None,q: str | None = "*"):
