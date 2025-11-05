@@ -274,7 +274,7 @@
                                                                     </xsl:evaluate>
                                                                     <xsl:catch>
                                                                         <xsl:message expand-text="yes">action[{local-name($action)}] ERR[{$err:code}]: {$err:description}</xsl:message>
-                                                                        <xsl:sequence select="false()"></xsl:sequence>
+                                                                        <xsl:sequence select="false()"/>
                                                                     </xsl:catch>
                                                                 </xsl:try>
                                                             </xsl:when>
