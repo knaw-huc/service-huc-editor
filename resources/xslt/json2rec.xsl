@@ -5,14 +5,14 @@
     xmlns:js="http://www.w3.org/2005/xpath-functions" exclude-result-prefixes="xs math functx"
     version="3.0">
 
-    <xsl:param name="js-uri" select="'file:/Users/menzowi/Documents/GitHub/hi-ddb-stalling-editor/scripts/new-output.json'"/>
+    <xsl:param name="js-uri" select="'file:/Users/menzowi/Documents/GitHub/hi-ddb-stalling-editor/scripts/bete-record-30.json'"/>
     <xsl:param name="js-doc" select="
             if (js:unparsed-text-available($js-uri)) then
                 (unparsed-text($js-uri))
             else
                 ()"/>
     <xsl:param name="js-xml" select="js:json-to-xml($js-doc)"/>
-    <xsl:param name="vers" select="'1.1'"/>
+    <xsl:param name="vers" select="'1.2'"/>
     <xsl:param name="prof" select="'unknown'"/>
     <xsl:param name="user" select="'test'"/>
     <xsl:param name="self" select="'unl://1'"/>
