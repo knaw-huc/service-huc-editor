@@ -4,6 +4,7 @@ import shutil
 import time
 import json
 import toml
+import math
 
 from datetime import datetime, timezone
 
@@ -23,7 +24,7 @@ from typing import Optional
 from enum import Enum
 
 from src.commons import settings, convert_toml_to_xml, call_record_hook, call_action_hook, allowed, def_user, api_keys
-from src.records import rec_html, rec_editor, rec_update
+from src.records import rec_html, rec_editor, rec_update, rec_history,  getTime
 from src.profiles import prof_json, prof_xml
 
 router = APIRouter()
@@ -371,7 +372,124 @@ def get_editor(request: Request, app: str, prof: str | None=None, nr: str | None
     if "text/html" in request.headers.get("accept", ""):
         editor = rec_editor(app,prof,nr)
         return HTMLResponse(content=editor)
+
+@router.get('/app/{app}/record/{nr}/history')
+@router.get('/app/{app}/profile/{prof}/record/{nr}/history')
+def get_history(request: Request, app: str, nr: str, prof: str | None=None, user: Optional[str] = Depends(get_user_with_app)):
+    if (prof == None):
+        config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
+        with open(config_file, 'r') as f:
+            config = toml.load(f)
+            prof = config['app']['def_prof'] 
+    if (not allowed(user,app,'read','any',prof,nr)):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
+    logging.info(f"app[{app}] prof[{prof}] record[{nr}] history")
+    record_file = f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}/records/record-{nr}.xml"
+    if not os.path.exists(record_file):
+        logging.debug(f"{record_file} doesn't exist")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    return rec_history(app,prof,nr)
+
+@router.get('/app/{app}/record/{nr}/history/{epoch}')
+@router.get('/app/{app}/profile/{prof}/record/{nr}/history/{epoch}')
+def get_version(request: Request, app: str, nr: str, epoch:str, prof: str | None=None, user: Optional[str] = Depends(get_user_with_app)):
+    # yes it works also http://localhost:1210/app/stalling/profile/clarin.eu:cr1:p_1708423613607/record/3.xml/history/1767225600 with the same extensions to the record number for a correct format
     
+    # TODO specifieke versie van een record tonen
+    # http://localhost:1210/app/stalling/profile/clarin.eu:cr1:p_1708423613607/record/3/history/1767225600 
+    # 1-1-2026 00:00:00
+    
+    # MPpseudocode: get a list of epochs from history folder, (it's in their name)
+    #               determine the 'closest' one 
+    #               get that file
+    #               server that file in a certain format?
+    # 
+    # 
+    if (prof == None):
+        config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
+        with open(config_file, 'r') as f:
+            config = toml.load(f)
+            prof = config['app']['def_prof'] 
+    if nr.count('.') == 0:
+        form = "html"
+    elif nr.count('.') == 1:
+        nr, form = nr.rsplit('.', 1)
+    else:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not supported")
+
+    if form not in ["json", "xml", "html", "pdf"]:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not supported")
+
+    if (not allowed(user,app,'read','any',prof,nr)):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
+
+    """
+    Endpoint to get a record based on its ID and the application name.
+    This endpoint accepts the application name and the ID as path parameters.
+    If the record does not exist, it returns a 404 error.
+    If the record exists but the reading functionality is not implemented yet, it returns a 501 error.
+    """
+    logging.info(f"app[{app}] prof[{prof}] record[{nr}] form[{form}] accept[{request.headers.get("accept", "")}]")
+
+
+
+    # juiste history file bepalen
+    data_dict = rec_history(app, prof, nr)
+    # data_dict = json.loads(raw_json)
+    epochs = [item['epoch'] for item in data_dict['history']]
+    epoch = int(epoch)  # unix timestamp, given in url
+    closest_epoch = min(epochs, key=lambda x: abs(x - epoch))
+    record_file = f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}/records/history/record-{nr}.{closest_epoch}.xml"
+
+
+    if not os.path.exists(record_file):
+        logging.debug(f"{record_file} doesn't exist")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    
+    with PySaxonProcessor(license=False) as proc:
+        rec = proc.parse_xml(xml_file_name=record_file)
+        rec, msg = call_record_hook("read_pre",app,prof,nr,user,rec)
+        if rec == None:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
+        if form == "json" or "application/json" in request.headers.get("accept", ""):
+                prof_doc = prof_json(app, prof)
+                xsltproc = proc.new_xslt30_processor()
+                xsltproc.set_cwd(os.getcwd())
+                executable = xsltproc.compile_stylesheet(stylesheet_file=f"{settings.xslt_dir}/rec2json.xsl")
+                executable.set_parameter("prof-doc", proc.make_string_value(prof_doc))
+                executable.set_parameter("rec-nr", proc.make_string_value(nr))
+                result = executable.transform_to_string(xdm_node=rec)
+                call_record_hook("read_post",app,prof,nr,user)
+                return JSONResponse(content=jsonable_encoder(json.loads(result)))
+        elif form == RecForm.pdf or "application/pdf" in request.headers.get("accept", ""):
+                html = rec_html(app,prof,nr)
+                pdf = HTML(string=html).write_pdf()
+                headers = {'Content-Disposition': f'inline; filename="{app}-record-{nr}.pdf"'}
+                call_record_hook("read_post",app,prof,nr,user)
+                return Response(pdf, headers=headers, media_type='application/pdf')
+        # FF sends an Accept header with text/html and application/xml, we prefer html, 
+        # but first check for an explicit xml request
+        elif form == RecForm.xml:
+            with open(record_file, 'r') as file:
+                rec = file.read()
+                call_record_hook("read_post",app,prof,nr,user)
+                return Response(content=rec, media_type="application/xml")
+        elif form == RecForm.html or "text/html" in request.headers.get("accept", ""):
+                html = rec_html(app,prof,nr)
+                call_record_hook("read_post",app,prof,nr,user)
+                return HTMLResponse(content=html)
+        elif form == RecForm.xml or "application/xml" in request.headers.get("accept", ""):
+            with open(record_file, 'r') as file:
+                rec = file.read()
+                call_record_hook("read_post",app,prof,nr,user)
+                return Response(content=rec, media_type="application/xml")
+
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not supported")
+    
+
+    #    time = getTime(closest_epoch) # voor nu uit records.py , misschien een utilities.py of is dat de commons.py? Overleg met MW
+    # return time
+
 class RecForm(str, Enum):
     json = "json"
     xml = "xml"

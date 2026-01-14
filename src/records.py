@@ -3,9 +3,19 @@ import os
 import datetime
 import toml
 from datetime import timezone 
+
 from saxonche import PySaxonProcessor
 from src.commons import settings, convert_toml_to_xml, def_user
 from src.profiles import prof_xml
+
+from time import strftime, localtime
+from datetime import datetime
+import math
+import glob
+import operator
+
+
+
 
 def rec_html(app,prof,nr):
     logging.info(f"app[{app}] prof[{prof}] rec[{nr}] get HTML")
@@ -143,3 +153,48 @@ def rec_update(app: str, prof: str, nr: str, rec: str) -> str:
         logging.info(f"new version[{record_file}] when[{rwhen}] user[{ruser}]")
 
         return "OK", rwhen
+    
+def rec_history(app: str, prof: str, nr: str):
+    res = {
+        "nr": nr,
+        "history" : []
+    }
+    record_file = f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}/records/record-{nr}.xml"  
+    cur = version(record_file, app)
+    res["history"].append(cur)
+    
+    hystery = []
+    for record_file in glob.iglob(f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}/records/history/record-{nr}.*.xml"): 
+        ver = version(record_file, app) 
+        hystery.append(ver)
+
+    # https://favtutor.com/blogs/glob-python
+
+    hystery.sort(key=operator.itemgetter('epoch'), reverse=True)
+    # https://realpython.com/sort-python-dictionary/
+    for ver in hystery:
+        res["history"].append(ver)
+
+    return res
+
+def version(record_file, app):
+    with PySaxonProcessor(license=False) as proc:
+        xpproc = proc.new_xpath_processor()
+        xpproc.declare_namespace('clariah','http://www.clariah.eu/')
+        xpproc.set_context(file_name=record_file)
+        when = xpproc.evaluate_single("string((/*:CMD/*:Header/*:MdCreationDate/@clariah:epoch,/*:CMD/*:Header/*:MdCreationDate,'unknown')[1])").get_string_value() 
+        if '-' in when:
+            utc_time = datetime.strptime(f"{when}T00:00:00.000Z", "%Y-%m-%dT%H:%M:%S.%fZ")
+            when = math.floor((utc_time - datetime(1970, 1, 1)).total_seconds())
+        else:
+            when = int(when)
+        timestamp = strftime('%Y-%m-%d %H:%M:%S', localtime(when))            
+        user = xpproc.evaluate_single(f"string((/*:CMD/*:Header/*:MdCreator,'{def_user(app)}')[1])").get_string_value()
+
+        ver = {"epoch" :when, "user": user, "timestamp": timestamp }
+        return ver
+    
+
+def getTime(epoch):
+        time = datetime.fromtimestamp(int(epoch))        
+        return time

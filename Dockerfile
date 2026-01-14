@@ -34,9 +34,12 @@ RUN chown -R huc:huc ${BASE_DIR}
 USER huc
        
 ENV UV_COMPILE_BYTECODE=1
-
+# ENV UV_HTTP_TIMEOUT=120
+# RUN pip install pycparser==2.22 cffi==1.17.1 weasyprint==66.0
 RUN uv sync --frozen --no-dev
 
 ENV PATH="${BASE_DIR}/.venv/bin:$PATH"
+
+# ENTRYPOINT ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "1210", "--reload"]
 
 ENTRYPOINT ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "1210", "--workers", "4"]
