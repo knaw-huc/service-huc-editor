@@ -432,7 +432,7 @@ def get_version(request: Request, app: str, nr: str, epoch:str, prof: str | None
     logging.info(f"app[{app}] prof[{prof}] record[{nr}] form[{form}] accept[{request.headers.get("accept", "")}]")
 
 
-
+    print('Nu de history bepalen')
     # juiste history file bepalen
     data_dict = rec_history(app, prof, nr)
     # data_dict = json.loads(raw_json)

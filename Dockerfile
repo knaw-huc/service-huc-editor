@@ -40,6 +40,6 @@ RUN uv sync --frozen --no-dev
 
 ENV PATH="${BASE_DIR}/.venv/bin:$PATH"
 
-# ENTRYPOINT ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "1210", "--reload"]
+ENTRYPOINT ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "1210", "--reload"]
 
-ENTRYPOINT ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "1210", "--workers", "4"]
+# ENTRYPOINT ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "1210", "--workers", "4"]
