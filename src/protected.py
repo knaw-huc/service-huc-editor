@@ -388,14 +388,28 @@ def get_history(request: Request, app: str, nr: str, prof: str | None=None, user
     if not os.path.exists(record_file):
         logging.debug(f"{record_file} doesn't exist")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    return rec_history(app,prof,nr)
+    
+    # determine how to serve it? determination by URL? (probably not right...)
+    history = rec_history(app, prof, nr)
+    if "text/html" in request.headers.get("accept", ""):
+        jsonstring = json.dumps(history); # platte json van maken
+        with PySaxonProcessor(license=False) as proc:
+            xsltproc = proc.new_xslt30_processor()
+            xsltproc.set_cwd(os.getcwd())
+            executable = xsltproc.compile_stylesheet(stylesheet_file=f"{settings.xslt_dir}/history2html.xsl")
+            executable.set_parameter("js-doc", proc.make_string_value(jsonstring))
+            result = executable.call_template_returning_string("main")
+            return HTMLResponse(content=result)
+    else:
+        return history
+   
 
 @router.get('/app/{app}/record/{nr}/history/{epoch}')
 @router.get('/app/{app}/profile/{prof}/record/{nr}/history/{epoch}')
 def get_version(request: Request, app: str, nr: str, epoch:str, prof: str | None=None, user: Optional[str] = Depends(get_user_with_app)):
     # yes it works also http://localhost:1210/app/stalling/profile/clarin.eu:cr1:p_1708423613607/record/3.xml/history/1767225600 with the same extensions to the record number for a correct format
     
-    # TODO specifieke versie van een record tonen
+    # DONE specifieke versie van een record tonen
     # http://localhost:1210/app/stalling/profile/clarin.eu:cr1:p_1708423613607/record/3/history/1767225600 
     # 1-1-2026 00:00:00
     
@@ -432,7 +446,7 @@ def get_version(request: Request, app: str, nr: str, epoch:str, prof: str | None
     logging.info(f"app[{app}] prof[{prof}] record[{nr}] form[{form}] accept[{request.headers.get("accept", "")}]")
 
 
-    print('Nu de history bepalen')
+    print('History ')
     # juiste history file bepalen
     data_dict = rec_history(app, prof, nr)
     # data_dict = json.loads(raw_json)
