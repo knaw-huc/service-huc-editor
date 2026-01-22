@@ -4,6 +4,8 @@ MvdP work on the service editor.
 
 ## 22-1-2026
 
+- failed addition of datatable listrecs.xsl should be helping
+- TODO to make it work in Oxygen..
 - TODO en discuss html does not change when you click on different links. 
 
 test:
