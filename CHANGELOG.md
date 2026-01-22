@@ -4,6 +4,24 @@ MvdP work on the service editor.
 
 ## 22-1-2026
 
+- TODO en discuss html does not change when you click on different links. 
+
+test:
+
+    http://localhost:1210/app/stalling/profile/clarin.eu:cr1:p_1708423613607/record/3/history/1753883036
+    http://localhost:1210/app/stalling/profile/clarin.eu:cr1:p_1708423613607/record/3/history/1768393812
+
+are all the same. But:
+    http://localhost:1210/app/stalling/profile/clarin.eu:cr1:p_1708423613607/record/3.xml/history/1753883036
+    http://localhost:1210/app/stalling/profile/clarin.eu:cr1:p_1708423613607/record/3.xml/history/1768393812
+
+are not the same. in protected.py a html record is created on the basis of nr, prof and app. So that will be naturaly the most recent one.
+
+    elif form == RecForm.html or "text/html" in request.headers.get("accept", ""):
+        html = rec_html(app,prof,nr)
+        call_record_hook("read_post",app,prof,nr,user)
+        return HTMLResponse(content=html)
+
 To test http://localhost:1210/app/stalling/profile/clarin.eu:cr1:p_1708423613607/record/1/history and click on records
 
 - link in created html to single record

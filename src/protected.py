@@ -492,6 +492,12 @@ def get_version(request: Request, app: str, nr: str, epoch:str, prof: str | None
                 html = rec_html(app,prof,nr)
                 call_record_hook("read_post",app,prof,nr,user)
                 return HTMLResponse(content=html)
+        # dit misschien een oplossing? Nee misschien moet rec_html aangepast worden voor andere input?
+        # elif form == RecForm.html or "text/html" in request.headers.get("accept", ""):
+        #      with open(record_file, 'r') as file:
+        #         rec = file.read()
+        #         call_record_hook("read_post",app,prof,nr,user)
+        #         return Response(content=rec, media_type="application/html")
         elif form == RecForm.xml or "application/xml" in request.headers.get("accept", ""):
             with open(record_file, 'r') as file:
                 rec = file.read()
