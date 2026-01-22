@@ -4,6 +4,12 @@ MvdP work on the service editor.
 
 ## 22-1-2026
 
+To test http://localhost:1210/app/stalling/profile/clarin.eu:cr1:p_1708423613607/record/1/history and click on records
+
+- link in created html to single record
+- Dockerfile optimization:copy dependency files first, code last
+- content negotiation 
+- table view, adapted xslt more suitable for PySaxonProcessor && Oxygen (parameters, named template, json2xml integrated in hitory2html)
 - started integration xslt in FastAPI, uncertain yet how exactly 
 - removed hooks from stalling
 
