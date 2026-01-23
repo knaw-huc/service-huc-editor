@@ -44,4 +44,5 @@ RUN chown -R huc:huc ${BASE_DIR}
 USER huc
 
 # ENTRYPOINT ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "1210", "--reload"]
-ENTRYPOINT ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "1210", "--workers", "4"]
+# ENTRYPOINT ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "1210", "--workers", "4"]
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "1210",  "--workers", "4"]
