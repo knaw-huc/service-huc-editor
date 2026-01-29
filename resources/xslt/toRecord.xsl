@@ -14,7 +14,7 @@
     <xsl:param name="cmd-uri" select="'http://www.clarin.eu/cmd/1'"/>
     <xsl:param name="cr-uri" select="'https://catalog.clarin.eu/ds/ComponentRegistry/rest/registry'"/>
     <xsl:variable name="cmd-profiles" select="concat($cmd-uri,'/profiles')"/>
-    <xsl:variable name="cmd-profile-uri" select="concat($cmd-profiles,$prof)"/>
+    <xsl:variable name="cmd-profile-uri" select="concat($cmd-profiles,'/',$prof)"/>
     
     <xsl:template match="text()"/>
     
