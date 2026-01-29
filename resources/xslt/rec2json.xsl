@@ -35,12 +35,14 @@
                 </xsl:if>
                 <js:string key="id" xsl:expand-text="yes">{*:Header/*:MdProfile}</js:string>
                 <js:string key="when" xsl:expand-text="yes">{(*:Header/*:MdCreationDate/@*:epoch,*:Header/*:MdCreationDate)[1]}</js:string>
-            <xsl:apply-templates select="$prof-xml" mode="prof"/>
-            <js:array key="record">
-                <xsl:apply-templates/>
-                <!-- resources -->
-                <js:array/>
-            </js:array>
+                <xsl:if test="exists($prof-xml)">
+                    <xsl:apply-templates select="$prof-xml" mode="prof"/>
+                </xsl:if>
+                <js:array key="record">
+                    <xsl:apply-templates/>
+                    <!-- resources -->
+                    <js:array/>
+                </js:array>
             </js:map>
         </xsl:variable>
         <!--<xsl:copy-of select="$rec"/>-->
