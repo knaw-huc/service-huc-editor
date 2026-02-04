@@ -2,10 +2,14 @@
 
 MvdP work on the service editor.
 
+## 4-2-2026
+
+After work on the stallings editor, integrate it in service-huc-editor. For now in the branch dev-history
+
 ## 22-1-2026
 
 - failed addition of datatable listrecs.xsl should be helping
-- TODO to make it work in Oxygen..
+- TODO to make it work in Oxygen.. DONE
 - TODO en discuss html does not change when you click on different links. 
 
 test:
