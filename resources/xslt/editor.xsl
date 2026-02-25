@@ -98,14 +98,8 @@
                                 setStatus('under construction');
 
                             var rec = [];
-                            $(".clonedComponent").each(function () {{
-                                $(this).attr("class", "component");
-                            }});
-                            $(".hidden_element").each(function () {{
-                                $(this).removeClass("hidden_element");
-                            }});
                             $("#ccform").children().each(function () {{
-                                if ($(this).attr("class") === "component") {{
+                                if ($(this).attr("class") === "component" || $(this).attr("class") === "clonedComponent") {{
                                     var element = {{}};
                                     element.name = $(this).attr("data-name");
                                     element.type = 'component';
