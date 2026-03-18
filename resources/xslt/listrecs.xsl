@@ -105,7 +105,7 @@
                                 <xsl:copy-of select="$NS"/>
                             </xsl:comment>
                             <h2 xsl:expand-text="yes">list of {(./label_en,local-name())[1]} records</h2>
-                            <div class="action_menu">
+                                <div class="action_menu">
                                 <xsl:for-each select="$config/config/app/hooks/action/*[normalize-space(level)='' or tokenize(level)='prof']">
                                     <xsl:if test="position()=1">
                                         <xsl:text>[ </xsl:text>
@@ -156,7 +156,7 @@
                                             </xsl:choose>
                                         </th>
                                         <th/>
-                                        <!--<th/>-->
+                                        <th/>
                                         <th/>
                                         <th/>
                                         <th/>
@@ -219,6 +219,21 @@
                                                         <xsl:otherwise>
                                                             <a title="Delete" class="myBtn delete" id="myBtn1" onclick="deleteRecord('{$url}');">
                                                                 <img src="{$base}/static/img/bin.png" height="16px" width="16px"/>
+                                                            </a>
+                                                        </xsl:otherwise>
+                                                    </xsl:choose>
+                                                </td>
+                                                <td>
+                                                    <xsl:choose>
+                                                        <xsl:when test="($config/config/app/access/read,'any')[1]='owner' and $user!=$owner">
+                                                            <xsl:text>&#160;</xsl:text>
+                                                        </xsl:when>
+                                                        <xsl:when test="($config/config/app/access/read,'any')[1]='user' and $user='anonymous'">
+                                                            <xsl:text>&#160;</xsl:text>
+                                                        </xsl:when>
+                                                        <xsl:otherwise>
+                                                            <a title="History" class="myBtn history" href="{$url}/history">
+                                                                <img src="{$base}/static/img/history.png" height="16px" width="16px"/>
                                                             </a>
                                                         </xsl:otherwise>
                                                     </xsl:choose>
