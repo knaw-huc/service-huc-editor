@@ -418,7 +418,7 @@ def get_history(request: Request, app: str, nr: str, prof: str | None=None, user
 
 @router.get('/app/{app}/record/{nr}/history/{epoch}')
 @router.get('/app/{app}/profile/{prof}/record/{nr}/history/{epoch}')
-def get_version(request: Request, app: str, nr: str, epoch:int, prof: str | None=None, user: Optional[str] = Depends(get_user_with_app)):
+def get_version(request: Request, app: str, nr: int, epoch:str, prof: str | None=None, user: Optional[str] = Depends(get_user_with_app)):
     # yes it works also http://localhost:1210/app/stalling/profile/clarin.eu:cr1:p_1708423613607/record/3.xml/history/1767225600 with the same extensions to the record number for a correct format
     
     # DONE specifieke versie van een record tonen
@@ -436,10 +436,10 @@ def get_version(request: Request, app: str, nr: str, epoch:int, prof: str | None
         with open(config_file, 'r') as f:
             config = toml.load(f)
             prof = config['app']['def_prof'] 
-    if nr.count('.') == 0:
+    if epoch.count('.') == 0:
         form = "html"
-    elif nr.count('.') == 1:
-        nr, form = nr.rsplit('.', 1)
+    elif epoch.count('.') == 1:
+        epoch, form = epoch.rsplit('.', 1)
     else:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not supported")
 
@@ -463,7 +463,7 @@ def get_version(request: Request, app: str, nr: str, epoch:int, prof: str | None
     data_dict = rec_history(app, prof, nr)
     # data_dict = json.loads(raw_json)
     epochs = [item['epoch'] for item in data_dict['history']]
-    # epoch = int(epoch)  # unix timestamp, given in url, hoeft niet meer als ik hem in de aanhef declareer als int
+    epoch = int(epoch)  # unix timestamp, given in url
     closest_epoch = min(epochs, key=lambda x: abs(x - epoch))
     record_file = f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}/records/history/record-{nr}.{closest_epoch}.xml"
     print("record_file:", record_file)
@@ -489,7 +489,8 @@ def get_version(request: Request, app: str, nr: str, epoch:int, prof: str | None
                 call_record_hook("read_post",app,prof,nr,user)
                 return JSONResponse(content=jsonable_encoder(json.loads(result)))
         elif form == RecForm.pdf or "application/pdf" in request.headers.get("accept", ""):
-                html = rec_html(app,prof,nr)
+                # seems that further in the processing nr is expected to be a string...
+                html = rec_html(app,prof,str(nr))
                 pdf = HTML(string=html).write_pdf()
                 headers = {'Content-Disposition': f'inline; filename="{app}-record-{nr}.pdf"'}
                 call_record_hook("read_post",app,prof,nr,user)

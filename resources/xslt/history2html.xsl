@@ -58,7 +58,7 @@
                             </div>
                             <table id="records-{$recordnumber}" class="table table-bordered resultTable">
                                 <thead>                          
-                                    <tr><th>epoch</th><th>dateTime</th><th>user</th><th>CMDI</th><th>HTML</th><th>PDF</th></tr>
+                                    <tr><th>epoch</th><th>dateTime</th><th>user</th><th></th><th></th><th></th></tr>
                                 </thead>
                                 <tbody>
                                     <xsl:apply-templates select="fn:map/fn:array/fn:map"/>
@@ -109,21 +109,21 @@
                 
                 <xsl:variable name="url" select="concat($base, '/app/', $app, '/profile/', $prof, '/record/' , $recordnumber ,'.xml', '/history/' , $epoch) "/>
 <!--                <a href="{$recordnumber}.xml/history/{$epoch}">LINK</a>-->
-                <a href="{$url}">LINK</a>
+                <a href="{$url}">CMDI</a>
                 
 <!--                http://localhost:1210/app/stalling/profile/clarin.eu:cr1:p_1708423613607/record/3.xml/history/1769604182 goed-->
                 <!-- http://localhost:1210/app/stalling/profile/clarin.eu:cr1:p_1708423613607/record/3/3.xml/history/1769604182 slecht -->
 <!--                http://localhost:1210/app/stalling/profile/clarin.eu:cr1:p_1708423613607/record/3.xmlhistory/1769604190-->
             </td>
             <td>
-                <a href="history/{$epoch}">LINK</a>
+                <a href="history/{$epoch}">HTML</a>
                 
 <!--                http://localhost:1210/app/stalling/profile/clarin.eu:cr1:p_1708423613607/record/3/history/1769604182 goed-->
             </td>
             <td>
 <!--                <a href="history/{$epoch}.pdf">LINK</a>-->
-                <xsl:variable name="url" select="concat($base, '/app/', $app, '/profile/', $prof, '/record/' , $recordnumber ,'.pdf', '/history/' , $epoch) "/>
-                <a href="{$url}">LINK</a>
+                <xsl:variable name="url" select="concat($base, '/app/', $app, '/profile/', $prof, '/record/' , $recordnumber , '/history/' , $epoch,'.pdf') "/>
+                <a href="{$url}">PDF</a>
                 
                 
             </td>
