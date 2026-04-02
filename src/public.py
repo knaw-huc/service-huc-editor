@@ -116,8 +116,10 @@ def get_proxy_skosmos_home(inst:str,vocab:str | None=None):
         
 @router.get('/proxy/skosmos/{inst}')
 @router.get('/proxy/skosmos/{inst}/{vocab}')
-def get_proxy_skosmos(inst:str,vocab:str | None=None,q: str | None = "*"):
-    logging.info(f"proxy skosmos[{inst}] vocab[{vocab}] q[{q}]")
+@router.get('/proxy/skosmos/{inst}/{vocab}/{label}')
+@router.get('/proxy/skosmos/{inst}/{vocab}/{label}/{value}')
+def get_proxy_skosmos(inst:str,vocab:str | None=None,label:str | None="prefLabel",value:str | None="prefLabel",q: str | None = "*"):
+    logging.info(f"proxy skosmos[{inst}] vocab[{vocab}] label[{label}] value[{value}] q[{q}]")
     proxy_file = f"{settings.proxies_dir}/skosmos-{inst}.toml"
     logging.info(f"proxy config[{proxy_file}]")
     if not os.path.isfile(proxy_file):
@@ -145,8 +147,8 @@ def get_proxy_skosmos(inst:str,vocab:str | None=None,q: str | None = "*"):
 
         entries = []
         for res in js['results']:
-            data = {'label': res['prefLabel'],'uri': res['uri']}
-            entry = {'value': data['label'],'data': data}
+            data = {'label': res[label],'value': res[value],'uri': res['uri']}
+            entry = {'value': res[label],'data': data}
             entries.append(entry)
 
         res = {'query':"unit", 'suggestions':entries}
