@@ -1,5 +1,6 @@
 [default]
 service_name = "huc-editor-service"
+service_version = "@format {env[CCF_VERSION]}"
 #FastAPI
 fastapi_title = "HuC Editor API Service"
 fastapi_description = ""

@@ -29,7 +29,7 @@ def info():
     """
     logging.info("HuC Editor API Service")
     logging.debug("info")
-    return {"name": "HuC Editor API Service", "version": data["service-version"]}
+    return {"name": settings.service_name, "version": settings.service_version}
 
 @router.get('/proxy/nominatim/{inst}')
 def get_proxy_nominatim(inst:str,q: str | None = None):
@@ -117,8 +117,9 @@ def get_proxy_skosmos_home(inst:str,vocab:str | None=None):
 @router.get('/proxy/skosmos/{inst}')
 @router.get('/proxy/skosmos/{inst}/{vocab}')
 @router.get('/proxy/skosmos/{inst}/{vocab}/{label}')
-@router.get('/proxy/skosmos/{inst}/{vocab}/{label}/{value}')
-def get_proxy_skosmos(inst:str,vocab:str | None=None,label:str | None="prefLabel",value:str | None="prefLabel",q: str | None = "*"):
+@router.get('/proxy/skosmos/{inst}/{vocab}/{label}/{lang}')
+@router.get('/proxy/skosmos/{inst}/{vocab}/{label}/{lang}/{value}')
+def get_proxy_skosmos(inst:str,vocab:str | None=None,label:str | None="prefLabel",lang:str | None="en",value:str | None="prefLabel",q: str | None = "*"):
     logging.info(f"proxy skosmos[{inst}] vocab[{vocab}] label[{label}] value[{value}] q[{q}]")
     proxy_file = f"{settings.proxies_dir}/skosmos-{inst}.toml"
     logging.info(f"proxy config[{proxy_file}]")
@@ -138,7 +139,7 @@ def get_proxy_skosmos(inst:str,vocab:str | None=None,label:str | None="prefLabel
 
         logging.info(f"proxy skosmos[{inst}] vocab[{vocab}] q[{q}]")
         url=f"{proxy['base']['url']}/rest/v1/{vocab}/search"
-        params = {'unique': 'yes','lang': 'en','query': q}
+        params = {'unique': 'yes','lang': lang,'query': q}
 
         r = requests.get(url, params=params)
         logging.info(f"proxy[{r.url}] [{r.text}]")

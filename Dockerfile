@@ -15,6 +15,7 @@ WORKDIR /home/huc
 ENV PYTHONPATH=/home/huc/huc-editor-service:/home/huc/huc-editor-service/data
 ENV BASE_DIR=/home/huc/huc-editor-service
 ENV BASE_URL=${BASE_URL:-"http://localhost:1210"}
+ENV CCF_VERSION=2.0-RC11
 
 RUN mkdir -p ${BASE_DIR}
 WORKDIR ${BASE_DIR}
