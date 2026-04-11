@@ -20,6 +20,12 @@ var ccfOptions = {
         actionURI: 'javascript:recBrowser()',
         label: 'Back'
     },
+    yes: {
+        label: 'yes'
+    },
+    no: {
+        label: 'no'
+    },
     language: 'en',
     alert: {
       mandatory_field: 'This field is mandatory!',
