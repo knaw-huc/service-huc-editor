@@ -725,9 +725,3 @@ def get_action(req: Request, app: str, action: str, prof: str | None=None, nr: s
     #    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
     return call_action_hook(req,action,app,prof,nr,user)
 
-# test
-@router.get('/app/{app}/medewerker')
-def getMedewerker():
-    medewerker = {"naam": 'Maarten'}
-    print(medewerker)
-    return medewerker
