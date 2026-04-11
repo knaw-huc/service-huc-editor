@@ -21,6 +21,11 @@
             <head>
                 <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
                 <title>{$config/config/app/title}</title>
+                
+                <link rel="stylesheet" href="{$cdn}/css/ccfstyle.css" type="text/css"/>
+                <link rel="stylesheet" href="{$cdn}/css/autocomplete.css" type="text/css"/>
+                <link rel="stylesheet" href="{$cdn}/css/jquery-ui.css" type="text/css"/>
+                <link rel="stylesheet" href="{$cdn}/js/plugins/skos_list/skos_list.css" type="text/css"/>
                 <xsl:choose>
                     <xsl:when test="normalize-space($config/config/app/html/style)!=''">
                         <link rel="stylesheet" href="{$base}/app/{$app}/static/css/{$config/config/app/html/style}" type="text/css"/>
@@ -30,20 +35,26 @@
                     </xsl:otherwise>
                 </xsl:choose>
                 
-                <link rel="stylesheet" href="{$cdn}/css/ccfstyle.css" type="text/css"/>
-                <link rel="stylesheet" href="{$cdn}/css/autocomplete.css" type="text/css"/>
-                <link rel="stylesheet" href="{$cdn}/css/jquery-ui.css" type="text/css"/>
                 <script type="text/javascript" src="{$cdn}/js/jquery-3.2.1.min.js"><xsl:comment>keep alive</xsl:comment></script>
                 <script type="text/javascript" src="{$cdn}/js/jquery.autocomplete.js"><xsl:comment>keep alive</xsl:comment></script>
                 <script type="text/javascript" src="{$cdn}/js/jquery-ui/jquery-ui.js"><xsl:comment>keep alive</xsl:comment></script>
                 <script type="text/javascript" src="{$base}/static/js/ccf_config_en.js"><xsl:comment>keep alive</xsl:comment></script>
                 <script type="text/javascript" src="{$cdn}/js/ccfparser.js"><xsl:comment>keep alive</xsl:comment></script>
                 <script type="text/javascript" src="{$cdn}/js/plugins/skos_list/skos_list.js"><xsl:comment>keep alive</xsl:comment></script>
-                <link rel="stylesheet" href="{$cdn}/js/plugins/skos_list/skos_list.css" type="text/css"/>                
+                <script src="https://cdn.jsdelivr.net/npm/marked/lib/marked.umd.js"><xsl:comment>keep alive</xsl:comment></script>
+                <xsl:if test="normalize-space($config/config/app/js/ascript)!=''">
+                    <script type="text/javascript" src="{$base}/app/{$app}/static/js/{$config/config/app/js/script}"/>           
+                </xsl:if>
+                
                 <script>
-                    <xsl:text>
                         var inRec = null;
                         var outRec = null;
+
+                        function ccfInit(page) {{
+                        <xsl:if test="normalize-space($config/config/app/js/init)!=''">
+                            <xsl:text expand-text="yes">{normalize-space($config/config/app/js/init)};</xsl:text>           
+                        </xsl:if>
+                        }}
                         
                         function setStatus(status) {{
                             let id = document.evaluate('//select[@data-class="status"]/@id',document,null,XPathResult.STRING_TYPE,null).stringValue;
@@ -167,7 +178,6 @@
                             }}
                         }}
 
-                    </xsl:text>
                     <xsl:choose>
                         <xsl:when test="normalize-space($nr)!=''">
                             <xsl:text>
@@ -192,6 +202,7 @@
                                                 }}
                                             }}
                                         );
+                                        ccfInit('editor');
                                     }}
                                 )
                             </xsl:text>
@@ -220,6 +231,7 @@
                                             }}
                                         }}
                                         );
+                                        ccfInit('editor');
                                     }}
                                 )
                             </xsl:text>

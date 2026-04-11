@@ -22,10 +22,19 @@
                 <script type="text/javascript" src="{$base}/static/js/lib/jquery-ui/jquery-ui.js"><xsl:comment>keep alive</xsl:comment></script>
                 <script type="text/javascript" src="{$base}/static/js/lib/jquery-ui/jquery-ui.js"><xsl:comment>keep alive</xsl:comment></script>
                 <script type="text/javascript" src="{$base}/static/js/lib/datatable.min.js"><xsl:comment>keep alive</xsl:comment></script>
+                <xsl:if test="normalize-space($config/config/app/js/script)!=''">
+                    <script type="text/javascript" src="{$base}/app/{$app}/static/js/{$config/config/app/js/script}"/>           
+                </xsl:if>
                 <script>
-                        //$('document').ready(function(){{
-                        //    setEvents();
-                        //}});
+                        $('document').ready(function(){{
+                            ccfInit('list');
+                        }});
+                        
+                        function ccfInit(page) {{
+                        <xsl:if test="normalize-space($config/config/app/js/init)!=''">
+                            <xsl:text expand-text="yes">{normalize-space($config/config/app/js/init)};</xsl:text>           
+                        </xsl:if>
+                        }}
                         
                         function deleteRecord(rec) {{
                             var answer = confirm('Dit record wordt verwijderd! This record will be removed! OK?');
@@ -63,7 +72,21 @@
                                 <xsl:text>[ </xsl:text>
                             </xsl:if>
                             <xsl:variable name="action" select="."/>
-                            <a xsl:expand-text="yes" href="{$base}/app/{$app}/action/{local-name($action)}" class="action {local-name($action)}" id="action_{local-name($action)}" target="action_{local-name($action)}">{$action/label}</a>
+                            <xsl:comment expand-text="yes">
+                                action: {local-name($action)}
+                                endpoint: {endpoint}
+                            </xsl:comment>
+                            <a xsl:expand-text="yes" class="app action {local-name($action)}" id="action_{local-name($action)}" target="action_{local-name($action)}">
+                                <xsl:choose>
+                                    <xsl:when test="starts-with(endpoint,'javascript:')">
+                                        <xsl:attribute name="onclick" select="endpoint"/>
+                                    </xsl:when>
+                                    <xsl:otherwise>
+                                        <xsl:attribute name="href" select="concat($base,'/app/',$app,'/action/',(normalize-space(endpoint),local-name($action))[1])"/>
+                                    </xsl:otherwise>
+                                </xsl:choose>
+                                <xsl:value-of select="$action/label"/>
+                            </a>
                             <xsl:choose>
                                 <xsl:when test="position() = last()">
                                     <xsl:text> ]</xsl:text>
@@ -105,21 +128,39 @@
                                 <xsl:copy-of select="$NS"/>
                             </xsl:comment>
                             <h2 xsl:expand-text="yes">list of {(./label_en,local-name())[1]} records</h2>
-                                <div class="action_menu">
-                                <xsl:for-each select="$config/config/app/hooks/action/*[normalize-space(level)='' or tokenize(level)='prof']">
-                                    <xsl:if test="position()=1">
-                                        <xsl:text>[ </xsl:text>
-                                    </xsl:if>
+                            <div class="action_menu">
+                                <xsl:for-each select="$config/config/app/hooks/action/*">
                                     <xsl:variable name="action" select="."/>
-                                        <a xsl:expand-text="yes" href="{$base}/app/{$app}/profile/{$prof}/action/{local-name($action)}" class="action {local-name($action)}" id="action_{local-name($action)}" target="action_{local-name($action)}">{$action/label}</a>
-                                    <xsl:choose>
-                                        <xsl:when test="position() = last()">
-                                            <xsl:text> ]</xsl:text>
-                                        </xsl:when>
-                                        <xsl:otherwise>
-                                            <xsl:text> | </xsl:text>
-                                        </xsl:otherwise>
-                                    </xsl:choose>
+                                    <xsl:comment expand-text="yes">
+                                        action: {local-name($action)}
+                                        level: {level} [{normalize-space(level) => tokenize()=('','prof')}]
+                                        profile: {prof} [={$prof}? { normalize-space(prof)=('',$prof)}]
+                                        endpoint: {endpoint}
+                                    </xsl:comment>
+                                    <xsl:if test="normalize-space(level)=>tokenize()=('','prof') and normalize-space(prof)=('',$prof)">
+                                        <xsl:if test="position()=1">
+                                            <xsl:text>[ </xsl:text>
+                                        </xsl:if>
+                                        <a xsl:expand-text="yes" class="prof action {local-name($action)}" id="action_{local-name($action)}" target="action_{local-name($action)}">
+                                            <xsl:choose>
+                                                <xsl:when test="starts-with(endpoint,'javascript:')">
+                                                    <xsl:attribute name="onclick" select="endpoint"/>
+                                                </xsl:when>
+                                                <xsl:otherwise>
+                                                    <xsl:attribute name="href" select="concat($base,'/app/',$app,'/profile/',$prof,'/action/',(normalize-space(endpoint),local-name($action))[1])"/>
+                                                </xsl:otherwise>
+                                            </xsl:choose>
+                                            <xsl:value-of select="$action/label"/>
+                                        </a>
+                                        <xsl:choose>
+                                            <xsl:when test="position() = last()">
+                                                <xsl:text> ]</xsl:text>
+                                            </xsl:when>
+                                            <xsl:otherwise>
+                                                <xsl:text> | </xsl:text>
+                                            </xsl:otherwise>
+                                        </xsl:choose>
+                                    </xsl:if>
                                 </xsl:for-each>
                             </div>
                             <table id="records-{local-name()}" class="table table-bordered resultTable">
@@ -160,7 +201,7 @@
                                         <th/>
                                         <th/>
                                         <th/>
-                                        <xsl:for-each select="$config/config/app/hooks/action/*[tokenize(level)='rec'][normalize-space(prof)='' or prof=$prof]">
+                                        <xsl:for-each select="$config/config/app/hooks/action/*[tokenize(level)='rec'][normalize-space(prof)=('',$prof)]">
                                             <th/>
                                         </xsl:for-each>
                                     </tr>
@@ -277,7 +318,7 @@
                                                         </xsl:otherwise>
                                                     </xsl:choose>
                                                 </td>
-                                                <xsl:for-each select="$config/config/app/hooks/action/*[tokenize(level)='rec'][normalize-space(prof)='' or prof=$prof]">
+                                                <xsl:for-each select="$config/config/app/hooks/action/*[tokenize(level)='rec'][normalize-space(prof)=('',$prof)]">
                                                     <xsl:variable name="action" select="."/>
                                                     <xsl:variable name="enabled" as="xs:boolean">
                                                         <xsl:choose>
@@ -301,12 +342,22 @@
                                                     <xsl:choose>
                                                         <xsl:when test="$enabled">
                                                             <td>
-                                                                <a xsl:expand-text="yes" href="{$base}/app/{$app}/profile/{$prof}/record/{$nr}/action/{local-name($action)}" class="action {local-name($action)}" id="action_{local-name($action)}" target="action_{local-name($action)}">{$action/label}</a>
+                                                                <a xsl:expand-text="yes" class="rec action {local-name($action)}" id="action_{local-name($action)}" target="action_{local-name($action)}">
+                                                                    <xsl:choose>
+                                                                        <xsl:when test="starts-with(endpoint,'javascript:')">
+                                                                            <xsl:attribute name="onclick" select="endpoint"/>
+                                                                        </xsl:when>
+                                                                        <xsl:otherwise>
+                                                                            <xsl:attribute name="href" select="concat($base,'/app/',$app,'/profile/',$prof,'/record/',$nr,'/action/',(normalize-space(endpoint),local-name($action))[1])"/>
+                                                                        </xsl:otherwise>
+                                                                    </xsl:choose>
+                                                                    <xsl:value-of select="$action/label"/>
+                                                                </a>
                                                             </td>
                                                         </xsl:when>
                                                         <xsl:otherwise>
                                                             <td>
-                                                                <a xsl:expand-text="yes" class="action {local-name($action)} disabled" id="action_{local-name($action)}">{$action/label}</a>
+                                                                <a xsl:expand-text="yes" class="rec action {local-name($action)} disabled" id="action_{local-name($action)}">{$action/label}</a>
                                                             </td>
                                                         </xsl:otherwise>
                                                     </xsl:choose>
