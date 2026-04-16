@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    xmlns:math="http://www.w3.org/2005/xpath-functions/math"
+    xmlns:js="http://www.w3.org/2005/xpath-functions" exclude-result-prefixes="xs math js"
+    version="3.0">
+
+    <xsl:output method="text" encoding="UTF-8"/>
+
+    <xsl:param name="rec-nr" select="replace(base-uri(),'.*record-(\d+).xml','$1')"/>
+    <xsl:param name="prof-doc" select="()"/>
+    <xsl:param name="prof-xml" select="()"/>
+
+    <xsl:template match="text()"/>
+
+    <xsl:template match="node() | @*" mode="prof">
+        <xsl:copy>
+            <xsl:apply-templates select="node() | @*" mode="#current"/>
+        </xsl:copy>
+    </xsl:template>
+
+    <xsl:template match="/js:map" mode="prof">
+        <xsl:copy>
+            <xsl:attribute name="key" select="'content'"/>
+            <xsl:apply-templates select="@* | node()" mode="#current"/>
+        </xsl:copy>
+    </xsl:template>
+
+    <xsl:template match="/*:CMD">
+        <xsl:variable name="rec">
+            <js:map>
+                <xsl:if test="js:normalize-space($rec-nr) != ''">
+                    <js:string key="nr" xsl:expand-text="yes"
+                        >{js:normalize-space($rec-nr)}</js:string>
+                </xsl:if>
+                <js:string key="id" xsl:expand-text="yes">{*:Header/*:MdProfile}</js:string>
+                <js:string key="when" xsl:expand-text="yes"
+                    >{(*:Header/*:MdCreationDate/@*:epoch,*:Header/*:MdCreationDate)[1]}</js:string>
+                <js:map key="record">
+                    <xsl:apply-templates select="//*:Components/*"/>
+                </js:map>
+            </js:map>
+        </xsl:variable>
+        <!--<xsl:copy-of select="$rec"/>-->
+        <xsl:value-of select="js:xml-to-json($rec)"/>
+    </xsl:template>
+    
+    <xsl:template match="@*">
+        <js:string key="@{local-name()}">
+            <xsl:value-of select="."/>
+        </js:string>
+    </xsl:template>
+
+    <xsl:template match="*">
+        <xsl:variable name="name" select="local-name()"/>
+        <xsl:choose>
+            <xsl:when test="exists(*)">
+                <js:map>
+                    <xsl:if test="empty((preceding-sibling::*,following-sibling::*)[local-name()=$name])">
+                        <xsl:attribute name="key" select="$name"/>
+                    </xsl:if>
+                    <xsl:if test="exists(@*)">
+                        <xsl:apply-templates select="@*"/>
+                    </xsl:if>
+                    <xsl:for-each-group select="*" group-by="local-name()">
+                        <xsl:choose>
+                            <xsl:when test="count(current-group())=1">
+                                <xsl:apply-templates select="current-group()"/>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <js:array key="{current-grouping-key()}">
+                                    <xsl:apply-templates select="current-group()"/>
+                                </js:array>
+                            </xsl:otherwise>
+                        </xsl:choose>
+                    </xsl:for-each-group>
+                </js:map>
+            </xsl:when>
+            <xsl:otherwise>
+                <js:map>
+                    <xsl:if test="empty((preceding-sibling::*,following-sibling::*)[local-name()=$name])">
+                        <xsl:attribute name="key" select="$name"/>
+                    </xsl:if>
+                    <xsl:apply-templates select="@*"/>
+                    <js:string key="@value">
+                        <xsl:value-of select="."/>
+                    </js:string>
+                </js:map>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+
+    <xsl:template match="@*:valueConceptLink">
+        <js:string key="@valueConceptLink" xsl:expand-text="yes">{string(.)}</js:string>
+    </xsl:template>
+
+    <xsl:template match="@xml:lang">
+        <js:string key="@language" xsl:expand-text="yes">{string(.)}</js:string>
+    </xsl:template>
+
+</xsl:stylesheet>
