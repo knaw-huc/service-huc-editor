@@ -435,7 +435,7 @@ def get_version(request: Request, app: str, nr: int, epoch:str, prof: str | None
             config = toml.load(f)
             prof = config['app']['def_prof'] 
     if epoch.count('.') == 0:
-        ext = "html"
+        ext = None
     elif epoch.count('.') == 1:
         epoch, ext = epoch.rsplit('.', 1)
     else:
@@ -479,7 +479,7 @@ def get_record(request: Request, app: str,  nr: str, prof: str | None=None, user
             config = toml.load(f)
             prof = config['app']['def_prof'] 
     if nr.count('.') == 0:
-        ext = "html"
+        ext = None
     elif nr.count('.') == 1:
         nr, ext = nr.rsplit('.', 1)
     else:
