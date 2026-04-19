@@ -18,13 +18,11 @@ from saxonche import PySaxonProcessor
 from starlette import status
 from starlette.responses import HTMLResponse,  JSONResponse, RedirectResponse
 
-from weasyprint import HTML
-
 from typing import Optional
 from enum import Enum
 
 from src.commons import settings, convert_toml_to_xml, call_record_hook, call_action_hook, allowed, def_user, api_keys
-from src.records import rec_html, rec_editor, rec_update, rec_history,  getTime
+from src.records import rec_html, rec_editor, rec_update, rec_history,  rec_form
 from src.profiles import prof_json, prof_xml
 
 router = APIRouter()
@@ -437,28 +435,17 @@ def get_version(request: Request, app: str, nr: int, epoch:str, prof: str | None
             config = toml.load(f)
             prof = config['app']['def_prof'] 
     if epoch.count('.') == 0:
-        form = "html"
+        ext = "html"
     elif epoch.count('.') == 1:
-        epoch, form = epoch.rsplit('.', 1)
+        epoch, ext = epoch.rsplit('.', 1)
     else:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not supported")
-
-    if form not in ["json", "xml", "html", "pdf"]:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not supported")
 
     if (not allowed(user,app,'read','any',prof,nr)):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
 
-    """
-    Endpoint to get a record based on its ID and the application name.
-    This endpoint accepts the application name and the ID as path parameters.
-    If the record does not exist, it returns a 404 error.
-    If the record exists but the reading functionality is not implemented yet, it returns a 501 error.
-    """
-    logging.info(f"app[{app}] prof[{prof}] record[{nr}] form[{form}] accept[{request.headers.get("accept", "")}]")
+    logging.info(f"app[{app}] prof[{prof}] record[{nr}] epoc[{epoch}]form[{ext}] accept[{request.headers.get("accept", "")}]")
 
-
-    print('History')
     # juiste history file bepalen
     data_dict = rec_history(app, prof, nr)
     # data_dict = json.loads(raw_json)
@@ -466,8 +453,6 @@ def get_version(request: Request, app: str, nr: int, epoch:str, prof: str | None
     epoch = int(epoch)  # unix timestamp, given in url
     closest_epoch = min(epochs, key=lambda x: abs(x - epoch))
     record_file = f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}/records/history/record-{nr}.{closest_epoch}.xml"
-    print("record_file:", record_file)
-    print("request headers:", request.headers.get("accept"))
 
     if not os.path.exists(record_file):
         logging.debug(f"{record_file} doesn't exist")
@@ -475,62 +460,15 @@ def get_version(request: Request, app: str, nr: int, epoch:str, prof: str | None
     
     with PySaxonProcessor(license=False) as proc:
         rec = proc.parse_xml(xml_file_name=record_file)
-        rec, msg = call_record_hook("read_pre",app,prof,nr,user,rec)
-        if rec == None:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
-        if form == "json" or "application/json" in request.headers.get("accept", ""):
-                prof_doc = prof_json(app, prof)
-                xsltproc = proc.new_xslt30_processor()
-                xsltproc.set_cwd(os.getcwd())
-                executable = xsltproc.compile_stylesheet(stylesheet_file=f"{settings.xslt_dir}/rec2json.xsl")
-                executable.set_parameter("prof-doc", proc.make_string_value(prof_doc))
-                executable.set_parameter("rec-nr", proc.make_string_value(nr))
-                result = executable.transform_to_string(xdm_node=rec)
-                call_record_hook("read_post",app,prof,nr,user)
-                return JSONResponse(content=jsonable_encoder(json.loads(result)))
-        elif form == RecForm.pdf or "application/pdf" in request.headers.get("accept", ""):
-                # seems that further in the processing nr is expected to be a string...
-                html = rec_html(app,prof,str(nr))
-                pdf = HTML(string=html).write_pdf()
-                headers = {'Content-Disposition': f'inline; filename="{app}-record-{nr}.pdf"'}
-                call_record_hook("read_post",app,prof,nr,user)
-                return Response(pdf, headers=headers, media_type='application/pdf')
-        # FF sends an Accept header with text/html and application/xml, we prefer html, 
-        # but first check for an explicit xml request
-        elif form == RecForm.xml:
-            with open(record_file, 'r') as file:
-                rec = file.read()
-                call_record_hook("read_post",app,prof,nr,user)
-                return Response(content=rec, media_type="application/xml")
-        elif form == RecForm.html or "text/html" in request.headers.get("accept", ""):
-                print('html verwerking, maar verkeerd record werd opgehaald, rec_html aangepast')
-                html = rec_html(app,prof,nr, record_file) # de html die hier uit komt is de laatste versie, deze is aangepast, extra param record_file?
-                # print("html:", html)
-                call_record_hook("read_post",app,prof,nr,user)
-                return HTMLResponse(content=html)
-        # dit misschien een oplossing? Nee misschien moet rec_html aangepast worden voor andere input?
-        # elif form == RecForm.html or "text/html" in request.headers.get("accept", ""):
-        #      with open(record_file, 'r') as file:
-        #         rec = file.read()
-        #         call_record_hook("read_post",app,prof,nr,user)
-        #         return Response(content=rec, media_type="application/html")
-        elif form == RecForm.xml or "application/xml" in request.headers.get("accept", ""):
-            with open(record_file, 'r') as file:
-                rec = file.read()
-                call_record_hook("read_post",app,prof,nr,user)
-                return Response(content=rec, media_type="application/xml")
+
+        (res, form, mime) = rec_form(app,prof,nr,proc,rec,ext,request.headers.get("accept"))
+                                     
+        if form in ['json','json2']:
+            return JSONResponse(content=jsonable_encoder(res))
+        else:
+            return Response(res, headers={'Content-Disposition': f'inline; filename="{app}-record-{nr}.{form}"'}, media_type=mime)
 
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not supported")
-    
-
-    #    time = getTime(closest_epoch) # voor nu uit records.py , misschien een utilities.py of is dat de commons.py? Overleg met MW
-    # return time
-
-class RecForm(str, Enum):
-    json = "json"
-    xml = "xml"
-    html = "html"
-    pdf = "pdf"
 
 @router.get('/app/{app}/record/{nr}')
 @router.get('/app/{app}/profile/{prof}/record/{nr}')
@@ -541,25 +479,16 @@ def get_record(request: Request, app: str,  nr: str, prof: str | None=None, user
             config = toml.load(f)
             prof = config['app']['def_prof'] 
     if nr.count('.') == 0:
-        form = "html"
+        ext = "html"
     elif nr.count('.') == 1:
-        nr, form = nr.rsplit('.', 1)
+        nr, ext = nr.rsplit('.', 1)
     else:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not supported")
-
-    if form not in ["json", "xml", "html", "pdf"]:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not supported")
-
+    
     if (not allowed(user,app,'read','any',prof,nr)):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
 
-    """
-    Endpoint to get a record based on its ID and the application name.
-    This endpoint accepts the application name and the ID as path parameters.
-    If the record does not exist, it returns a 404 error.
-    If the record exists but the reading functionality is not implemented yet, it returns a 501 error.
-    """
-    logging.info(f"app[{app}] prof[{prof}] record[{nr}] form[{form}] accept[{request.headers.get("accept", "")}]")
+    logging.info(f"app[{app}] prof[{prof}] record[{nr}] form[{ext}] accept[{request.headers.get("accept","")}]")
     record_file = f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}/records/record-{nr}.xml"
 
     if not os.path.exists(record_file):
@@ -571,40 +500,15 @@ def get_record(request: Request, app: str,  nr: str, prof: str | None=None, user
         rec, msg = call_record_hook("read_pre",app,prof,nr,user,rec)
         if rec == None:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
-        if form == "json" or "application/json" in request.headers.get("accept", ""):
-                prof_doc = prof_json(app, prof)
-                xsltproc = proc.new_xslt30_processor()
-                xsltproc.set_cwd(os.getcwd())
-                executable = xsltproc.compile_stylesheet(stylesheet_file=f"{settings.xslt_dir}/rec2json.xsl")
-                executable.set_parameter("prof-doc", proc.make_string_value(prof_doc))
-                executable.set_parameter("rec-nr", proc.make_string_value(nr))
-                result = executable.transform_to_string(xdm_node=rec)
-                call_record_hook("read_post",app,prof,nr,user)
-                return JSONResponse(content=jsonable_encoder(json.loads(result)))
-        elif form == RecForm.pdf or "application/pdf" in request.headers.get("accept", ""):
-                html = rec_html(app,prof,nr)
-                pdf = HTML(string=html).write_pdf()
-                headers = {'Content-Disposition': f'inline; filename="{app}-record-{nr}.pdf"'}
-                call_record_hook("read_post",app,prof,nr,user)
-                return Response(pdf, headers=headers, media_type='application/pdf')
-        # FF sends an Accept header with text/html and application/xml, we prefer html, 
-        # but first check for an explicit xml request
-        elif form == RecForm.xml:
-            print('ja bij de xml')
+        
+        (res, form, mime) = rec_form(app,prof,nr,proc,rec,ext,request.headers.get("accept"))
+                                     
+        call_record_hook("read_post",app,prof,nr,user)
 
-            with open(record_file, 'r') as file:
-                rec = file.read()
-                call_record_hook("read_post",app,prof,nr,user)
-                return Response(content=rec, media_type="application/xml")
-        elif form == RecForm.html or "text/html" in request.headers.get("accept", ""):
-                html = rec_html(app,prof,nr)
-                call_record_hook("read_post",app,prof,nr,user)
-                return HTMLResponse(content=html)
-        elif form == RecForm.xml or "application/xml" in request.headers.get("accept", ""):
-            with open(record_file, 'r') as file:
-                rec = file.read()
-                call_record_hook("read_post",app,prof,nr,user)
-                return Response(content=rec, media_type="application/xml")
+        if form in ['json','json2']:
+            return JSONResponse(content=jsonable_encoder(res))
+        else:
+            return Response(res, headers={'Content-Disposition': f'inline; filename="{app}-record-{nr}.{form}"'}, media_type=mime)
 
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not supported")
 

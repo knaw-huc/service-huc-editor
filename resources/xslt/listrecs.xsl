@@ -273,7 +273,7 @@
                                                             <xsl:text>&#160;</xsl:text>
                                                         </xsl:when>
                                                         <xsl:otherwise>
-                                                            <a title="History" class="myBtn history" href="{$url}/history">
+                                                            <a title="History" class="myBtn history" href="{$url}/history" target="_blank">
                                                                 <img src="{$base}/static/img/history.png" height="16px" width="16px"/>
                                                             </a>
                                                         </xsl:otherwise>

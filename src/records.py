@@ -1,12 +1,17 @@
 import logging
 import os
 import datetime
+import json
 import toml
 from datetime import timezone 
 
 from saxonche import PySaxonProcessor
 from src.commons import settings, convert_toml_to_xml, def_user
-from src.profiles import prof_xml
+from src.profiles import prof_xml, prof_json
+
+from weasyprint import HTML
+
+from fastapi.encoders import jsonable_encoder
 
 from time import strftime, localtime
 from datetime import datetime
@@ -15,55 +20,122 @@ import glob
 import operator
 import pprint
 
-def rec_html(app,prof,nr, record_file=''):
+rec_forms = { 'json'    : ['application/json'], 
+              'json2'   : [],
+              'xml'     : ['application/xml'],
+              'cmd'     : ['application/x-cmdi+xml'],
+              'html'    : ['text/html'],
+              'pdf'     : ['application/pdf']}
+
+def rec_which_form(ext,mime):
+    if ext:
+        if ext in rec_forms.keys():
+            return ext
+    for ext in rec_forms:
+        if mime in rec_forms[ext]:
+            return ext
+    else:
+        'html'
+
+def rec_form(app,prof,nr,proc,rec,ext,mime):
+    form = rec_which_form(ext,mime)
+    logging.info(f"app[{app}] prof[{prof}] rec[{nr}] get form[{form}]")
+    if form=='json':
+        return rec_json(app,prof,nr,proc,rec)
+    elif form=='json2':
+        return rec_json2(app,prof,nr,proc,rec)
+    elif form=='cmd':
+        return rec_cmd(app,prof,nr,proc,rec)
+    elif form=='xml':
+        return rec_xml(app,prof,nr,proc,rec)
+    elif form=='pdf':
+        return rec_pdf(app,prof,nr,proc,rec)
+    else :
+        return rec_html(app,prof,nr,proc,rec)
+
+
+def rec_json(app,prof,nr,proc,rec):
+    prof_doc = prof_json(app, prof)
+    xsltproc = proc.new_xslt30_processor()
+    xsltproc.set_cwd(os.getcwd())
+    executable = xsltproc.compile_stylesheet(stylesheet_file=f"{settings.xslt_dir}/rec2json.xsl")
+    executable.set_parameter("prof-doc", proc.make_string_value(prof_doc))
+    executable.set_parameter("rec-nr", proc.make_string_value(str(nr)))
+    result = executable.transform_to_string(xdm_node=rec)
+    res = json.loads(result)
+    return (res,'json','application/json')
+
+
+def rec_json2(app,prof,nr,proc,rec):
+    xsltproc = proc.new_xslt30_processor()
+    xsltproc.set_cwd(os.getcwd())
+    executable = xsltproc.compile_stylesheet(stylesheet_file=f"{settings.xslt_dir}/rec2json-2.xsl")
+    executable.set_parameter("rec-nr", proc.make_string_value(str(nr)))
+    result = executable.transform_to_string(xdm_node=rec)
+    res = json.loads(result)
+    return (res,'json2','application/json')
+    
+def rec2str(proc,rec):
+    xsltproc = proc.new_xslt30_processor()
+    xsltproc.set_cwd(os.getcwd())
+    executable = xsltproc.compile_stylesheet(stylesheet_file=f"{settings.xslt_dir}/identity.xsl")
+    return executable.transform_to_string(xdm_node=rec)
+
+def rec_xml(app,prof,nr,proc,rec):
+        return (rec2str(proc,rec),'xml','application/xml')
+
+def rec_cmd(app,prof,nr,proc,rec):
+        return (rec2str(proc,rec),'cmd','application/x-cmdi+xml')
+
+def rec_pdf(app,prof,nr,proc,rec):
+    (html,form,mime) = rec_html(app,prof,nr,proc,rec)
+    pdf = HTML(string=html).write_pdf()
+    return (pdf,'pdf','application/pdf')
+
+def rec_html(app,prof,nr,proc,rec):
     logging.info(f"app[{app}] prof[{prof}] rec[{nr}] get HTML")
-    if record_file == '':
-        record_file = f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}/records/record-{nr}.xml"
-    with open(record_file, 'r') as file:
-        rec = file.read()
-        with PySaxonProcessor(license=False) as proc:
-            rec = proc.parse_xml(xml_text=rec)
-            xpproc = proc.new_xpath_processor()
-            xpproc.set_cwd(os.getcwd())
-            xpproc.declare_namespace('clariah','http://www.clariah.eu/')
-            xpproc.declare_namespace('cmd','http://www.clarin.eu/cmd/')
-            xpproc.set_context(xdm_item=rec)
-            if prof == None:
-                prof = xpproc.evaluate_single("string(/*:CMD/*:Header/*:MdProfile)").get_string_value()
-            xsltproc = proc.new_xslt30_processor()
-            xsltproc.set_cwd(os.getcwd())
-            sheet=f"{settings.xslt_dir}/toHTML.xsl"
-            config_app_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
-            if not os.path.isfile(config_app_file):
-                logging.error(f"config file {config_app_file} doesn't exist")
-                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="App config file not found")
-            logging.info(f"config[{config_app_file}]")
-            with open(config_app_file, 'r') as f:
-                config = toml.load(f)
-                if 'prof' in config["app"]:
-                    for profile in config['app']['prof'].keys():
-                        logging.info(f"profile[{profile}]")
-                        if config["app"]["prof"][profile]["prof"]==prof:
-                            logging.info(f"profile[{profile}={prof}]")
-                            if "html" in config["app"]["prof"][profile].keys():
-                                overload = f"{settings.URL_DATA_APPS}/{app}/resources/xslt/{config['app']["prof"][profile]["html"]}"
-                                logging.info(f"HTML overload[{overload}]")
-                                if os.path.isfile(overload):
-                                    sheet = overload
-            logging.info(f"HTML[{sheet}]")
-            executable = xsltproc.compile_stylesheet(stylesheet_file=sheet)
-            executable.set_parameter("cwd", proc.make_string_value(os.getcwd()))
-            executable.set_parameter("base", proc.make_string_value(settings.url_base))
-            executable.set_parameter("app", proc.make_string_value(app))
-            executable.set_parameter("prof", proc.make_string_value(prof))
-            executable.set_parameter("nr", proc.make_string_value(nr))
-            prof = prof_xml(app, prof)
-            prof = proc.parse_xml(xml_text=prof)
-            executable.set_parameter("tweak-doc",prof) 
-            convert_toml_to_xml(toml_file=config_app_file,xml_file=f"{settings.URL_DATA_APPS}/{app}/config.xml")
-            config = proc.parse_xml(xml_file_name=f"{settings.URL_DATA_APPS}/{app}/config.xml")
-            executable.set_parameter("config", config)
-            return executable.transform_to_string(xdm_node=rec)
+    xpproc = proc.new_xpath_processor()
+    xpproc.set_cwd(os.getcwd())
+    xpproc.declare_namespace('clariah','http://www.clariah.eu/')
+    xpproc.declare_namespace('cmd','http://www.clarin.eu/cmd/')
+    xpproc.set_context(xdm_item=rec)
+    if prof == None:
+        prof = xpproc.evaluate_single("string(/*:CMD/*:Header/*:MdProfile)").get_string_value()
+    xsltproc = proc.new_xslt30_processor()
+    xsltproc.set_cwd(os.getcwd())
+    sheet=f"{settings.xslt_dir}/toHTML.xsl"
+    config_app_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
+    if not os.path.isfile(config_app_file):
+        logging.error(f"config file {config_app_file} doesn't exist")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="App config file not found")
+    logging.info(f"config[{config_app_file}]")
+    with open(config_app_file, 'r') as f:
+        config = toml.load(f)
+        if 'prof' in config["app"]:
+            for profile in config['app']['prof'].keys():
+                logging.info(f"profile[{profile}]")
+                if config["app"]["prof"][profile]["prof"]==prof:
+                    logging.info(f"profile[{profile}={prof}]")
+                    if "html" in config["app"]["prof"][profile].keys():
+                        overload = f"{settings.URL_DATA_APPS}/{app}/resources/xslt/{config['app']["prof"][profile]["html"]}"
+                        logging.info(f"HTML overload[{overload}]")
+                        if os.path.isfile(overload):
+                            sheet = overload
+    logging.info(f"HTML[{sheet}]")
+    executable = xsltproc.compile_stylesheet(stylesheet_file=sheet)
+    executable.set_parameter("cwd", proc.make_string_value(os.getcwd()))
+    executable.set_parameter("base", proc.make_string_value(settings.url_base))
+    executable.set_parameter("app", proc.make_string_value(app))
+    executable.set_parameter("prof", proc.make_string_value(prof))
+    executable.set_parameter("nr", proc.make_string_value(str(nr)))
+    prof = prof_xml(app, prof)
+    prof = proc.parse_xml(xml_text=prof)
+    executable.set_parameter("tweak-doc",prof) 
+    convert_toml_to_xml(toml_file=config_app_file,xml_file=f"{settings.URL_DATA_APPS}/{app}/config.xml")
+    config = proc.parse_xml(xml_file_name=f"{settings.URL_DATA_APPS}/{app}/config.xml")
+    executable.set_parameter("config", config)
+    return (executable.transform_to_string(xdm_node=rec),'html','text/html')
+        
 
 def rec_editor(app,prof,nr):
     if nr:

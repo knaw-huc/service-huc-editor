@@ -115,7 +115,7 @@
                                 </xsl:variable>                          
                                 <xsl:variable name="incl" as="xs:boolean">
                                     <xsl:choose>
-                                        <xsl:when test="normalize-space($id)=''">
+                                        <xsl:when test="empty($id[normalize-space(.)!=''])">
                                             <xsl:message>?DBG: no id</xsl:message>
                                             <xsl:sequence select="false()"/>
                                         </xsl:when>
