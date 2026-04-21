@@ -22,18 +22,19 @@ import pprint
 
 rec_forms = { 'json'    : ['application/json'], 
               'json2'   : [],
+              'html'    : ['text/html'],
               'xml'     : ['application/xml'],
               'cmd'     : ['application/x-cmdi+xml'],
-              'html'    : ['text/html'],
               'pdf'     : ['application/pdf']}
 
-def rec_which_form(ext,mime):
+def rec_which_form(ext,accept):
     if ext:
         if ext in rec_forms.keys():
             return ext
     for ext in rec_forms:
-        if mime in rec_forms[ext]:
-            return ext
+        for mime in rec_forms[ext]:
+            if mime in accept:
+                return ext
     else:
         'html'
 

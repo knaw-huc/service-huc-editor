@@ -110,7 +110,7 @@
 
                             var rec = [];
                             $("#ccform").children().each(function () {{
-                                if ($(this).attr("class") === "component" || $(this).attr("class") === "clonedComponent" || $(this).attr("class") === "component isCollapsed") {{
+                            if ($(this).attr("class") === "component" || $(this).attr("class") === "clonedComponent" || $(this).attr("class") === "component isCollapsed" || $(this).attr("class") === "component clonedComponent") {{
                                     var element = {{}};
                                     element.name = $(this).attr("data-name");
                                     element.type = 'component';
