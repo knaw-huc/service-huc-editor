@@ -113,10 +113,13 @@
                             if (inRec.when!==undefined) {{
                                 outRec.when = inRec.when;
                             }}
+                            if (inRec.nr!==undefined) {{
+                                outRec.nr = inRec.nr;
+                            }}
                             console.log(outRec);
                             out = JSON.stringify(outRec);
                             
-                            var count = localStorage.getItem("{$rec-url}@count");
+                            var count = localStorage.getItem("{$prof-url}@count");
                             console.log("120 count["+count+"]");
                             if (""+count == "null")
                               count = "0";
@@ -124,10 +127,10 @@
                             count = parseInt(count);
                             count = count+1;
                             console.log("126 count["+count+"]");
-                            localStorage.setItem("{$rec-url}@count",""+count);
+                            localStorage.setItem("{$prof-url}@count",""+count);
                             
                             iter = count % 100;
-                            localStorage.setItem("{$rec-url}@"+iter+".out",out);
+                            localStorage.setItem("{$prof-url}@"+iter+".out",out);
                             console.log("131 iter["+count+"%100="+iter+"]");
                             
                             url="{$rec-url}";
