@@ -108,25 +108,28 @@
                             else
                                 setStatus('under construction');
 
-                            var rec = [];
-                            $("#ccform").children().each(function () {{
-                            if ($(this).attr("class") === "component" || $(this).attr("class") === "clonedComponent" || $(this).attr("class") === "component isCollapsed" || $(this).attr("class") === "component clonedComponent") {{
-                                    var element = {{}};
-                                    element.name = $(this).attr("data-name");
-                                    element.type = 'component';
-                                    element.sortOrder = 0;
-                                    element.content = parseComponent(this);
-                                    rec.push(element);
-                                }}
-                            }});
+                            var rec = toJSON();
                             outRec = {{prof: inRec.id, record: rec}};
                             if (inRec.when!==undefined) {{
                                 outRec.when = inRec.when;
-                                //alert("DBG: outRec.when["+outRec.when+"]");
                             }}
                             console.log(outRec);
                             out = JSON.stringify(outRec);
-                            localStorage.setItem("{$rec-url}@{$epoch}.out",out);
+                            
+                            var count = localStorage.getItem("{$rec-url}@count");
+                            console.log("120 count["+count+"]");
+                            if (""+count == "null")
+                              count = "0";
+                            console.log("123 count["+count+"]");
+                            count = parseInt(count);
+                            count = count+1;
+                            console.log("126 count["+count+"]");
+                            localStorage.setItem("{$rec-url}@count",""+count);
+                            
+                            iter = count % 100;
+                            localStorage.setItem("{$rec-url}@"+iter+".out",out);
+                            console.log("131 iter["+count+"%100="+iter+"]");
+                            
                             url="{$rec-url}";
                             if (inRec.nr !==undefined) {{
                                 $.ajax(
