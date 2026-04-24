@@ -68,9 +68,12 @@ def rec_json(app,prof,nr,proc,rec):
 
 
 def rec_json2(app,prof,nr,proc,rec):
+    prof = prof_xml(app, prof)
+    prof = proc.parse_xml(xml_text=prof)
     xsltproc = proc.new_xslt30_processor()
     xsltproc.set_cwd(os.getcwd())
     executable = xsltproc.compile_stylesheet(stylesheet_file=f"{settings.xslt_dir}/rec2json-2.xsl")
+    executable.set_parameter("prof-xml", prof)
     executable.set_parameter("rec-nr", proc.make_string_value(str(nr)))
     result = executable.transform_to_string(xdm_node=rec)
     res = json.loads(result)
