@@ -1,0 +1,35 @@
+<html>
+    <head>
+        <title>Inspect Local Storage</title>
+    </head>
+    <body>
+        <h1> Inspect Local Storage</h1>        
+        <table border="1">
+            <tr>
+                <th><button onclick="localStorage.clear();window.location.reload();">clear all</button></th>
+                <th>key</th>
+                <th>value</th>
+            </tr>
+            <script type="text/javascript">
+            //<![CDATA[
+                function delKey(li) {
+                    var key = li.dataset.key;
+                    localStorage.removeItem(key);
+                    window.location.reload();
+                }
+
+                var keys = Object.keys(localStorage),
+                    i = 0, key;
+
+                for (; key = keys[i]; i++) {
+                    document.write("<tr>");
+                    document.write("<td><button onclick='delKey(this)' data-key='"+key+"'>del</button></td>");
+                    document.write("<td>"+key+"</td>");
+                    document.write("<td><pre>"+localStorage.getItem(key).substring(0,99)+"</pre></td>");
+                    document.write("</tr>");
+                }
+            //]]>
+            </script>
+        </dl>
+    </body>
+</html>
