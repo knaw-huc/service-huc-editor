@@ -42,7 +42,7 @@
                 <script type="text/javascript" src="{$cdn}/js/ccfparser.js"><xsl:comment>keep alive</xsl:comment></script>
                 <script type="text/javascript" src="{$cdn}/js/plugins/skos_list/skos_list.js"><xsl:comment>keep alive</xsl:comment></script>
                 <script src="https://cdn.jsdelivr.net/npm/marked/lib/marked.umd.js"><xsl:comment>keep alive</xsl:comment></script>
-                <xsl:if test="normalize-space($config/config/app/js/ascript)!=''">
+                <xsl:if test="normalize-space($config/config/app/js/script)!=''">
                     <script type="text/javascript" src="{$base}/app/{$app}/static/js/{$config/config/app/js/script}"/>           
                 </xsl:if>
                 
