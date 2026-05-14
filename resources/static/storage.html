@@ -60,10 +60,11 @@
                     document.write("<td><pre>"+localStorage.getItem(key).substring(0,99)+"</pre></td>");
                     if (key.endsWith('.out')) {
                         document.write("<td>");
-                        if (isCurrent(key))
+                        var cur = isCurrent(key);
+                        if (cur)
                              document.write("<b>");
                         document.write("<a href='data:application/json;charset=utf-8,"+encodeURIComponent(localStorage.getItem(key))+"' download='"+key+".js'>download</a>");
-                        if (isCurrent(key))
+                        if (cur)
                              document.write("</b>");
                         document.write("</td>");
                     } else {
