@@ -416,6 +416,8 @@ endpoint="tei"
 hook="tei"
 ```
 
+The `level` property can have the one or more (space seperated) of the values `app`, `prof` and/or `rec`. Depending on the level that triggers the hook  the arguments to the python implementation are set to `None`, e.g, if triggered from the profile level the `nr` argument will be `None`. The `endpoint` property has to be the name of the hook or a `javascript:` call. The `prof` property is optional and if present will limit the action to that profile or its records.
+
 ```python
 from saxonche import PySaxonProcessor, PyXdmNode
 from src.profiles import prof_xml
