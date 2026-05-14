@@ -29,6 +29,26 @@
                         window.location.reload();
                     }
                 }
+                function isCurrent(key) {
+                    var base = key.replace(/(.*@).*/,"$1");
+                    //alert("base["+base+"]");
+                            
+                    var count = localStorage.getItem(base+"count");
+                    count = parseInt(""+count);
+                    //alert("count["+count+"]");
+                    if (isNaN(count))
+                        return false;
+                    
+                    var max = localStorage.getItem(base+"max");
+                    max = parseInt(""+max);
+                    //alert("max["+max+"]");
+                    if (isNaN(max))
+                        return false;
+
+                    iter = count % max;
+                    //alert("iter["+iter+"]");
+                    return key.endsWith("@"+iter+".out");
+                }
 
                 var keys = Object.keys(localStorage),
                     i = 0, key;
@@ -39,7 +59,13 @@
                     document.write("<td>"+key+"</td>");
                     document.write("<td><pre>"+localStorage.getItem(key).substring(0,99)+"</pre></td>");
                     if (key.endsWith('.out')) {
-                        document.write("<td><a href='data:application/json;charset=utf-8,"+encodeURIComponent(localStorage.getItem(key))+"' download='"+key+".js'>download</a>");
+                        document.write("<td>");
+                        if (isCurrent(key))
+                             document.write("<b>");
+                        document.write("<a href='data:application/json;charset=utf-8,"+encodeURIComponent(localStorage.getItem(key))+"' download='"+key+".js'>download</a>");
+                        if (isCurrent(key))
+                             document.write("</b>");
+                        document.write("</td>");
                     } else {
                         document.write("<td><button onclick='setVal(this)' data-key='"+key+"'>set</button></td>");
                     }

@@ -121,18 +121,17 @@
                             
                             var count = localStorage.getItem("{$prof-url}@count");
                             console.log("120 count["+count+"]");
-                            if (""+count == "null")
-                              count = "0";
-                            console.log("123 count["+count+"]");
-                            count = parseInt(count);
+                            count = parseInt(""+count);
+                            if (isNaN(count))
+                              count = 0;
                             count = count+1;
                             console.log("126 count["+count+"]");
                             localStorage.setItem("{$prof-url}@count",""+count);
                             
                             var max = localStorage.getItem("{$prof-url}@max");
-                            if (""+max == "null")
-                                max = "100";
-                            max = parseInt(max);
+                            max = parseInt(""+max);
+                            if (isNaN(max))
+                                max = 10;
                             console.log("136 max["+max+"]");
                             localStorage.setItem("{$prof-url}@max",""+max);
                             
