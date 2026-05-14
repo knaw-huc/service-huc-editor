@@ -222,7 +222,7 @@ Add an explanation text in markdown or use the documentation from the profile.
 
 ### Other tweaks
 
-In the tweak file propererties of elements can be changed within limits:
+In the tweak file properties of elements can be changed within limits:
 - minimum and maximum cardinality within the original bounds
 - a vocabulary can be added as long as the values match the original value scheme
 
@@ -243,8 +243,9 @@ curl -X PUT -H 'Authorization: Bearer foobar' -H 'Content-Type: application/toml
 
 Here are some example configurations:
 
-- [clariah vocabulary](https://github.com/CLARIAH/vocab-registry-editor/blob/main/data/apps/vocabs/config.toml)
+- [clariah vocabulary registry](https://github.com/CLARIAH/vocab-registry-editor/blob/main/data/apps/vocabs/config.toml)
 - [hi data envelopes](https://github.com/knaw-huc/hi-data-envelop-editor/blob/main/data/apps/data-envelopes/config.toml)
+- [hi editem](https://github.com/knaw-huc/hi-editem-editor/blob/main/data/apps/editem/config.toml)
 - [hi nde](https://github.com/knaw-huc/hi-nde-editor/blob/main/data/apps/nde/config.toml)
 - [iisg adoptie](https://code.huc.knaw.nl/tsd/sd-service-huc-editor/-/blob/main/data/apps/adoptie/config.toml?ref_type=heads) (HuC only)
 - [iisg afstand](https://code.huc.knaw.nl/tsd/sd-service-huc-editor/-/blob/main/data/apps/afstand/config.toml?ref_type=heads) (HuC only)
@@ -282,7 +283,7 @@ The `title` XPath is used to retrieve the title of the record in the HTML and PD
 
 ### The columns in the record list
 
-The per profile  record list contains by default the creation date of the record, but other fields can be added in the apps configuration, e.g.,
+The per profile record list contains by default the creation date of the record, but other fields can be added in the apps configuration, e.g.,
 
 ```toml
 [app.prof.HelloWorld.list.who]
