@@ -9,6 +9,7 @@
                 <th><button onclick="localStorage.clear();window.location.reload();">clear all</button></th>
                 <th>key</th>
                 <th>value</th>
+                <th></th>
             </tr>
             <script type="text/javascript">
             //<![CDATA[
@@ -16,6 +17,17 @@
                     var key = li.dataset.key;
                     localStorage.removeItem(key);
                     window.location.reload();
+                }
+                function setVal(li) {
+                    var key = li.dataset.key;
+                    m = prompt('set '+key+" to number?");
+                    m = parseInt(m);
+                    if (isNaN(m)) {
+                        alert("The value has to be a number!");
+                    } else {
+                        localStorage.setItem(key,""+m);
+                        window.location.reload();
+                    }
                 }
 
                 var keys = Object.keys(localStorage),
@@ -26,6 +38,11 @@
                     document.write("<td><button onclick='delKey(this)' data-key='"+key+"'>del</button></td>");
                     document.write("<td>"+key+"</td>");
                     document.write("<td><pre>"+localStorage.getItem(key).substring(0,99)+"</pre></td>");
+                    if (key.endsWith('.out')) {
+                        document.write("<td><a href='data:application/json;charset=utf-8,"+encodeURIComponent(localStorage.getItem(key))+"' download='"+key+".js'>download</a>");
+                    } else {
+                        document.write("<td><button onclick='setVal(this)' data-key='"+key+"'>set</button></td>");
+                    }
                     document.write("</tr>");
                 }
             //]]>

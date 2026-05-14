@@ -129,7 +129,14 @@
                             console.log("126 count["+count+"]");
                             localStorage.setItem("{$prof-url}@count",""+count);
                             
-                            iter = count % 100;
+                            var max = localStorage.getItem("{$prof-url}@max");
+                            if (""+max == "null")
+                                max = "100";
+                            max = parseInt(max);
+                            console.log("136 max["+max+"]");
+                            localStorage.setItem("{$prof-url}@max",""+max);
+                            
+                            iter = count % max;
                             localStorage.setItem("{$prof-url}@"+iter+".out",out);
                             console.log("131 iter["+count+"%100="+iter+"]");
                             
