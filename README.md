@@ -53,7 +53,7 @@ Remember the ID of your profile, which can be seen in its XML representation, e.
 
 With release image:
 ```sh
-docker run -v ./conf:/home/huc/huc-editor-service/conf -v ./data:/home/huc/huc-editor-service/data -p 1210:1210 --name=ccf --rm -it ghcr.io/knaw-huc/service-huc-editor:2.0-RC5
+docker run -v ./conf:/home/huc/huc-editor-service/conf -v ./data:/home/huc/huc-editor-service/data -p 1210:1210 --name=ccf --rm -it ghcr.io/knaw-huc/service-huc-editor:2.0-RC9
 ```
 
 With local image:
@@ -137,11 +137,11 @@ The next sections list the cues you can add to elements and components.
 Since CMDI 1.2 cues for tools can be specified. CCF supports the following cues using this mechanism:
 
 - ``cue:class``: will add this as a CSS class, which can be used to style the elememt or component or to associate JavaScript triggers;
-- ``cue:displayOrder``: change the order of the elements or components; this allows to mix them in the editor, which can't be done in the profile specification
-- ``cue:hide``: if set to ``true`` this element or component won't be shown in the editor.
+- ``cue:displayOrder``: change the order of the elements or components; this allows to mix them in the editor, which can't be done in the profile specification;
+- ``cue:hide``: if set to ``true`` this element won't be shown in the editor; 
 - ``cue:inputHeight``: change how many lines an input box is;
 - ``cue:inputWidth``: change how many characters width an input box is;
-- ``cue:readonly``: if set to ``true`` the value of this element can't be changed;
+- ``cue:readonly``: if set to ``true`` the value of this element can't be changed.
 
 Cues are attributes in the namespace ``http://www.clarin.eu/cmd/cues/1`` on the element or component tag, e.g.,
 
@@ -192,6 +192,32 @@ CMDI 1.2 also added a way to specify auto values for an element, here the CCF su
 <Element name="modified">
     <AutoValue>now</AutoValue>
 </Element>
+```
+
+### Explanations
+
+Add an explanation text in markdown or use the documentation from the profile.
+
+```xml
+        <Component name="Person">
+            <clariah:explanation>
+                https://editem.pages.huc.knaw.nl/editem-schema/templates/biolist/biolist-encoding.html#individual-biographical-entry
+            </clariah:explanation>
+            <Element name="gender">
+                <clariah:explanation>
+1. female
+2. male
+3. nonbinary
+4. intersex
+9. unknown
+                </clariah:explanation>
+            </Element>
+        </Component>
+```
+```xml
+            <Element name="corpus_name">
+                <clariah:explanation src="documentation"/>
+            </Element>
 ```
 
 ### Other tweaks
@@ -283,7 +309,21 @@ Set a CSS style that overwrites the default CSS style, e.g.:
 style="data-envelopes.css"
 ```
 
-This CSS file should be placed in the ``static/css/`` directory within the `app` directory, e.g., ``.../apps/data-envelopes/static/css/data-envelopes.css``.
+This CSS file should be placed in the ``resources/static/css/`` directory within the `app` directory, e.g., ``.../apps/data-envelopes/resources/static/css/data-envelopes.css``.
+
+### JavaScript
+
+Add a JavaScript file with additional functionality and, optionally, with an initialization call, e.g.:
+
+```toml
+[app.js]
+script="editem.js"
+#init="alert('Welcome to Editem!')"
+```
+
+This JavaScript file should be placed in the ``resources/static/js/`` directory within the `app` directory, e.g., ``.../apps/editem/resources/static/js/editem.css``.
+
+The init function call can access the `page` variable, which tells if the page contains an `editor` or the record `list`.
 
 ### Access
 
@@ -325,7 +365,7 @@ For all CRUD (Create, Read, Update, Delete) _pre_ and _post_ python hooks are su
 
 ```toml
 [app.hooks.record]
-reate_pre="create_record_pre"
+create_pre="create_record_pre"
 create_post="create_record_post"
 #read_pre=
 read_post="count"
@@ -357,15 +397,72 @@ def count(crud:str, app: str, prof: str, nr:str, rec, user:str):
    cnt = cnt+1
 ```
 
+Next to the CRUD hooks also application, profile or record level action hooks are supported:
+
+```toml
+[app.hooks.action.prof-tei]
+level="prof"
+prof="clarin.eu:cr1:p_1772521921675"
+label="tei"
+endpoint="javascript:doTEI();"
+hook="tei"
+
+[app.hooks.action.tei]
+level="rec"
+prof="clarin.eu:cr1:p_1772521921675"
+label="tei"
+endpoint="tei"
+hook="tei"
+```
+
+```python
+from saxonche import PySaxonProcessor, PyXdmNode
+from src.profiles import prof_xml
+from fastapi import Request, Response, HTTPException
+import os
+import logging
+from src.commons import settings, convert_toml_to_xml
+
+def tei(req:Request, action:str, app: str, prof: str, nr: str, user:str) -> None:
+    logging.info(f'TEI hook action[{action}] app[{app}] prof[{prof}] nr[{nr}] user[{user}]')
+    res = "This will be the response"
+    with PySaxonProcessor(license=False) as proc:
+        xsltproc = proc.new_xslt30_processor()
+        xsltproc.set_cwd(os.getcwd())
+        stylesheet=None;
+        if prof == 'clarin.eu:cr1:p_1772521921675':
+            stylesheet=f"{settings.URL_DATA_APPS}/{app}/resources/xslt/person-tei.xsl"
+        if stylesheet:
+            executable = xsltproc.compile_stylesheet(stylesheet_file=stylesheet)
+            rec = proc.parse_xml(xml_text="<null/>")
+            if nr:
+                record_file = f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}/records/record-{nr}.xml"
+                with open(record_file, 'r') as file:
+                    rec = file.read()
+                    rec = proc.parse_xml(xml_text=rec)
+            else:
+                args = dict(req.query_params)
+                if 'q' in args:
+                    executable.set_parameter("q", proc.make_string_value(args['q']))
+                executable.set_parameter("cwd", proc.make_string_value(os.getcwd()))
+                executable.set_parameter("app", proc.make_string_value(app))
+                executable.set_parameter("prof", proc.make_string_value(prof))
+            res = executable.transform_to_string(xdm_node=rec)
+        else:
+            res = "TODO"
+    return Response(content=res, media_type="application/xml")
+
+```
+
 ## Configure the services
+
+Global settings can be edited in the [./conf/settings.toml](./conf/settings.toml) TOML file.
 
 ### Default credentials
 
 - admin API key: ``foobar``
 
 **ALWAYS** change these when running a CCF production deployment!
-
-Global settings can be edited in the [./conf/settings.toml](./conf/settings.toml) TOML file.
 
 ### Access to the admin API
 
@@ -374,4 +471,10 @@ The token for the admin API is set in the [./conf/.secrets.toml](./conf/.secrets
 ```toml
 [default]
 SERVICE_HUC_EDITOR_API_KEY="foobar"
+```
+The default user for admin access can be set in the application config, e.g.
+
+```toml
+[app]
+def_user="vocabs"
 ```
