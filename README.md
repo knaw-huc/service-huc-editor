@@ -362,6 +362,8 @@ In the ``htp.test`` htpassword file the following test users are available:
 
 ### Hooks
 
+#### CRUD hooks
+
 For all CRUD (Create, Read, Update, Delete) _pre_ and _post_ python hooks are supported:
 
 ```toml
@@ -397,6 +399,7 @@ cnt = 0
 def count(crud:str, app: str, prof: str, nr:str, rec, user:str):
    cnt = cnt+1
 ```
+#### Action hooks
 
 Next to the CRUD hooks also application, profile or record level action hooks are supported:
 
@@ -459,13 +462,11 @@ def tei(req:Request, action:str, app: str, prof: str, nr: str, user:str) -> None
 
 ## Configure the services
 
-Global settings can be edited in the [./conf/settings.toml](./conf/settings.toml) TOML file.
-
 ### Default credentials
 
 - admin API key: ``foobar``
 
-**ALWAYS** change these when running a CCF production deployment!
+**ALWAYS** change this when running a CCF production deployment!
 
 ### Access to the admin API
 
@@ -475,7 +476,7 @@ The token for the admin API is set in the [./conf/.secrets.toml](./conf/.secrets
 [default]
 SERVICE_HUC_EDITOR_API_KEY="foobar"
 ```
-The default user for admin access can be set in the application config, e.g.
+The default user used by admin access can be set in the application config, e.g.
 
 ```toml
 [app]
