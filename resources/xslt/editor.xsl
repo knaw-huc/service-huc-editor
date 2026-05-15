@@ -119,25 +119,31 @@
                             console.log(outRec);
                             out = JSON.stringify(outRec);
                             
-                            var count = localStorage.getItem("{$prof-url}@count");
-                            console.log("120 count["+count+"]");
-                            count = parseInt(""+count);
-                            if (isNaN(count))
-                              count = 0;
-                            count = count+1;
-                            console.log("126 count["+count+"]");
-                            localStorage.setItem("{$prof-url}@count",""+count);
-                            
-                            var max = localStorage.getItem("{$prof-url}@max");
-                            max = parseInt(""+max);
-                            if (isNaN(max))
-                                max = 10;
-                            console.log("136 max["+max+"]");
-                            localStorage.setItem("{$prof-url}@max",""+max);
-                            
-                            iter = count % max;
-                            localStorage.setItem("{$prof-url}@"+iter+".out",out);
-                            console.log("131 iter["+count+"%100="+iter+"]");
+                            try {{
+                                //throw new Error('iets is fout');
+                                var count = localStorage.getItem("{$prof-url}@count");
+                                console.log("120 count["+count+"]");
+                                count = parseInt(""+count);
+                                if (isNaN(count))
+                                  count = 0;
+                                count = count+1;
+                                console.log("126 count["+count+"]");
+                                localStorage.setItem("{$prof-url}@count",""+count);
+                                
+                                var max = localStorage.getItem("{$prof-url}@max");
+                                max = parseInt(""+max);
+                                if (isNaN(max))
+                                    max = 10;
+                                console.log("136 max["+max+"]");
+                                localStorage.setItem("{$prof-url}@max",""+max);
+                                
+                                iter = count % max;
+                                localStorage.setItem("{$prof-url}@"+iter+".out",out);
+                                console.log("131 iter["+count+"%100="+iter+"]");
+                            }} catch (err) {{
+                                alert("There was a problem with creating a backup of the record in your browser's local storage! The local storage inspector will be opened in a separate tab, but keep this editor open so you can save when the problem has been resolved! ["+err+"]");
+                                window.open('/static/storage.html', '_blank').focus();
+                            }}
                             
                             url="{$rec-url}";
                             if (inRec.nr !==undefined) {{

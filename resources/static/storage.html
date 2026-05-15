@@ -3,7 +3,19 @@
         <title>Inspect Local Storage</title>
     </head>
     <body>
-        <h1> Inspect Local Storage</h1>        
+        <h1> Inspect Local Storage</h1>
+        <p>
+            The editor uses the local storage of your browser to keep a copy of records you save before sending it to the server. This safeguards your work if the server can't be reached or has problems.
+            However the browser puts limits on this storage. This page helps:
+            <ol>
+                <li>to clean out the local storage of records in your browser by using <b>clean all</b> or <b>delete</b> specific entries;</li>
+                <li>by limiting the number of backups per editor</li>
+            </ol>
+            You can also <b>download</b> backup entries (for the latest one per editor the link is in bold). Share it with your editor administrator to salvage your work.
+        </p>
+        <p>
+            Contact your editor administrator or the <a href="https://di.huc.knaw.nl/structured-data-en.html">DI/Structured Data team</a> (<a href="mailto:structured-data@di.huc.knaw.nl">structured-data@di.huc.knaw.nl</a>)!
+        </p>    
         <table border="1">
             <tr>
                 <th><button onclick="localStorage.clear();window.location.reload();">clear all</button></th>
@@ -55,7 +67,7 @@
 
                 for (; key = keys[i]; i++) {
                     document.write("<tr>");
-                    document.write("<td><button onclick='delKey(this)' data-key='"+key+"'>del</button></td>");
+                    document.write("<td><button onclick='delKey(this)' data-key='"+key+"'>delete</button></td>");
                     document.write("<td>"+key+"</td>");
                     document.write("<td><pre>"+localStorage.getItem(key).substring(0,99)+"</pre></td>");
                     if (key.endsWith('.out')) {
