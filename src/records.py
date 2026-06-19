@@ -141,7 +141,7 @@ def rec_html(app,prof,nr,proc,rec):
     return (executable.transform_to_string(xdm_node=rec),'html','text/html')
         
 
-def rec_editor(app,prof,nr):
+def rec_editor(app,prof,nr,user):
     if nr:
         logging.info(f"app[{app}] prof[{prof}] record[{nr}] editor")
     else:
@@ -157,6 +157,10 @@ def rec_editor(app,prof,nr):
         executable.set_parameter("prof", proc.make_string_value(prof))
         if nr:
             executable.set_parameter("nr", proc.make_string_value(nr))
+        if (user != None):
+            executable.set_parameter("user", proc.make_string_value(user))
+        else:
+            executable.set_parameter("user", proc.make_string_value(def_user(app)))
         convert_toml_to_xml(f"{settings.URL_DATA_APPS}/{app}/config.toml",f"{settings.URL_DATA_APPS}/{app}/config.xml")
         config = proc.parse_xml(xml_file_name=f"{settings.URL_DATA_APPS}/{app}/config.xml")
         executable.set_parameter("config", config)

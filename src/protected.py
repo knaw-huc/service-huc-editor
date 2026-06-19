@@ -368,7 +368,7 @@ def get_editor(request: Request, app: str, prof: str | None=None, nr: str | None
         logging.info(f"app[{app}] prof[{prof}] new record editor")        
     
     if "text/html" in request.headers.get("accept", ""):
-        editor = rec_editor(app,prof,nr)
+        editor = rec_editor(app,prof,nr,user)
         return HTMLResponse(content=editor)
 
 @router.get('/app/{app}/record/{nr}/history')
