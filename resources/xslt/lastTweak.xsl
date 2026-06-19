@@ -13,6 +13,26 @@
         </xsl:copy>
     </xsl:template>
 
+    <xsl:template match="@cue:enable">
+        <xsl:variable name="pre" select="normalize-space(replace(.,'^(.*)=.*$','$1'))"/>
+        <xsl:choose>
+            <xsl:when test="not(exists(../preceding-sibling::Element[@name=$pre]))">
+                <xsl:choose>
+                    <xsl:when test="exists(../preceding::Element[@name=$pre])">
+                        <xsl:message expand-text="yes">WRN: the preceding element[{$pre}]  in enable[{.}] on element[{../@name}] is found, but only preceding siblings are supported!</xsl:message>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:message expand-text="yes">ERR: the preceding (sibling) element[{$pre}] in enable[{.}] on element[{../@name}] can't be found!</xsl:message>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:copy>
+                    <xsl:apply-templates select="node() | @*"/>
+                </xsl:copy>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
 
     <xsl:template match="clariah:explanation[normalize-space(@src) != '']">
         <xsl:choose>
