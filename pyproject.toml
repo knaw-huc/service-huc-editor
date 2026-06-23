@@ -16,6 +16,7 @@ dependencies = [
     "pyyaml",
     "requests>=2.32.5",
     "saxonche>=12.8.0",
+    "starlette>=0.47.3",
     "toml>=0.10.2",
     "uvicorn>=0.35.0",
     "weasyprint>=66.0",

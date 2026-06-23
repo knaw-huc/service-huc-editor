@@ -1,17 +1,11 @@
 import logging
 import os.path
-import shutil
 import time
 import json
 import toml
-import math
-
-from datetime import datetime, timezone
 
 from fastapi import APIRouter, HTTPException, Request, Response
 from fastapi.encoders import jsonable_encoder
-
-from passlib.apache import HtpasswdFile
 
 from saxonche import PySaxonProcessor
 
@@ -19,80 +13,21 @@ from starlette import status
 from starlette.responses import HTMLResponse,  JSONResponse, RedirectResponse
 
 from typing import Optional
-from enum import Enum
 
-from src.commons import settings, convert_toml_to_xml, call_record_hook, call_action_hook, allowed, def_user, api_keys
-from src.records import rec_html, rec_editor, rec_update, rec_history,  rec_form
-from src.profiles import prof_json, prof_xml
+from auth.authentication import get_user_with_app, allowed, def_user
+from src.commons import settings, convert_toml_to_xml, call_record_hook, call_action_hook
+from src.records import rec_editor, rec_update, rec_history,  rec_form
+from src.profiles import prof_xml
 
 router = APIRouter()
 
 from fastapi import Depends
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-bearer_security = HTTPBearer(auto_error=False)
-
-security = HTTPBasic(auto_error=False)
-
-def get_current_user(app: str, credentials: Optional[HTTPBasicCredentials] = Depends(security)):
-    if not credentials:
-        # is er dan een token?
-        # zo ja:
-        #  heef de app config een def_user geef die dan terug anders de globale def_user
-        logging.debug("---no credentials---")
-        return None
-
-    config_app_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
-    if not os.path.isfile(config_app_file):
-        logging.error(f"config file {config_app_file} doesn't exist")
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="App config file not found")
-
-    users_cred_file = None
-    with open(config_app_file, 'r') as f:
-        config = toml.load(f)
-        if 'access' in config["app"]:
-            if 'users' in config['app']['access']:
-                users_cred_file = config['app']['access']['users']
-                users_cred_file = os.path.normpath(os.path.join(f"{settings.URL_DATA_APPS}/{app}/", users_cred_file))
-                if not os.path.isfile(users_cred_file):
-                    logging.error(f"users file {users_cred_file} doesn't exist")
-                    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Users file not found")
-
-    if users_cred_file:
-        ht = HtpasswdFile(users_cred_file)
-        valid_user = ht.check_password(credentials.username, credentials.password)
-        if not valid_user:
-            # valid_user = None means that the user is not valid
-            # valid_user = False means that the user is valid but the password is incorrect
-            logging.debug("---no credentials---")
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
-
-    return credentials.username
-
-def get_user_with_app(app: str, basic_credentials: Optional[HTTPBasicCredentials] = Depends(security), bearer_credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_security)):
-    if basic_credentials:
-        return get_current_user(app, basic_credentials)
-    elif bearer_credentials:
-        # Handle bearer token authentication
-        token = bearer_credentials.credentials
-        # Implement your token validation logic
-        return decode_token(token, app)
-
-    else:
-        return None
-
-def decode_token(token: str, app: str):
-    if token not in api_keys:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Forbidden"
-        )
-    return def_user(app)
 
 @router.post("/app/{app}/record/", status_code=status.HTTP_201_CREATED)
 @router.post("/app/{app}/profile/{prof}/record/", status_code=status.HTTP_201_CREATED)
-async def create_record(request: Request, app: str, prof: str | None = None, redir: str | None = "yes", user: Optional[str] = Depends(get_user_with_app)):
+async def create_record(request: Request, app: str, prof: str | None = None, redir: str | None = "yes", user: Optional[str] = Depends(
+    get_user_with_app)):
     record_body = await request.body()
     trace_dir = f"{settings.URL_DATA_APPS}/{app}/trace"
     if not os.path.exists(trace_dir):
@@ -102,13 +37,13 @@ async def create_record(request: Request, app: str, prof: str | None = None, red
     with open(trace_file, 'wb') as file:
             file.write(record_body)
 
-    if (not allowed(user,app,'write','any')):
+    if not allowed(user, app, 'write', 'any'):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
     config = None
     config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
     with open(config_file, 'r') as f:
         config = toml.load(f)
-    if (prof == None):
+    if prof is None:
         prof = config['app']['def_prof'] 
     """
     Endpoint to create a record for an application.
@@ -218,7 +153,8 @@ async def create_record(request: Request, app: str, prof: str | None = None, red
 
 @router.put("/app/{app}/record/{nr}")
 @router.put("/app/{app}/profile/{prof}/record/{nr}")
-async def modify_record(request: Request, app: str, nr: str, prof: str | None = None, when: str | None = None, user: Optional[str] = Depends(get_user_with_app)):
+async def modify_record(request: Request, app: str, nr: str, prof: str | None = None, when: str | None = None, user: Optional[str] = Depends(
+    get_user_with_app)):
     record_body = await request.body()
     trace_dir = f"{settings.URL_DATA_APPS}/{app}/trace"
     if not os.path.exists(trace_dir):
@@ -309,7 +245,8 @@ async def modify_record(request: Request, app: str, nr: str, prof: str | None = 
 
 @router.delete("/app/{app}/record/{nr}")
 @router.delete("/app/{app}/profile/{prof}/record/{nr}")
-async def delete_record(request: Request, app: str, nr: str, prof: str | None=None, user: Optional[str] = Depends(get_user_with_app)):
+async def delete_record(request: Request, app: str, nr: str, prof: str | None=None, user: Optional[str] = Depends(
+    get_user_with_app)):
     if (prof == None):
         config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
         with open(config_file, 'r') as f:
@@ -350,7 +287,8 @@ async def delete_record(request: Request, app: str, nr: str, prof: str | None=No
 @router.get('/app/{app}/profile/{prof}/record/editor')
 @router.get('/app/{app}/record/{nr}/editor')
 @router.get('/app/{app}/profile/{prof}/record/{nr}/editor')
-def get_editor(request: Request, app: str, prof: str | None=None, nr: str | None=None, user: Optional[str] = Depends(get_user_with_app)):
+def get_editor(request: Request, app: str, prof: str | None=None, nr: str | None=None, user: Optional[str] = Depends(
+    get_user_with_app)):
     if (prof == None):
         config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
         with open(config_file, 'r') as f:
@@ -373,7 +311,8 @@ def get_editor(request: Request, app: str, prof: str | None=None, nr: str | None
 
 @router.get('/app/{app}/record/{nr}/history')
 @router.get('/app/{app}/profile/{prof}/record/{nr}/history')
-def get_history(request: Request, app: str, nr: str, prof: str | None=None, user: Optional[str] = Depends(get_user_with_app)):
+def get_history(request: Request, app: str, nr: str, prof: str | None=None, user: Optional[str] = Depends(
+    get_user_with_app)):
     if (prof == None):
         config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
         with open(config_file, 'r') as f:
@@ -416,7 +355,8 @@ def get_history(request: Request, app: str, nr: str, prof: str | None=None, user
 
 @router.get('/app/{app}/record/{nr}/history/{epoch}')
 @router.get('/app/{app}/profile/{prof}/record/{nr}/history/{epoch}')
-def get_version(request: Request, app: str, nr: int, epoch:str, prof: str | None=None, user: Optional[str] = Depends(get_user_with_app)):
+def get_version(request: Request, app: str, nr: int, epoch:str, prof: str | None=None, user: Optional[str] = Depends(
+    get_user_with_app)):
     # yes it works also http://localhost:1210/app/stalling/profile/clarin.eu:cr1:p_1708423613607/record/3.xml/history/1767225600 with the same extensions to the record number for a correct format
     
     # DONE specifieke versie van een record tonen
@@ -472,7 +412,8 @@ def get_version(request: Request, app: str, nr: int, epoch:str, prof: str | None
 
 @router.get('/app/{app}/record/{nr}')
 @router.get('/app/{app}/profile/{prof}/record/{nr}')
-def get_record(request: Request, app: str,  nr: str, prof: str | None=None, user: Optional[str] = Depends(get_user_with_app)):
+def get_record(request: Request, app: str, nr: str, prof: str | None=None, user: Optional[str] = Depends(
+    get_user_with_app)):
     if (prof == None):
         config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
         with open(config_file, 'r') as f:
@@ -554,8 +495,9 @@ async def get_app(request: Request, app: str, user: Optional[str] = Depends(get_
 @router.get('/app/{app}/entity/{ent}')
 @router.get('/app/{app}/profile/{prof}/entity/')
 @router.get('/app/{app}/profile/{prof}/entity/{ent}')
-async def get_refs(request: Request, app: str, prof: str | None=None, ent: str | None=None, q: str | None = "*", user: Optional[str] = Depends(get_user_with_app)):
-    if (not allowed(user,app,'read','any')):
+async def get_refs(request: Request, app: str, prof: str | None=None, ent: str | None=None, q: str | None = "*", user: Optional[str] = Depends(
+    get_user_with_app)):
+    if not allowed(user, app, 'read', 'any'):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
     config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
     with open(config_file, 'r') as f:
@@ -598,7 +540,8 @@ async def get_refs(request: Request, app: str, prof: str | None=None, ent: str |
 @router.get('/app/{app}/entity/{id}')
 @router.get('/app/{app}/profile/{prof}/entity/{id}')
 @router.get('/app/{app}/profile/{prof}/entity/{ent}/{id}')
-async def get_ref(request: Request, app: str, id:str, prof: str | None=None, ent: str | None=None, user: Optional[str] = Depends(get_user_with_app)):
+async def get_ref(request: Request, app: str, id:str, prof: str | None=None, ent: str | None=None, user: Optional[str] = Depends(
+    get_user_with_app)):
     if (not allowed(user,app,'read','any')):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
     config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
@@ -619,8 +562,9 @@ async def get_ref(request: Request, app: str, id:str, prof: str | None=None, ent
 @router.get('/app/{app}/action/record/{nr}/{action}')
 @router.get('/app/{app}/profile/{prof}/action/{action}')
 @router.get('/app/{app}/profile/{prof}/record/{nr}/action/{action}')
-def get_action(req: Request, app: str, action: str, prof: str | None=None, nr: str | None=None, user: Optional[str] = Depends(get_user_with_app)):
-    if (nr != None and prof == None):
+def get_action(req: Request, app: str, action: str, prof: str | None=None, nr: str | None=None, user: Optional[str] = Depends(
+    get_user_with_app)):
+    if nr is not None and prof is None:
         config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
         with open(config_file, 'r') as f:
             config = toml.load(f)
