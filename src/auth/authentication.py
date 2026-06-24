@@ -1,74 +1,148 @@
 import logging
 import os
-from typing import Optional
+from typing import Optional, Annotated
 
 import toml
 from fastapi import Depends, HTTPException
-from fastapi.security import HTTPBasicCredentials, HTTPAuthorizationCredentials, HTTPBearer, HTTPBasic
+from fastapi.security import HTTPBasicCredentials, HTTPAuthorizationCredentials, HTTPBearer, HTTPBasic, \
+    OAuth2PasswordBearer
 from passlib.apache import HtpasswdFile
+from pwdlib import PasswordHash
+from pwdlib.exceptions import UnknownHashError
 from saxonche import PySaxonProcessor
+from sqlmodel import Session, select
 from starlette import status
 
-from commons import settings, api_keys
+from src.database import SessionDep
+from src.auth.models import User
+from src.commons import settings, api_keys
+from src.config.dependencies import ConfigDep
 
 bearer_security = HTTPBearer(auto_error=False)
-security = HTTPBasic(auto_error=False)
+basic_auth = HTTPBasic(auto_error=False)
 
-def get_current_user(app: str, credentials: Optional[HTTPBasicCredentials] = Depends(security)):
+password_hash = PasswordHash.recommended()
+DUMMY_PASSWORD = password_hash.hash("dummy")
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+
+def create_user(session: Session, username: str, password: str):
     """
-    Get the current user
+    Create a new user
+    """
+    user = User(
+        name=username,
+        password_hash=get_password_hash(password),
+    )
+    session.add(user)
+    session.commit()
+
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """
+    Verify if the password is correct
+    """
+    return password_hash.verify(plain_password, hashed_password)
+
+
+def verify_legacy(plain_password: str, hashed_password: str) -> bool:
+    """
+    Verify a legacy password using HtpasswdFile
+    """
+    ht = HtpasswdFile.from_string(f"verify:{hashed_password}")
+    return ht.check_password("verify", plain_password)
+
+
+def get_password_hash(password: str) -> str:
+    """
+    Hash the password
+    """
+    return password_hash.hash(password)
+
+
+def initialize_users(app, config: ConfigDep, session: SessionDep):
+    """
+    Create users for the app if they haven't been added yet.
+    """
+    logging.info("Initializing users")
+    if not 'access' in config["app"] or not 'users' in config["app"]["access"]:
+        logging.info("No htp file present, skipping import of users")
+        return
+
+    users_cred_file = config['app']['access']['users']
+    users_cred_file = os.path.normpath(os.path.join(f"{settings.URL_DATA_APPS}/{app}/", users_cred_file))
+    if not os.path.isfile(users_cred_file):
+        logging.warning("Configured htp file is missing. Skipping import of users")
+        logging.warning(f"File: {users_cred_file}")
+        return
+
+    logging.info("Found htp file, importing users from it")
+    ht = HtpasswdFile(users_cred_file)
+    for u in ht.users():
+        user: Optional[User] = session.exec(select(User).where(User.name == u)).first()
+        if not user:
+            user = User(name=u, password_hash=ht.get_hash(u))
+            session.add(user)
+    session.commit()
+
+
+def get_current_user_basic(
+        app: str,
+        session: SessionDep,
+        credentials: HTTPBasicCredentials = Depends(basic_auth)) -> User:
+    """
+    Get the current user using HTTP Basic Authentication
     :param app: The app
+    :param session: The session
     :param credentials: The credentials
     """
-    if not credentials:
-        # is er dan een token?
-        # zo ja:
-        #  heef de app config een def_user geef die dan terug anders de globale def_user
-        logging.debug("---no credentials---")
-        return None
+    user: Optional[User] = session.exec(select(User).where(User.name == credentials.username)).first()
+    if user:
+        try:
+            if not verify_password(credentials.password, user.password_hash):
+                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
+            return user
+        except UnknownHashError:
+            logging.warning("Unknown hash for user")
+            logging.warning(user)
+            if verify_legacy(credentials.password, user.password_hash.decode()):
+                print("Updating old hash")
+                user.password_hash = get_password_hash(credentials.password)
+                session.add(user)
+                session.commit()
+                session.refresh(user)
+                return user
 
-    config_app_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
-    if not os.path.isfile(config_app_file):
-        logging.error(f"config file {config_app_file} doesn't exist")
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="App config file not found")
-
-    users_cred_file = None
-    with open(config_app_file, 'r') as f:
-        config = toml.load(f)
-        if 'access' in config["app"]:
-            if 'users' in config['app']['access']:
-                users_cred_file = config['app']['access']['users']
-                users_cred_file = os.path.normpath(os.path.join(f"{settings.URL_DATA_APPS}/{app}/", users_cred_file))
-                if not os.path.isfile(users_cred_file):
-                    logging.error(f"users file {users_cred_file} doesn't exist")
-                    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Users file not found")
-
-    if users_cred_file:
-        ht = HtpasswdFile(users_cred_file)
-        valid_user = ht.check_password(credentials.username, credentials.password)
-        if not valid_user:
-            # valid_user = None means that the user is not valid
-            # valid_user = False means that the user is valid but the password is incorrect
-            logging.debug("---no credentials---")
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
-
-    return credentials.username
+    verify_password(credentials.password, DUMMY_PASSWORD)
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
 
 
-def get_user_with_app(app: str, basic_credentials: Optional[HTTPBasicCredentials] = Depends(security), bearer_credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_security)):
+def get_user_with_app(
+        app: str,
+        session: SessionDep,
+        basic_credentials: Optional[HTTPBasicCredentials] = Depends(basic_auth),
+        bearer_credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_security)
+) -> Optional[User]:
+    """
+    Get the current user of this app. Uses HTTP Basic Authentication initially, and if that fails it will check if there's
+    a header token present.
+    """
     if basic_credentials:
-        return get_current_user(app, basic_credentials)
+        return get_current_user_basic(app, session, basic_credentials)
     elif bearer_credentials:
         # Handle bearer token authentication
         token = bearer_credentials.credentials
-        # Implement your token validation logic
         return decode_token(token, app)
 
     else:
         return None
 
 
-def decode_token(token: str, app: str):
+UserDep = Annotated[User, Depends(get_user_with_app)]
+
+
+def decode_token(token: str, app: str) -> User:
     if token not in api_keys:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -77,7 +151,7 @@ def decode_token(token: str, app: str):
     return def_user(app)
 
 
-def allowed(user: Optional[str], app: str, action: str, default: str, prof=None, nr=None):
+def allowed(user: Optional[User], app: str, action: str, default: str, prof=None, nr=None):
     """
     :param user: The user
     :param app: The app
@@ -110,7 +184,7 @@ def allowed(user: Optional[str], app: str, action: str, default: str, prof=None,
                     xpproc.declare_namespace('cmd','http://www.clarin.eu/cmd/')
                     xpproc.set_context(xdm_item=rec)
                     owner = xpproc.evaluate_single(f"string((/*:CMD/*:Header/*:MdCreator,'{def_user(app)}')[1])").get_string_value()
-                    if owner == user:
+                    if owner == user.name:
                         return True
         elif mode == "owner" and user is not None:
                 return True
@@ -121,7 +195,7 @@ def allowed(user: Optional[str], app: str, action: str, default: str, prof=None,
     return False
 
 
-def def_user(app: str):
+def def_user(app: str) -> User:
     """
     Get the default user for the application.
     :param app: The app for which the default user should be returned
@@ -130,7 +204,7 @@ def def_user(app: str):
     with open(config_app_file, 'r') as f:
         config = toml.load(f)
         if 'def_user' in config["app"]:
-            return config["app"]['def_user']
+            return User(name=config["app"]['def_user'])
         elif 'def_user' in settings:
-            return settings.def_user
-        return "server"
+            return User(name=settings.def_user)
+        return User(name="server")

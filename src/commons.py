@@ -16,6 +16,8 @@ from fastapi import Request
 import toml
 import xml.etree.ElementTree as ET
 
+from src.auth.models import User
+
 os.environ["BASE_DIR"] = os.getenv("BASE_DIR", os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 settings = Dynaconf(
@@ -156,7 +158,7 @@ def call_record_post_hook(hook:str,crud:str,app:str,prof:str,nr:str,user:str ) -
     func = getattr(mod,hook)
     func(crud,app,prof,nr,user)
 
-def call_action_hook(req: Request,action:str,app:str,prof:str,rec:str,user:str):
+def call_action_hook(req: Request, action: str, app: str, prof: str, rec: str, user: User):
     config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
     with open(config_file, 'r') as f:
         config = toml.load(f)
@@ -166,7 +168,7 @@ def call_action_hook(req: Request,action:str,app:str,prof:str,rec:str,user:str):
                 if action in config["app"]["hooks"]["action"]:
                     if "hook" in config["app"]["hooks"]["action"][action]:
                         enabled = True
-                        if rec!=None:
+                        if rec is not None:
                             enable="true()"
                             if "enable" in  config["app"]["hooks"]["action"][action]:
                                 enable = config["app"]["hooks"]["action"][action]["enable"]
@@ -185,7 +187,7 @@ def call_action_hook(req: Request,action:str,app:str,prof:str,rec:str,user:str):
                             # call hook(app,rec)
                             func = getattr(mod,config["app"]["hooks"]["action"][action]["hook"])
                             logging.info(f' calling hook[{config["app"]["hooks"]["action"][action]["hook"]}]!')
-                            return func(req,action,app,prof,rec,user)
+                            return func(req,action,app,prof,rec,user.name)
                     else:
                         logging.info(f"no action hook[{action}]!")
                 else:
