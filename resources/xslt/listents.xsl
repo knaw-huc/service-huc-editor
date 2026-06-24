@@ -159,6 +159,9 @@
                                             <js:string key="label">
                                                 <xsl:value-of select="$lbl"/>
                                             </js:string>
+                                            <js:string key="value">
+                                                <xsl:value-of select="$lbl"/>
+                                            </js:string>
                                             <js:string key="uri">
                                                 <xsl:text expand-text="yes">ref:/app/{$app}/profile/{$prof}/entity/{$ent}/{replace($id,'unl://','')}</xsl:text>
                                             </js:string>
