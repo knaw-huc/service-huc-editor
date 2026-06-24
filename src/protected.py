@@ -557,33 +557,24 @@ def get_record(request: Request, app: str, nr: str, prof: str | None = None,
 
 
 
-disc = True
-
 @router.get("/app/{app}")
 async def get_app(request: Request, app: str, user: Optional[str] = Depends(get_user_with_app)):
 
-    #(allow, disc) = allowed(user, app, 'read', 'any')
-
-    allow = allowed(user, app, 'read', 'any')
+    (allow, disc) = allowed(user, app, 'read', 'any')
+    print(f"get_app: allowed[{allow}][{disc}]")
 
     if (not allow):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!",
                             headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
 
 
-    disc_filepath = f"{settings.URL_DATA_APPS}/{app}/disclaimer.html"
-
-    if disc:
+    # show the disclaimer if the user hasn't yet accepted the disclaimer
+    if not(disc):
+        disc_filepath = f"{settings.URL_DATA_APPS}/{app}/disclaimer.html"
         with open(disc_filepath, 'r') as f:
             disclaimer = f.read()
 
         return HTMLResponse(content=disclaimer)
-
-
-
-    # if (not allowed(user, app, 'read', 'any')):
-    #     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!",
-    #                         headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
 
     """
     Endpoint to read an application based on its name.
@@ -642,9 +633,6 @@ async def accept_disclaimer(app: str, redirect: str, user: Optional[str] = Depen
 
 
     disclaimer_accept(app, user)
-
-    global disc
-    disc = False
 
     return RedirectResponse(url = redirect)
 

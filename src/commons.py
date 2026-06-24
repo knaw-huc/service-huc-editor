@@ -208,7 +208,7 @@ def call_action_hook(req: Request, action: str, app: str, prof: str, rec: str, u
 
 def allowed(user, app, action, default, prof=None, nr=None):
     print(f"user..............[{user}]")
-    disc = False
+    disc = disclaimer_check(app,user)
     config_app_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
     if not os.path.isfile(config_app_file):
         logging.error(f"config file {config_app_file} doesn't exist")
@@ -217,34 +217,34 @@ def allowed(user, app, action, default, prof=None, nr=None):
         return (False, disc)
     with open(config_app_file, 'r') as f:
         config = toml.load(f)
-        if disclaimer_check(app,config, user):
-            mode = default
-            if 'access' in config["app"]:
-                if action in config['app']['access']:
-                    mode = config['app']['access'][action]
-            if mode == "owner" and user != None and prof != None and nr != None:
-                record_file = f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}/records/record-{nr}.xml"
-                with open(record_file, 'r') as file:
-                    rec = file.read()
-                    with PySaxonProcessor(license=False) as proc:
-                        rec = proc.parse_xml(xml_text=rec)
-                        xpproc = proc.new_xpath_processor()
-                        xpproc.set_cwd(os.getcwd())
-                        xpproc.declare_namespace('clariah', 'http://www.clariah.eu/')
-                        xpproc.declare_namespace('cmd', 'http://www.clarin.eu/cmd/')
-                        xpproc.set_context(xdm_item=rec)
-                        owner = xpproc.evaluate_single(
-                            f"string((/*:CMD/*:Header/*:MdCreator,'{def_user(app)}')[1])").get_string_value()
-                        if owner == user:
-                            return (True, disc)
-            elif mode == "owner" and user != None:
-                return (True, disc)
-            elif mode == "users" and user != None:
-                return (True, disc)
-            elif mode == "any":
-                return (True, disc)
-        else:
-            disc = True;
+        mode = default
+        if 'access' in config["app"]:
+            if action in config['app']['access']:
+                mode = config['app']['access'][action]
+        print(f"{action}..............[{mode}][{disc}]")
+        if mode == "owner" and user != None and prof != None and nr != None:
+            record_file = f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}/records/record-{nr}.xml"
+            with open(record_file, 'r') as file:
+                rec = file.read()
+                with PySaxonProcessor(license=False) as proc:
+                    rec = proc.parse_xml(xml_text=rec)
+                    xpproc = proc.new_xpath_processor()
+                    xpproc.set_cwd(os.getcwd())
+                    xpproc.declare_namespace('clariah', 'http://www.clariah.eu/')
+                    xpproc.declare_namespace('cmd', 'http://www.clarin.eu/cmd/')
+                    xpproc.set_context(xdm_item=rec)
+                    owner = xpproc.evaluate_single(
+                        f"string((/*:CMD/*:Header/*:MdCreator,'{def_user(app)}')[1])").get_string_value()
+                    if owner == user:
+                        return (True, disc)
+        elif mode == "owner" and user != None:
+            return (True, disc)
+        elif mode == "users" and user != None:
+            print(f"{action}..............[{user}]")
+            return (True, disc)
+        elif mode == "any":
+            return (True, disc)
+    print(f"{action}..............[NOT ALLOWED][{disc}]")
     return (False, disc)
 
 
@@ -259,21 +259,20 @@ def def_user(app):
         return "server"
 
 
-def disclaimer_check(app,config, user):
+def disclaimer_check(app,user):
+    # return True if this user has accepted the disclaoimer
+
+
     csv_filepath = f"{settings.URL_DATA_APPS}/{app}/users.csv"
-
     # with open(csv_filepath, 'a', newline='') as file:
-    #
-    #
+    # lees de users.csv in
+    # check of de user bestaat
+    # ja: check of de diclaimer ingevuld is
+    #     ja: return true
+    # return false
 
-
-
-    return True
-# lees de users.csv in
-# check of de user bestaat
-# ja: check of de diclaimer ingevuld is
-#     ja: return true
-# return false
+    #tijdelijke hack:
+    return False
 
 def disclaimer_accept(app, user):
     csv_filepath = f"{settings.URL_DATA_APPS}/{app}/users.csv"
@@ -284,7 +283,7 @@ def disclaimer_accept(app, user):
 
         csv_writer = csv.writer(file)
 
-        user = 'test'
+        #user = 'test'
 
         epoch = time.time()
 
