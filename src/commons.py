@@ -6,8 +6,6 @@ import re
 import ast
 import xml.dom.minidom
 
-
-
 from saxonche import PySaxonProcessor, PyXdmNode
 
 from dynaconf import Dynaconf
@@ -16,6 +14,9 @@ from fastapi import Request
 
 import toml
 import xml.etree.ElementTree as ET
+
+import csv
+import time
 
 os.environ["BASE_DIR"] = os.getenv("BASE_DIR", os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -28,17 +29,16 @@ api_keys = [
     settings.SERVICE_HUC_EDITOR_API_KEY
 ]  # Todo: This is encrypted in the .secrets.toml
 
-
 logging.basicConfig(filename=settings.log_file, level=settings.log_level,
                     format=settings.log_format)
 
 data = {}
-#__version__ = importlib.metadata.metadata(settings.service_name)["version"]
+# __version__ = importlib.metadata.metadata(settings.service_name)["version"]
 data.update({"service-version": "0.1.10"})
 
 
 def tweak_nr(tf):
-    nr = re.sub('.*/tweak-([0-9]+).xml','\\1',str(tf))
+    nr = re.sub('.*/tweak-([0-9]+).xml', '\\1', str(tf))
     logging.info(f"tweak[{tf}] nr[{nr}]")
     return int(nr)
 
@@ -80,7 +80,6 @@ def dict_to_xml(tag, d):
 
         elem.append(child if not isinstance(val, dict) else dict_to_xml(key, val))
     return elem
-
 
 
 def convert_toml_to_xml(toml_file: str, xml_file: str, root_element: str = "config"):
@@ -125,51 +124,60 @@ def convert_toml_to_xml(toml_file: str, xml_file: str, root_element: str = "conf
     with open(xml_file, 'w', encoding='utf-8') as f:
         f.write(pretty_xml)
 
-def call_record_hook(crud:str,app:str,prof:str,nr:str,user:str,rec:PyXdmNode | None = None ) -> tuple[PyXdmNode, str]:
+
+def call_record_hook(crud: str, app: str, prof: str, nr: str, user: str, rec: PyXdmNode | None = None) -> tuple[
+    PyXdmNode, str]:
     config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
     with open(config_file, 'r') as f:
         config = toml.load(f)
         if "hooks" in config['app'] and "record" in config["app"]["hooks"] and crud in config["app"]["hooks"]["record"]:
             logging.info(f"call_record_hook(hook[{config['app']['hooks']['record'][crud]}],app[{app}],rec[{nr}])")
             if crud.endswith("_pre"):
-                rec, msg = call_record_pre_hook(config['app']['hooks']['record'][crud],crud.replace('_pre',''),app,prof,nr,user,rec)
-                logging.info(f"call_record_hook(hook[{config['app']['hooks']['record'][crud]}],app[{app}],rec[{nr}]) -> rec[{rec}], msg[{msg}]")
+                rec, msg = call_record_pre_hook(config['app']['hooks']['record'][crud], crud.replace('_pre', ''), app,
+                                                prof, nr, user, rec)
+                logging.info(
+                    f"call_record_hook(hook[{config['app']['hooks']['record'][crud]}],app[{app}],rec[{nr}]) -> rec[{rec}], msg[{msg}]")
                 return rec, msg
             if crud.endswith("_post"):
-                call_record_post_hook(config['app']['hooks']['record'][crud],crud.replace('_post',''),app,prof,nr,user)
+                call_record_post_hook(config['app']['hooks']['record'][crud], crud.replace('_post', ''), app, prof, nr,
+                                      user)
                 return rec, None
         else:
             logging.info(f"no hook[{crud}]!")
             return rec, None
 
-def call_record_pre_hook(hook:str,crud:str,app:str,prof:str,nr:str,user:str,rec:PyXdmNode) -> tuple[PyXdmNode, str]:
+
+def call_record_pre_hook(hook: str, crud: str, app: str, prof: str, nr: str, user: str, rec: PyXdmNode) -> tuple[
+    PyXdmNode, str]:
     # import hook from data/apps/app/src/hooks.py
     mod = importlib.import_module(f"apps.{app}.src.hooks")
     # call hook(app,rec)
-    func = getattr(mod,hook)
-    rec, msg = func(crud,app,prof,nr,user,rec)
+    func = getattr(mod, hook)
+    rec, msg = func(crud, app, prof, nr, user, rec)
     return rec, msg
 
-def call_record_post_hook(hook:str,crud:str,app:str,prof:str,nr:str,user:str ) -> None:
+
+def call_record_post_hook(hook: str, crud: str, app: str, prof: str, nr: str, user: str) -> None:
     # import hook from data/apps/app/src/hooks.py
     mod = importlib.import_module(f"apps.{app}.src.hooks")
     # call hook(app,rec)
-    func = getattr(mod,hook)
-    func(crud,app,prof,nr,user)
+    func = getattr(mod, hook)
+    func(crud, app, prof, nr, user)
 
-def call_action_hook(req: Request,action:str,app:str,prof:str,rec:str,user:str):
+
+def call_action_hook(req: Request, action: str, app: str, prof: str, rec: str, user: str):
     config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
     with open(config_file, 'r') as f:
         config = toml.load(f)
-        logging.info('config: %s',config)
+        logging.info('config: %s', config)
         if "hooks" in config['app']:
             if "action" in config["app"]["hooks"]:
                 if action in config["app"]["hooks"]["action"]:
                     if "hook" in config["app"]["hooks"]["action"][action]:
                         enabled = True
-                        if rec!=None:
-                            enable="true()"
-                            if "enable" in  config["app"]["hooks"]["action"][action]:
+                        if rec != None:
+                            enable = "true()"
+                            if "enable" in config["app"]["hooks"]["action"][action]:
                                 enable = config["app"]["hooks"]["action"][action]["enable"]
                             with PySaxonProcessor(license=False) as proc:
                                 xpproc = proc.new_xpath_processor()
@@ -178,15 +186,15 @@ def call_action_hook(req: Request,action:str,app:str,prof:str,rec:str,user:str):
                                 xpproc.set_context(xdm_item=node)
                                 self = xpproc.evaluate_single('//*:MdSelfLink')
                                 xpproc.declare_variable('self')
-                                xpproc.set_parameter('self',self)
+                                xpproc.set_parameter('self', self)
                                 enabled = xpproc.effective_boolean_value(enable)
                         if enabled:
                             # import hook from data/apps/app/src/hooks.py
                             mod = importlib.import_module(f"apps.{app}.src.hooks")
                             # call hook(app,rec)
-                            func = getattr(mod,config["app"]["hooks"]["action"][action]["hook"])
+                            func = getattr(mod, config["app"]["hooks"]["action"][action]["hook"])
                             logging.info(f' calling hook[{config["app"]["hooks"]["action"][action]["hook"]}]!')
-                            return func(req,action,app,prof,rec,user)
+                            return func(req, action, app, prof, rec, user)
                     else:
                         logging.info(f"no action hook[{action}]!")
                 else:
@@ -197,41 +205,49 @@ def call_action_hook(req: Request,action:str,app:str,prof:str,rec:str,user:str):
             logging.info(f"no hooks!")
             return None
 
-def allowed(user,app,action,default,prof=None,nr=None):
+
+def allowed(user, app, action, default, prof=None, nr=None):
+    print(f"user..............[{user}]")
+    disc = False
     config_app_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
     if not os.path.isfile(config_app_file):
         logging.error(f"config file {config_app_file} doesn't exist")
         if default == "any":
-            return True
-        return False
+            return (True, disc)
+        return (False, disc)
     with open(config_app_file, 'r') as f:
         config = toml.load(f)
-        mode = default
-        if 'access' in config["app"]:
-            if action in config['app']['access']:
-                mode = config['app']['access'][action]
-        if mode == "owner" and user!=None and prof!=None and nr!=None:
-            record_file = f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}/records/record-{nr}.xml"
-            with open(record_file, 'r') as file:
-                rec = file.read()
-                with PySaxonProcessor(license=False) as proc:
-                    rec = proc.parse_xml(xml_text=rec)
-                    xpproc = proc.new_xpath_processor()
-                    xpproc.set_cwd(os.getcwd())
-                    xpproc.declare_namespace('clariah','http://www.clariah.eu/')
-                    xpproc.declare_namespace('cmd','http://www.clarin.eu/cmd/')
-                    xpproc.set_context(xdm_item=rec)
-                    owner = xpproc.evaluate_single(f"string((/*:CMD/*:Header/*:MdCreator,'{def_user(app)}')[1])").get_string_value()
-                    if owner == user:
-                        return True
-        elif mode == "owner" and user!=None:
-                return True
-        elif mode == "users" and user != None:
-            return True
-        elif mode == "any":
-            return True
-    return False
-    
+        if disclaimer_check(app,config, user):
+            mode = default
+            if 'access' in config["app"]:
+                if action in config['app']['access']:
+                    mode = config['app']['access'][action]
+            if mode == "owner" and user != None and prof != None and nr != None:
+                record_file = f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}/records/record-{nr}.xml"
+                with open(record_file, 'r') as file:
+                    rec = file.read()
+                    with PySaxonProcessor(license=False) as proc:
+                        rec = proc.parse_xml(xml_text=rec)
+                        xpproc = proc.new_xpath_processor()
+                        xpproc.set_cwd(os.getcwd())
+                        xpproc.declare_namespace('clariah', 'http://www.clariah.eu/')
+                        xpproc.declare_namespace('cmd', 'http://www.clarin.eu/cmd/')
+                        xpproc.set_context(xdm_item=rec)
+                        owner = xpproc.evaluate_single(
+                            f"string((/*:CMD/*:Header/*:MdCreator,'{def_user(app)}')[1])").get_string_value()
+                        if owner == user:
+                            return (True, disc)
+            elif mode == "owner" and user != None:
+                return (True, disc)
+            elif mode == "users" and user != None:
+                return (True, disc)
+            elif mode == "any":
+                return (True, disc)
+        else:
+            disc = True;
+    return (False, disc)
+
+
 def def_user(app):
     config_app_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
     with open(config_app_file, 'r') as f:
@@ -241,3 +257,35 @@ def def_user(app):
         elif 'def_user' in settings:
             return settings.def_user
         return "server"
+
+
+def disclaimer_check(app,config, user):
+    csv_filepath = f"{settings.URL_DATA_APPS}/{app}/users.csv"
+
+    # with open(csv_filepath, 'a', newline='') as file:
+    #
+    #
+
+
+
+    return True
+# lees de users.csv in
+# check of de user bestaat
+# ja: check of de diclaimer ingevuld is
+#     ja: return true
+# return false
+
+def disclaimer_accept(app, user):
+    csv_filepath = f"{settings.URL_DATA_APPS}/{app}/users.csv"
+
+    print(f".......user.......{user}")
+
+    with open(csv_filepath, 'a', newline='') as file:
+
+        csv_writer = csv.writer(file)
+
+        user = 'test'
+
+        epoch = time.time()
+
+        csv_writer.writerow([user, epoch])
