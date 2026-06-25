@@ -16,20 +16,46 @@
     <xsl:template match="@cue:enable">
         <xsl:variable name="pre" select="normalize-space(replace(.,'^(.*)=.*$','$1'))"/>
         <xsl:choose>
-            <xsl:when test="not(exists(../preceding-sibling::Element[@name=$pre]))">
+            <xsl:when test="matches($pre,'//?')">
+                <xsl:variable name="co" select="replace($pre,'^(.*)//?.*$','$1')"/>
+                <xsl:variable name="el" select="replace($pre,'^.*//?(.*)$','$1')"/>
+                <xsl:message expand-text="yes">DBG: comp[{$co}]//elem[{$el}]</xsl:message>
                 <xsl:choose>
-                    <xsl:when test="exists(../preceding::Element[@name=$pre])">
-                        <xsl:message expand-text="yes">WRN: the preceding element[{$pre}]  in enable[{.}] on element[{../@name}] is found, but only preceding siblings are supported!</xsl:message>
+                    <xsl:when test="exists(../ancestor::Component[@name=$co])">
+                        <xsl:choose>
+                            <xsl:when test="exists(../ancestor::Component[@name=$co]//Element[@name=$el])">
+                                <xsl:copy>
+                                    <xsl:apply-templates select="node() | @*"/>
+                                </xsl:copy>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <xsl:message expand-text="yes">ERR: the descendant element[{$el}] of ancestor component[{$co}] in enable[{.}] on element[{../@name}] can't be found!</xsl:message>
+                            </xsl:otherwise>
+                        </xsl:choose>
                     </xsl:when>
                     <xsl:otherwise>
-                        <xsl:message expand-text="yes">ERR: the preceding (sibling) element[{$pre}] in enable[{.}] on element[{../@name}] can't be found!</xsl:message>
+                        <xsl:message expand-text="yes">ERR: the ancestor component[{$co}] in enable[{.}] on element[{../@name}] can't be found!</xsl:message>
                     </xsl:otherwise>
                 </xsl:choose>
             </xsl:when>
             <xsl:otherwise>
-                <xsl:copy>
-                    <xsl:apply-templates select="node() | @*"/>
-                </xsl:copy>
+                <xsl:choose>
+                    <xsl:when test="not(exists(../preceding-sibling::Element[@name=$pre]))">
+                        <xsl:choose>
+                            <xsl:when test="exists(../preceding::Element[@name=$pre])">
+                                <xsl:message expand-text="yes">WRN: the preceding element[{$pre}]  in enable[{.}] on element[{../@name}] is found, but only preceding siblings are supported!</xsl:message>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <xsl:message expand-text="yes">ERR: the preceding (sibling) element[{$pre}] in enable[{.}] on element[{../@name}] can't be found!</xsl:message>
+                            </xsl:otherwise>
+                        </xsl:choose>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:copy>
+                            <xsl:apply-templates select="node() | @*"/>
+                        </xsl:copy>
+                    </xsl:otherwise>
+                </xsl:choose>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
