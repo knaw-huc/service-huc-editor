@@ -6,8 +6,7 @@ from typing import Optional, Annotated
 import jwt
 import toml
 from fastapi import Depends, HTTPException
-from fastapi.security import HTTPBasicCredentials, HTTPAuthorizationCredentials, HTTPBearer, HTTPBasic, \
-    OAuth2PasswordBearer
+from fastapi.security import HTTPBasicCredentials, HTTPAuthorizationCredentials, HTTPBearer, HTTPBasic
 from jwt import InvalidTokenError
 from passlib.apache import HtpasswdFile
 from pwdlib import PasswordHash
