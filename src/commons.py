@@ -11,11 +11,12 @@ import xml.dom.minidom
 from saxonche import PySaxonProcessor, PyXdmNode
 
 from dynaconf import Dynaconf
-import jinja2
 from fastapi import Request
 
 import toml
 import xml.etree.ElementTree as ET
+
+from src.auth.models import User
 
 os.environ["BASE_DIR"] = os.getenv("BASE_DIR", os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -157,7 +158,7 @@ def call_record_post_hook(hook:str,crud:str,app:str,prof:str,nr:str,user:str ) -
     func = getattr(mod,hook)
     func(crud,app,prof,nr,user)
 
-def call_action_hook(req: Request,action:str,app:str,prof:str,rec:str,user:str):
+def call_action_hook(req: Request, action: str, app: str, prof: str, rec: str, user: User):
     config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
     with open(config_file, 'r') as f:
         config = toml.load(f)
@@ -167,7 +168,7 @@ def call_action_hook(req: Request,action:str,app:str,prof:str,rec:str,user:str):
                 if action in config["app"]["hooks"]["action"]:
                     if "hook" in config["app"]["hooks"]["action"][action]:
                         enabled = True
-                        if rec!=None:
+                        if rec is not None:
                             enable="true()"
                             if "enable" in  config["app"]["hooks"]["action"][action]:
                                 enable = config["app"]["hooks"]["action"][action]["enable"]
@@ -186,7 +187,7 @@ def call_action_hook(req: Request,action:str,app:str,prof:str,rec:str,user:str):
                             # call hook(app,rec)
                             func = getattr(mod,config["app"]["hooks"]["action"][action]["hook"])
                             logging.info(f' calling hook[{config["app"]["hooks"]["action"][action]["hook"]}]!')
-                            return func(req,action,app,prof,rec,user)
+                            return func(req,action,app,prof,rec,user.name)
                     else:
                         logging.info(f"no action hook[{action}]!")
                 else:
@@ -197,47 +198,4 @@ def call_action_hook(req: Request,action:str,app:str,prof:str,rec:str,user:str):
             logging.info(f"no hooks!")
             return None
 
-def allowed(user,app,action,default,prof=None,nr=None):
-    config_app_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
-    if not os.path.isfile(config_app_file):
-        logging.error(f"config file {config_app_file} doesn't exist")
-        if default == "any":
-            return True
-        return False
-    with open(config_app_file, 'r') as f:
-        config = toml.load(f)
-        mode = default
-        if 'access' in config["app"]:
-            if action in config['app']['access']:
-                mode = config['app']['access'][action]
-        if mode == "owner" and user!=None and prof!=None and nr!=None:
-            record_file = f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}/records/record-{nr}.xml"
-            with open(record_file, 'r') as file:
-                rec = file.read()
-                with PySaxonProcessor(license=False) as proc:
-                    rec = proc.parse_xml(xml_text=rec)
-                    xpproc = proc.new_xpath_processor()
-                    xpproc.set_cwd(os.getcwd())
-                    xpproc.declare_namespace('clariah','http://www.clariah.eu/')
-                    xpproc.declare_namespace('cmd','http://www.clarin.eu/cmd/')
-                    xpproc.set_context(xdm_item=rec)
-                    owner = xpproc.evaluate_single(f"string((/*:CMD/*:Header/*:MdCreator,'{def_user(app)}')[1])").get_string_value()
-                    if owner == user:
-                        return True
-        elif mode == "owner" and user!=None:
-                return True
-        elif mode == "users" and user != None:
-            return True
-        elif mode == "any":
-            return True
-    return False
-    
-def def_user(app):
-    config_app_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
-    with open(config_app_file, 'r') as f:
-        config = toml.load(f)
-        if 'def_user' in config["app"]:
-            return config["app"]['def_user']
-        elif 'def_user' in settings:
-            return settings.def_user
-        return "server"
+
