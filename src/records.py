@@ -6,6 +6,8 @@ import toml
 from datetime import timezone 
 
 from saxonche import PySaxonProcessor
+
+from src.auth.models import User
 from src.commons import settings, convert_toml_to_xml
 from src.auth.authentication import def_user
 from src.profiles import prof_xml, prof_json
@@ -142,7 +144,7 @@ def rec_html(app,prof,nr,proc,rec):
     return (executable.transform_to_string(xdm_node=rec),'html','text/html')
         
 
-def rec_editor(app,prof,nr,user):
+def rec_editor(app,prof,nr, user: User):
     if nr:
         logging.info(f"app[{app}] prof[{prof}] record[{nr}] editor")
     else:
@@ -159,9 +161,9 @@ def rec_editor(app,prof,nr,user):
         if nr:
             executable.set_parameter("nr", proc.make_string_value(nr))
         if (user != None):
-            executable.set_parameter("user", proc.make_string_value(user))
+            executable.set_parameter("user", proc.make_string_value(user.name))
         else:
-            executable.set_parameter("user", proc.make_string_value(def_user(app)))
+            executable.set_parameter("user", proc.make_string_value(def_user(app).name))
         convert_toml_to_xml(f"{settings.URL_DATA_APPS}/{app}/config.toml",f"{settings.URL_DATA_APPS}/{app}/config.xml")
         config = proc.parse_xml(xml_file_name=f"{settings.URL_DATA_APPS}/{app}/config.xml")
         executable.set_parameter("config", config)
@@ -189,12 +191,12 @@ def rec_update(app: str, prof: str, nr: str, rec: str) -> str:
         xpproc.set_context(xdm_item=old)
         oprof = xpproc.evaluate_single("string(/*:CMD/*:Header/*:MdProfile)").get_string_value()
         owhen = xpproc.evaluate_single("string((/*:CMD/*:Header/*:MdCreationDate/@clariah:epoch,/*:CMD/*:Header/*:MdCreationDate,'unknown')[1])").get_string_value()
-        owho = xpproc.evaluate_single(f"string((/*:CMD/*:Header/*:MdCreator,'{def_user(app)}')[1])").get_string_value()
+        owho = xpproc.evaluate_single(f"string((/*:CMD/*:Header/*:MdCreator,'{def_user(app).name}')[1])").get_string_value()
 
         xpproc.set_context(xdm_item=new)
         nprof = xpproc.evaluate_single("string(/*:CMD/*:Header/*:MdProfile)").get_string_value()
         nwhen = xpproc.evaluate_single("string((/*:CMD/*:Header/*:MdCreationDate/@clariah:epoch,/*:CMD/*:Header/*:MdCreationDate,'unknown')[1])").get_string_value()
-        nwho = xpproc.evaluate_single(f"string((/*:CMD/*:Header/*:MdCreator,'{def_user(app)}')[1])").get_string_value()
+        nwho = xpproc.evaluate_single(f"string((/*:CMD/*:Header/*:MdCreator,'{def_user(app).name}')[1])").get_string_value()
 
         logging.info(f"Updating app[{app}] record[{nr}]: profile check: old[{oprof}] new[{nprof}]!")
         if oprof!=nprof:
@@ -229,7 +231,7 @@ def rec_update(app: str, prof: str, nr: str, rec: str) -> str:
         r = proc.parse_xml(xml_text=rec)
         xpproc.set_context(xdm_item=r)
         rwhen = xpproc.evaluate_single("string((/*:CMD/*:Header/*:MdCreationDate/@clariah:epoch,/*:CMD/*:Header/*:MdCreationDate,'unknown')[1])").get_string_value()
-        ruser = xpproc.evaluate_single(f"string((/*:CMD/*:Header/*:MdCreator,'{def_user(app)}')[1])").get_string_value()
+        ruser = xpproc.evaluate_single(f"string((/*:CMD/*:Header/*:MdCreator,'{def_user(app).name}')[1])").get_string_value()
         logging.info(f"new version[{record_file}] when[{rwhen}] user[{ruser}]")
 
         return "OK", rwhen
@@ -274,7 +276,7 @@ def version(record_file, app):
         else:
             when = int(when)
         timestamp = strftime('%Y-%m-%d %H:%M:%S', localtime(when))            
-        user = xpproc.evaluate_single(f"string((/*:CMD/*:Header/*:MdCreator,'{def_user(app)}')[1])").get_string_value()
+        user = xpproc.evaluate_single(f"string((/*:CMD/*:Header/*:MdCreator,'{def_user(app).name}')[1])").get_string_value()
 
         ver = {"epoch" :when, "user": user, "timestamp": timestamp }
         return ver
