@@ -31,8 +31,6 @@ DUMMY_PASSWORD = password_hash.hash("dummy")
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 ALGORITHM = "HS256"
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
 
 class InvalidCredentialsException(Exception):
     """
@@ -163,7 +161,6 @@ def get_current_user_basic(
 def get_user_with_app(
         app: str,
         session: SessionDep,
-        oauth_token: Annotated[str, Depends(oauth2_scheme)],
         basic_credentials: Optional[HTTPBasicCredentials] = Depends(basic_auth),
         bearer_credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_security),
 ) -> Optional[User]:
@@ -182,7 +179,7 @@ def get_user_with_app(
         except UnknownApiKeyException:
             # Not in legacy api keys. Treat as JWT
             try:
-                payload = jwt.decode(oauth_token, settings.JWT_SECRET_KEY, algorithms=[ALGORITHM])
+                payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[ALGORITHM])
                 username = payload.get('sub')
                 if username is None:
                     raise credentials_exception
