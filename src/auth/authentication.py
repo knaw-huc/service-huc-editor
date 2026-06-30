@@ -1,14 +1,18 @@
 import logging
 import os
+from datetime import timedelta, datetime, timezone
 from typing import Optional, Annotated
 
+import jwt
 import toml
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPBasicCredentials, HTTPAuthorizationCredentials, HTTPBearer, HTTPBasic, \
     OAuth2PasswordBearer
+from jwt import InvalidTokenError
 from passlib.apache import HtpasswdFile
 from pwdlib import PasswordHash
 from pwdlib.exceptions import UnknownHashError
+from pydantic import BaseModel
 from saxonche import PySaxonProcessor
 from sqlmodel import Session, select
 from starlette import status
@@ -24,7 +28,26 @@ basic_auth = HTTPBasic(auto_error=False)
 password_hash = PasswordHash.recommended()
 DUMMY_PASSWORD = password_hash.hash("dummy")
 
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ALGORITHM = "HS256"
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+
+class InvalidCredentialsException(Exception):
+    """
+    Used when the credentials of the user are invalid
+    """
+
+
+class UnknownApiKeyException(Exception):
+    """
+    Used when the api key is unknown.
+    """
+
+
+class TokenData(BaseModel):
+    username: str | None = None
 
 
 def create_user(session: Session, username: str, password: str):
@@ -66,10 +89,18 @@ def initialize_users(app, config: ConfigDep, session: SessionDep):
     Create users for the app if they haven't been added yet.
     """
     logging.info("Initializing users")
-    if not 'access' in config["app"] or not 'users' in config["app"]["access"]:
-        logging.info("No htp file present, skipping import of users")
-        return
+    if 'access' in config["app"] and 'users' in config["app"]["access"]:
+        logging.info("Htp file present, importing legacy users")
+        import_from_htpasswd(app, config, session)
 
+    if 'access' in config["app"] and 'users_csv' in config["app"]["access"]:
+        logging.info("CSV file present, importing users")
+
+
+def import_from_htpasswd(app: str, config: ConfigDep, session: SessionDep):
+    """
+    Import users from a htpasswd file
+    """
     users_cred_file = config['app']['access']['users']
     users_cred_file = os.path.normpath(os.path.join(f"{settings.URL_DATA_APPS}/{app}/", users_cred_file))
     if not os.path.isfile(users_cred_file):
@@ -87,6 +118,32 @@ def initialize_users(app, config: ConfigDep, session: SessionDep):
     session.commit()
 
 
+def get_user_with_password(username: str, password: str, session: SessionDep):
+    """
+    Get user based on username and password
+    """
+    user: Optional[User] = session.exec(select(User).where(User.name == username)).first()
+    if user:
+        try:
+            if not verify_password(password, user.password_hash):
+                raise InvalidCredentialsException
+            return user
+        except UnknownHashError:
+            logging.warning("Unknown hash for user")
+            logging.warning(user)
+            if verify_legacy(password, user.password_hash.decode()):
+                print("Updating old hash")
+                user.password_hash = get_password_hash(password)
+                session.add(user)
+                session.commit()
+                session.refresh(user)
+                return user
+
+    verify_password(password, DUMMY_PASSWORD)
+    raise InvalidCredentialsException
+
+
+
 def get_current_user_basic(
         app: str,
         session: SessionDep,
@@ -97,43 +154,45 @@ def get_current_user_basic(
     :param session: The session
     :param credentials: The credentials
     """
-    user: Optional[User] = session.exec(select(User).where(User.name == credentials.username)).first()
-    if user:
-        try:
-            if not verify_password(credentials.password, user.password_hash):
-                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
-            return user
-        except UnknownHashError:
-            logging.warning("Unknown hash for user")
-            logging.warning(user)
-            if verify_legacy(credentials.password, user.password_hash.decode()):
-                print("Updating old hash")
-                user.password_hash = get_password_hash(credentials.password)
-                session.add(user)
-                session.commit()
-                session.refresh(user)
-                return user
-
-    verify_password(credentials.password, DUMMY_PASSWORD)
-    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
+    try:
+        return get_user_with_password(credentials.username, credentials.password, session)
+    except InvalidCredentialsException:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
 
 
 def get_user_with_app(
         app: str,
         session: SessionDep,
+        oauth_token: Annotated[str, Depends(oauth2_scheme)],
         basic_credentials: Optional[HTTPBasicCredentials] = Depends(basic_auth),
-        bearer_credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_security)
+        bearer_credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_security),
 ) -> Optional[User]:
     """
     Get the current user of this app. Uses HTTP Basic Authentication initially, and if that fails it will check if there's
     a header token present.
     """
+    credentials_exception = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials", headers={"WWW-Authenticate": "Bearer"})
     if basic_credentials:
         return get_current_user_basic(app, session, basic_credentials)
     elif bearer_credentials:
-        # Handle bearer token authentication
+        # Handle bearer token authentication. This can either be a fixed api key, or an OAuth2 token
         token = bearer_credentials.credentials
-        return decode_token(token, app)
+        try:
+            return check_api_key(token, app)
+        except UnknownApiKeyException:
+            # Not in legacy api keys. Treat as JWT
+            try:
+                payload = jwt.decode(oauth_token, settings.JWT_SECRET_KEY, algorithms=[ALGORITHM])
+                username = payload.get('sub')
+                if username is None:
+                    raise credentials_exception
+                token_data = TokenData(username=username)
+            except InvalidTokenError:
+                raise credentials_exception
+            user = session.exec(select(User).where(User.name == token_data.username)).first()
+            if user is None:
+                raise credentials_exception
+            return user
 
     else:
         return None
@@ -142,12 +201,12 @@ def get_user_with_app(
 UserDep = Annotated[User, Depends(get_user_with_app)]
 
 
-def decode_token(token: str, app: str) -> User:
+def check_api_key(token: str, app: str) -> User:
+    """
+    Check if the token is one of the registered API keys and return the corresponding User.
+    """
     if token not in api_keys:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Forbidden"
-        )
+        raise UnknownApiKeyException
     return def_user(app)
 
 
@@ -208,3 +267,17 @@ def def_user(app: str) -> User:
         elif 'def_user' in settings:
             return User(name=settings.def_user)
         return User(name="server")
+
+
+def create_access_token(data: dict, expires_delta: timedelta | None = None):
+    """
+    Create a JWT access token.
+    """
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.now(timezone.utc) + expires_delta
+    else:
+        expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
