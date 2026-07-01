@@ -571,10 +571,17 @@ async def get_app(request: Request, app: str, user: Optional[str] = Depends(get_
     # show the disclaimer if the user hasn't yet accepted the disclaimer
     if not(disc):
         disc_filepath = f"{settings.URL_DATA_APPS}/{app}/disclaimer.html"
+
         with open(disc_filepath, 'r') as f:
             disclaimer = f.read()
 
-        return HTMLResponse(content=disclaimer)
+        # store url object in string
+        redirect = str(request.url)
+
+        html_disclaimer = disclaimer.replace("replace_redirect_variable", redirect)
+
+        return HTMLResponse(content=html_disclaimer)
+
 
     """
     Endpoint to read an application based on its name.
@@ -616,7 +623,7 @@ async def get_app(request: Request, app: str, user: Optional[str] = Depends(get_
 #@router.post("accept-disclaimer")
 async def accept_disclaimer(app: str, redirect: str, user: Optional[str] = Depends(get_user_with_app)):
 
-#async def accept_disclaimer():
+    print(f"redirect....... = '{redirect}'")
 
     allow = allowed(user, app, 'read', 'any')
 
