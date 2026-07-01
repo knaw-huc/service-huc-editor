@@ -262,8 +262,17 @@ def def_user(app):
 def disclaimer_check(app,user):
     # return True if this user has accepted the disclaoimer
 
-
     csv_filepath = f"{settings.URL_DATA_APPS}/{app}/users.csv"
+
+    with open (csv_filepath, newline="") as file:
+        reader = csv.DictReader(file)
+
+        for row in reader:
+            if row["user"] == user:
+                return True
+        return False
+
+
     # with open(csv_filepath, 'a', newline='') as file:
     # lees de users.csv in
     # check of de user bestaat
@@ -272,19 +281,47 @@ def disclaimer_check(app,user):
     # return false
 
     #tijdelijke hack:
-    return False
+    # return False
 
 def disclaimer_accept(app, user):
     csv_filepath = f"{settings.URL_DATA_APPS}/{app}/users.csv"
 
     print(f".......user.......{user}")
 
-    with open(csv_filepath, 'a', newline='') as file:
+    # schrijf het opnieuw op in de regel van de gebruiker die je vindt
 
-        csv_writer = csv.writer(file)
+    epoch = time.time()
+    rows = []
 
-        #user = 'test'
+    with open(csv_filepath, 'r', newline='') as file:
 
-        epoch = time.time()
+        csv_reader = csv.reader(file)
+        header = next(csv_reader)
 
-        csv_writer.writerow([user, epoch])
+        found = False
+
+        for row in csv_reader:
+            # this is for when there is a mistake in the csv and there
+            # are some whitelines before users
+            if len(row) < 2:
+                continue
+
+            if row[0] == user:
+                row[1] = epoch
+                found = True
+            rows.append(row)
+
+    if not found:
+        rows.append([user, epoch])
+
+    with open(csv_filepath, "w", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow(header)
+        writer.writerows(rows)
+
+
+
+
+
+
+
