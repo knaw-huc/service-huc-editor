@@ -1,0 +1,129 @@
+"""
+All endpoints which return HTML pages.
+"""
+import json
+import logging
+import os
+from typing import Optional
+
+from fastapi import Depends, HTTPException, APIRouter
+from starlette import status
+from starlette.requests import Request
+from starlette.responses import HTMLResponse
+
+from src.auth.authentication import def_user
+from src.auth.authentication import get_user_with_app, allowed
+from src.auth.models import User
+from src.commons import settings
+from src.config.dependencies import ConfigDep
+from src.records import rec_history
+from src.xslt import StylesheetProcessor, StylesheetDep
+
+router = APIRouter(
+    prefix="/app/{app}",
+)
+
+@router.get('/record/editor')
+@router.get('/profile/{prof}/record/editor')
+@router.get('/record/{nr}/editor')
+@router.get('/profile/{prof}/record/{nr}/editor')
+def get_editor(app: str, config: ConfigDep, prof: str | None=None, nr: str | None = None,
+               stylesheet: StylesheetProcessor = Depends(StylesheetDep("editor"))):
+    """
+    Get the editor web page.
+    :param app:
+    :param config:
+    :param prof:
+    :param nr:
+    :param stylesheet:
+    :return:
+    """
+    if prof is None:
+        prof = config['app']['def_prof']
+    if nr:
+        logging.info(f"app[{app}] prof[{prof}] record[{nr}] editor")
+        record_file = f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}/records/record-{nr}.xml"
+        if not os.path.exists(record_file):
+            logging.debug(f"{record_file} doesn't exist")
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    else:
+        logging.info(f"app[{app}] prof[{prof}] new record editor")
+
+    stylesheet.set_parameter("cdn", settings.url_cdn)
+    stylesheet.set_parameter("prof", prof)
+    if nr:
+        stylesheet.set_parameter("nr", nr)
+
+    editor = stylesheet.apply()
+    return HTMLResponse(content=editor)
+
+
+@router.get('/record/{nr}/history')
+@router.get('/profile/{prof}/record/{nr}/history')
+def get_history(request: Request, app: str, config: ConfigDep, nr: str,
+                prof: str | None=None,
+                user: Optional[User] = Depends(get_user_with_app),
+                stylesheet: StylesheetProcessor = Depends(StylesheetDep("history2html"))):
+    """
+    Get the history of the record.
+    :param request:
+    :param app:
+    :param config:
+    :param nr:
+    :param prof:
+    :param user:
+    :param stylesheet:
+    :return:
+    """
+    if prof is None:
+        prof = config['app']['def_prof']
+    if not allowed(user, app, 'read', 'any', prof, nr):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!",
+                            headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
+    logging.info(f"app[{app}] prof[{prof}] record[{nr}] history")
+    record_file = f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}/records/record-{nr}.xml"
+    if not os.path.exists(record_file):
+        logging.debug(f"{record_file} doesn't exist")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+    # determine how to serve it? determination by URL? (probably not right...)
+    history = rec_history(app, prof, nr)
+    if "text/html" in request.headers.get("accept", ""):
+        jsonstring = json.dumps(history) # platte json van maken
+        stylesheet.set_parameter("js-doc", jsonstring)
+        stylesheet.set_parameter("prof", prof)
+        result = stylesheet.main()
+        return HTMLResponse(content=result)
+    return history
+
+
+@router.get("")
+async def get_app(request: Request, app: str,
+                  stylesheet: StylesheetProcessor = Depends(StylesheetDep('listrecs')),
+                  user: Optional[User] = Depends(get_user_with_app)):
+    """
+    Endpoint to read an application based on its name.
+    This endpoint accepts the application name as a path parameter.
+    If the application does not exist, it returns a 404 error.
+    If the application exists but the reading functionality is not implemented yet, it returns a
+    501 error.
+    """
+    if not allowed(user, app, 'read', 'any'):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!",
+                            headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
+
+    logging.info(f"app[{app}]")
+    if not os.path.isdir(f"{settings.URL_DATA_APPS}/{app}"):
+        logging.debug(f"{settings.URL_DATA_APPS}/{app} doesn't exist!")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+    logging.debug(f"app[{app}] accept[{request.headers["Accept"]}]")
+    if "text/html" in request.headers.get("accept", ""):
+        if user is not None:
+            stylesheet.set_parameter("user", user.name)
+        else:
+            stylesheet.set_parameter("user", def_user(app).name)
+        result = stylesheet.apply()
+        return HTMLResponse(content=result)
+
+    raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED)

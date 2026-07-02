@@ -10,7 +10,7 @@ from fastapi.encoders import jsonable_encoder
 from saxonche import PySaxonProcessor
 
 from starlette import status
-from starlette.responses import HTMLResponse,  JSONResponse, RedirectResponse
+from starlette.responses import JSONResponse, RedirectResponse
 
 from typing import Optional
 
@@ -18,7 +18,7 @@ from src.config.dependencies import ConfigDep
 from src.auth.models import User
 from src.auth.authentication import get_user_with_app, allowed, def_user
 from src.commons import settings, convert_toml_to_xml, call_record_hook, call_action_hook
-from src.records import rec_editor, rec_update, rec_history,  rec_form
+from src.records import rec_update, rec_history,  rec_form
 from src.profiles import prof_xml
 
 router = APIRouter()
@@ -30,6 +30,10 @@ from fastapi import Depends
 @router.post("/app/{app}/profile/{prof}/record/", status_code=status.HTTP_201_CREATED)
 async def create_record(request: Request, app: str, prof: str | None = None, redir: str | None = "yes", user: Optional[User] = Depends(
     get_user_with_app)):
+    """
+    Endpoint to create a record for an application.
+    If the app does not exist, it returns a 400 error.
+    """
     record_body = await request.body()
     trace_dir = f"{settings.URL_DATA_APPS}/{app}/trace"
     if not os.path.exists(trace_dir):
@@ -47,11 +51,7 @@ async def create_record(request: Request, app: str, prof: str | None = None, red
         config = toml.load(f)
     if prof is None:
         prof = config['app']['def_prof'] 
-    """
-    Endpoint to create a record for an application.
-    If the app does not exist, it returns a 400 error.
-    """
-    
+
     logging.info(f"Modifying app[{app}] prof[{prof}]: creating record")
     record_dir = f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}/records"
     if not os.path.isdir(f"{settings.URL_DATA_APPS}/{app}"):
@@ -249,6 +249,10 @@ async def modify_record(request: Request, app: str, nr: str, prof: str | None = 
 @router.delete("/app/{app}/profile/{prof}/record/{nr}")
 async def delete_record(request: Request, app: str, nr: str, prof: str | None=None, user: Optional[User] = Depends(
     get_user_with_app)):
+    """
+    Endpoint to delete a record based on its ID.
+    If the record does not exist, it returns a 404 error.
+    """
     if (prof == None):
         config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
         with open(config_file, 'r') as f:
@@ -256,10 +260,6 @@ async def delete_record(request: Request, app: str, nr: str, prof: str | None=No
             prof = config['app']['def_prof'] 
     if not allowed(user, app, 'write', 'any', prof, nr):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
-    """
-    Endpoint to delete a record based on its ID.
-    If the record does not exist, it returns a 404 error.
-    """
     logging.info(f"app[{app}] prof[{prof}] record[{nr}] delete")
     record_file = f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}/records/record-{nr}.xml"
     if not os.path.exists(record_file):
@@ -284,75 +284,6 @@ async def delete_record(request: Request, app: str, nr: str, prof: str | None=No
     call_record_hook("delete_post",app,prof,nr,user)
 
     return JSONResponse({"message": f"app[{app}] prof[{prof}] record[{nr}] deleted"})
-
-@router.get('/app/{app}/record/editor')
-@router.get('/app/{app}/profile/{prof}/record/editor')
-@router.get('/app/{app}/record/{nr}/editor')
-@router.get('/app/{app}/profile/{prof}/record/{nr}/editor')
-def get_editor(request: Request, app: str, prof: str | None=None, nr: str | None=None, user: Optional[User] = Depends(
-    get_user_with_app)):
-    if prof is None:
-        config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
-        with open(config_file, 'r') as f:
-            config = toml.load(f)
-            prof = config['app']['def_prof'] 
-    if not allowed(user, app, 'write', 'any', prof, nr):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
-    if nr:
-        logging.info(f"app[{app}] prof[{prof}] record[{nr}] editor")
-        record_file = f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}/records/record-{nr}.xml"
-        if not os.path.exists(record_file):
-            logging.debug(f"{record_file} doesn't exist")
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    else:
-        logging.info(f"app[{app}] prof[{prof}] new record editor")        
-    
-    if "text/html" in request.headers.get("accept", ""):
-        editor = rec_editor(app,prof,nr,user)
-        return HTMLResponse(content=editor)
-
-@router.get('/app/{app}/record/{nr}/history')
-@router.get('/app/{app}/profile/{prof}/record/{nr}/history')
-def get_history(request: Request, app: str, nr: str, prof: str | None=None, user: Optional[User] = Depends(
-    get_user_with_app)):
-    if prof is None:
-        config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
-        with open(config_file, 'r') as f:
-            config = toml.load(f)
-            prof = config['app']['def_prof'] 
-    if not allowed(user, app, 'read', 'any', prof, nr):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
-    logging.info(f"app[{app}] prof[{prof}] record[{nr}] history")
-    record_file = f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}/records/record-{nr}.xml"
-    if not os.path.exists(record_file):
-        logging.debug(f"{record_file} doesn't exist")
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    
-    # determine how to serve it? determination by URL? (probably not right...)
-    history = rec_history(app, prof, nr)
-    if "text/html" in request.headers.get("accept", ""):
-        jsonstring = json.dumps(history); # platte json van maken
-        with PySaxonProcessor(license=False) as proc:
-            xsltproc = proc.new_xslt30_processor()
-            xsltproc.set_cwd(os.getcwd())
-            executable = xsltproc.compile_stylesheet(stylesheet_file=f"{settings.xslt_dir}/history2html.xsl")
-            executable.set_parameter("js-doc", proc.make_string_value(jsonstring))
-
-
-            executable.set_parameter("cwd", proc.make_string_value(os.getcwd()))
-            executable.set_parameter("base", proc.make_string_value(settings.url_base))
-            executable.set_parameter("prof", proc.make_string_value(prof))
-
-            convert_toml_to_xml(f"{settings.URL_DATA_APPS}/{app}/config.toml",f"{settings.URL_DATA_APPS}/{app}/config.xml")
-            config = proc.parse_xml(xml_file_name=f"{settings.URL_DATA_APPS}/{app}/config.xml")
-            executable.set_parameter("config", config)
-            executable.set_parameter("app", proc.make_string_value(app))
-
-            
-            result = executable.call_template_returning_string("main")
-            return HTMLResponse(content=result)
-    else:
-        return history
 
 
 @router.get('/app/{app}/record/{nr}/history/{epoch}')
@@ -450,44 +381,6 @@ def get_record(request: Request, app: str, nr: str, config: ConfigDep, prof: str
         else:
             return Response(res, headers={'Content-Disposition': f'inline; filename="{app}-record-{nr}.{form}"'}, media_type=mime)
 
-
-@router.get("/app/{app}")
-async def get_app(request: Request, app: str, user: Optional[User] = Depends(get_user_with_app)):
-    """
-    Endpoint to read an application based on its name.
-    This endpoint accepts the application name as a path parameter.
-    If the application does not exist, it returns a 404 error.
-    If the application exists but the reading functionality is not implemented yet, it returns a 501 error.
-    """
-    if not allowed(user, app, 'read', 'any'):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
-
-    logging.info(f"app[{app}]")
-    if not os.path.isdir(f"{settings.URL_DATA_APPS}/{app}"):
-        logging.debug(f"{settings.URL_DATA_APPS}/{app} doesn't exist!")
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-
-    logging.debug(f"app[{app}] accept[{request.headers["Accept"]}]")
-    if "text/html" in request.headers.get("accept", ""):
-        with PySaxonProcessor(license=False) as proc:
-            xsltproc = proc.new_xslt30_processor()
-            xsltproc.set_cwd(os.getcwd())
-            executable = xsltproc.compile_stylesheet(stylesheet_file=f"{settings.xslt_dir}/listrecs.xsl")
-            executable.set_parameter("cwd", proc.make_string_value(os.getcwd()))
-            executable.set_parameter("base", proc.make_string_value(settings.url_base))
-            convert_toml_to_xml(f"{settings.URL_DATA_APPS}/{app}/config.toml",f"{settings.URL_DATA_APPS}/{app}/config.xml")
-            config = proc.parse_xml(xml_file_name=f"{settings.URL_DATA_APPS}/{app}/config.xml")
-            executable.set_parameter("config", config)
-            executable.set_parameter("app", proc.make_string_value(app))
-            if user is not None:
-                executable.set_parameter("user", proc.make_string_value(user.name))
-            else:
-                executable.set_parameter("user", proc.make_string_value(def_user(app).name))
-            null = proc.parse_xml(xml_text="<null/>")
-            result = executable.transform_to_string(xdm_node=null)
-            return HTMLResponse(content=result)
-            
-    raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED)
 
 @router.get('/app/{app}/entity/{ent}')
 @router.get('/app/{app}/profile/{prof}/entity/')

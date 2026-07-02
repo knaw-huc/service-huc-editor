@@ -1,3 +1,6 @@
+"""
+Functions for dealing with the database.
+"""
 from typing import Annotated
 
 from fastapi import Depends
@@ -8,6 +11,11 @@ from src.commons import settings
 
 
 def get_db_eng_for_app(app: str):
+    """
+    Get the database engine for given app.
+    :param app:
+    :return:
+    """
     sqlite_filename = f"{settings.URL_DATA_APPS}/{app}/database.db"
     sqlite_url = f"sqlite:///{sqlite_filename}"
     connect_args = {"check_same_thread": False}
@@ -17,6 +25,11 @@ EngineDep = Annotated[Engine, Depends(get_db_eng_for_app)]
 
 
 def get_session(engine: EngineDep):
+    """
+    Get a database session.
+    :param engine:
+    :return:
+    """
     with Session(engine) as session:
         yield session
 

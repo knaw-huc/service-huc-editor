@@ -4,11 +4,9 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
 from typing import Annotated
 
-from sqlmodel import SQLModel, Session, select
+from sqlmodel import SQLModel, Session
 
 from src.auth.authentication import initialize_users
-from src.auth.authentication import create_user
-from src.auth.models import User
 from src.config.dependencies import get_all_apps, get_app_configuration
 from src.database import get_db_eng_for_app
 from src.commons import api_keys
@@ -27,6 +25,7 @@ from starlette.middleware.cors import CORSMiddleware
 
 from src import public, protected, admin
 from src.auth.routes import router as auth_router
+from src.pages import router as pages_router
 
 security = HTTPBearer()
 
@@ -105,6 +104,10 @@ app.include_router(
 
 app.include_router(
     auth_router
+)
+
+app.include_router(
+    pages_router
 )
 
 if __name__ == "__main__":
