@@ -10,6 +10,7 @@
     
     <xsl:variable name="DEBUG" select="false()" static="yes"/>
     
+    <!-- identity COPY -->
     <xsl:template match="node() | @*" mode="#all">
         <xsl:copy>
             <xsl:apply-templates select="@* | node()" mode="#current"/>
@@ -417,14 +418,6 @@
         </xsl:choose>
     </xsl:template>
 
-
-    <!-- identity COPY -->
-    <xsl:template match="node() | @*" mode="copy">
-        <xsl:copy>
-            <xsl:apply-templates select="node() | @*" mode="copy"/>
-        </xsl:copy>
-    </xsl:template>
-    
     <xsl:template match="text()" mode="copy" priority="1">
         <xsl:if test="normalize-space(.)!=''">
             <xsl:copy/>

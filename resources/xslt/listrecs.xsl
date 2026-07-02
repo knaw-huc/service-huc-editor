@@ -64,7 +64,7 @@
                 <iframe src="{$base}/static/status.html" style="border:none;height:3em;width:100%;"/>
                 <div id="wrapper">
                     <div id="header">{$config/config/app/title}</div>
-                    <div id="user"/>
+                    <div id="user">{$user}</div>
                     <div id="homeBtn"/>
                     <div class="action_menu">
                         <xsl:for-each select="$config/config/app/hooks/action/*[tokenize(level)='app']">

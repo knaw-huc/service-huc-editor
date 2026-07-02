@@ -6,10 +6,11 @@ import re
 import ast
 import xml.dom.minidom
 
+
+
 from saxonche import PySaxonProcessor, PyXdmNode
 
 from dynaconf import Dynaconf
-import jinja2
 from fastapi import Request
 
 import toml
@@ -17,6 +18,8 @@ import xml.etree.ElementTree as ET
 
 import csv
 import time
+
+from src.auth.models import User
 
 os.environ["BASE_DIR"] = os.getenv("BASE_DIR", os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -28,6 +31,7 @@ settings = Dynaconf(
 api_keys = [
     settings.SERVICE_HUC_EDITOR_API_KEY
 ]  # Todo: This is encrypted in the .secrets.toml
+
 
 logging.basicConfig(filename=settings.log_file, level=settings.log_level,
                     format=settings.log_format)
@@ -164,8 +168,7 @@ def call_record_post_hook(hook: str, crud: str, app: str, prof: str, nr: str, us
     func = getattr(mod, hook)
     func(crud, app, prof, nr, user)
 
-
-def call_action_hook(req: Request, action: str, app: str, prof: str, rec: str, user: str):
+def call_action_hook(req: Request, action: str, app: str, prof: str, rec: str, user: User):
     config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
     with open(config_file, 'r') as f:
         config = toml.load(f)
@@ -175,9 +178,9 @@ def call_action_hook(req: Request, action: str, app: str, prof: str, rec: str, u
                 if action in config["app"]["hooks"]["action"]:
                     if "hook" in config["app"]["hooks"]["action"][action]:
                         enabled = True
-                        if rec != None:
-                            enable = "true()"
-                            if "enable" in config["app"]["hooks"]["action"][action]:
+                        if rec is not None:
+                            enable="true()"
+                            if "enable" in  config["app"]["hooks"]["action"][action]:
                                 enable = config["app"]["hooks"]["action"][action]["enable"]
                             with PySaxonProcessor(license=False) as proc:
                                 xpproc = proc.new_xpath_processor()
@@ -186,7 +189,7 @@ def call_action_hook(req: Request, action: str, app: str, prof: str, rec: str, u
                                 xpproc.set_context(xdm_item=node)
                                 self = xpproc.evaluate_single('//*:MdSelfLink')
                                 xpproc.declare_variable('self')
-                                xpproc.set_parameter('self', self)
+                                xpproc.set_parameter('self',self)
                                 enabled = xpproc.effective_boolean_value(enable)
                         if enabled:
                             # import hook from data/apps/app/src/hooks.py
@@ -194,7 +197,7 @@ def call_action_hook(req: Request, action: str, app: str, prof: str, rec: str, u
                             # call hook(app,rec)
                             func = getattr(mod, config["app"]["hooks"]["action"][action]["hook"])
                             logging.info(f' calling hook[{config["app"]["hooks"]["action"][action]["hook"]}]!')
-                            return func(req, action, app, prof, rec, user)
+                            return func(req,action,app,prof,rec,user.name)
                     else:
                         logging.info(f"no action hook[{action}]!")
                 else:
@@ -204,124 +207,5 @@ def call_action_hook(req: Request, action: str, app: str, prof: str, rec: str, u
         else:
             logging.info(f"no hooks!")
             return None
-
-
-def allowed(user, app, action, default, prof=None, nr=None):
-    print(f"user..............[{user}]")
-    disc = disclaimer_check(app,user)
-    config_app_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
-    if not os.path.isfile(config_app_file):
-        logging.error(f"config file {config_app_file} doesn't exist")
-        if default == "any":
-            return (True, disc)
-        return (False, disc)
-    with open(config_app_file, 'r') as f:
-        config = toml.load(f)
-        mode = default
-        if 'access' in config["app"]:
-            if action in config['app']['access']:
-                mode = config['app']['access'][action]
-        print(f"{action}..............[{mode}][{disc}]")
-        if mode == "owner" and user != None and prof != None and nr != None:
-            record_file = f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}/records/record-{nr}.xml"
-            with open(record_file, 'r') as file:
-                rec = file.read()
-                with PySaxonProcessor(license=False) as proc:
-                    rec = proc.parse_xml(xml_text=rec)
-                    xpproc = proc.new_xpath_processor()
-                    xpproc.set_cwd(os.getcwd())
-                    xpproc.declare_namespace('clariah', 'http://www.clariah.eu/')
-                    xpproc.declare_namespace('cmd', 'http://www.clarin.eu/cmd/')
-                    xpproc.set_context(xdm_item=rec)
-                    owner = xpproc.evaluate_single(
-                        f"string((/*:CMD/*:Header/*:MdCreator,'{def_user(app)}')[1])").get_string_value()
-                    if owner == user:
-                        return (True, disc)
-        elif mode == "owner" and user != None:
-            return (True, disc)
-        elif mode == "users" and user != None:
-            print(f"{action}..............[{user}]")
-            return (True, disc)
-        elif mode == "any":
-            return (True, disc)
-    print(f"{action}..............[NOT ALLOWED][{disc}]")
-    return (False, disc)
-
-
-def def_user(app):
-    config_app_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
-    with open(config_app_file, 'r') as f:
-        config = toml.load(f)
-        if 'def_user' in config["app"]:
-            return config["app"]['def_user']
-        elif 'def_user' in settings:
-            return settings.def_user
-        return "server"
-
-
-def disclaimer_check(app,user):
-    # return True if this user has accepted the disclaoimer
-
-    csv_filepath = f"{settings.URL_DATA_APPS}/{app}/users.csv"
-
-    with open (csv_filepath, newline="") as file:
-        reader = csv.DictReader(file)
-
-        for row in reader:
-            if row["user"] == user:
-                return True
-        return False
-
-
-    # with open(csv_filepath, 'a', newline='') as file:
-    # lees de users.csv in
-    # check of de user bestaat
-    # ja: check of de diclaimer ingevuld is
-    #     ja: return true
-    # return false
-
-    #tijdelijke hack:
-    # return False
-
-def disclaimer_accept(app, user):
-    csv_filepath = f"{settings.URL_DATA_APPS}/{app}/users.csv"
-
-    print(f".......user.......{user}")
-
-    # schrijf het opnieuw op in de regel van de gebruiker die je vindt
-
-    epoch = time.time()
-    rows = []
-
-    with open(csv_filepath, 'r', newline='') as file:
-
-        csv_reader = csv.reader(file)
-        header = next(csv_reader)
-
-        found = False
-
-        for row in csv_reader:
-            # this is for when there is a mistake in the csv and there
-            # are some whitelines before users
-            if len(row) < 2:
-                continue
-
-            if row[0] == user:
-                row[1] = epoch
-                found = True
-            rows.append(row)
-
-    if not found:
-        rows.append([user, epoch])
-
-    with open(csv_filepath, "w", newline="") as file:
-        writer = csv.writer(file)
-        writer.writerow(header)
-        writer.writerows(rows)
-
-
-
-
-
 
 

@@ -13,6 +13,8 @@
     <xsl:param name="prof" select="$config/config/app/def_prof"/>
     <xsl:param name="prof-url" select="concat($base, '/app/', $app, '/profile/', $prof)"/>
     <xsl:param name="rec-url" select="concat($prof-url, '/record/', $nr)"/>
+    <xsl:param name="user" select="'anonymous'"/>
+
 
     <xsl:variable name="epoch" select="floor((current-dateTime() - xs:dateTime('1970-01-01T00:00:00')) div xs:dayTimeDuration('PT1S'))"/>
 
@@ -213,6 +215,7 @@
                                                     setLanguages();
                                                     formBuilder.start(inRec);
                                                     bind_skos_lists();
+                                                    ccfInit('editor');
                                                 }},
                                                 error: function (err) {{
                                                     obj = {{"error": err}};
@@ -220,7 +223,6 @@
                                                 }}
                                             }}
                                         );
-                                        ccfInit('editor');
                                     }}
                                 )
                             </xsl:text>
@@ -242,6 +244,7 @@
                                                 setLanguages();
                                                 formBuilder.start(inRec);
                                                 bind_skos_lists();
+                                                ccfInit('editor');
                                             }},
                                             error: function (err) {{
                                                 obj = {{"error": err}};
@@ -249,7 +252,6 @@
                                             }}
                                         }}
                                         );
-                                        ccfInit('editor');
                                     }}
                                 )
                             </xsl:text>
@@ -261,7 +263,7 @@
                 <iframe src="{$base}/static/status.html" style="border:none;height:3em;width:100%;"/>
                 <div id="wrapper">
                     <div id="header">{$config/config/app/title}</div>
-                    <div id="user"/>
+                    <div id="user">{}</div>
                     <div id="homeBtn"/>
                     <div id="content">
                         <div id="ccform"/>
