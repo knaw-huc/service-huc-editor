@@ -4,7 +4,7 @@ import time
 import json
 import toml
 
-from fastapi import APIRouter, HTTPException, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi.encoders import jsonable_encoder
 
 from saxonche import PySaxonProcessor
@@ -17,19 +17,23 @@ from typing import Optional
 from src.config.dependencies import ConfigDep
 from src.auth.models import User
 from src.auth.authentication import get_user_with_app, allowed, def_user
-from src.commons import settings, convert_toml_to_xml, call_record_hook, call_action_hook
+from src.commons import settings, call_record_hook, call_action_hook
 from src.records import rec_update, rec_history,  rec_form
 from src.profiles import prof_xml
+from src.xslt import StylesheetProcessor, StylesheetDep, SaxonProcessorDep
 
 router = APIRouter()
-
-from fastapi import Depends
 
 
 @router.post("/app/{app}/record/", status_code=status.HTTP_201_CREATED)
 @router.post("/app/{app}/profile/{prof}/record/", status_code=status.HTTP_201_CREATED)
-async def create_record(request: Request, app: str, prof: str | None = None, redir: str | None = "yes", user: Optional[User] = Depends(
-    get_user_with_app)):
+async def create_record(
+        request: Request,
+        app: str,
+        json_sheet: StylesheetProcessor = Depends(StylesheetDep("json2rec")),
+        prof: str | None = None,
+        redir: str | None = "yes",
+        user: Optional[User] = Depends(get_user_with_app)):
     """
     Endpoint to create a record for an application.
     If the app does not exist, it returns a 400 error.
@@ -41,16 +45,17 @@ async def create_record(request: Request, app: str, prof: str | None = None, red
     epoch = time.time()
     trace_file = f"{trace_dir}/create_record-{request.client.host}.{epoch}"
     with open(trace_file, 'wb') as file:
-            file.write(record_body)
+        file.write(record_body)
 
     if not allowed(user, app, 'write', 'any'):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
+
     config = None
     config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
     with open(config_file, 'r') as f:
         config = toml.load(f)
     if prof is None:
-        prof = config['app']['def_prof'] 
+        prof = config['app']['def_prof']
 
     logging.info(f"Modifying app[{app}] prof[{prof}]: creating record")
     record_dir = f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}/records"
@@ -74,35 +79,34 @@ async def create_record(request: Request, app: str, prof: str | None = None, red
     logging.info(f"app[{app}] record[{nr}] create")
 
     if not('application/xml' in request.headers['Content-Type'] or 'application/json' in request.headers['Content-Type']):
-        return HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Content-Type must be application/xml or application/json!")
-    
+        return HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Content-Type must be application/xml or application/json!")
+
     if 'application/json' in request.headers['Content-Type']:
         logging.info(f"record[{nr}] JSON to XML]")
         logging.info(f"- body JSON[{json.dumps(json.loads(record_body))}]")
         js = json.loads(record_body)
         rec = js
-        if js["record"] != None:
+        if js["record"] is not None:
             rec = js["record"]
         logging.info(f"- record JSON[{json.dumps(rec)}]")
-        if prof != None and js["prof"] != None and prof != js["prof"]:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"The profile in the path (or the app default) and the profile in the JSON differ! ({prof}!={js['prof']})")
-        with PySaxonProcessor(license=False) as proc:
-            xsltproc = proc.new_xslt30_processor()
-            xsltproc.set_cwd(os.getcwd())
-            executable = xsltproc.compile_stylesheet(stylesheet_file=f"{settings.xslt_dir}/json2rec.xsl")
-            executable.set_parameter("js-doc", proc.make_string_value(json.dumps(rec)))
-            if 'cmdi_version' in config["app"]:
-                executable.set_parameter("vers", proc.make_string_value(config['app']['cmdi_version']))
-            if user is None:
-                user = def_user(app)
-            executable.set_parameter("user", proc.make_string_value(user.name))
-            executable.set_parameter("self", proc.make_string_value(f"unl://{nr}"))
-            executable.set_parameter("prof", proc.make_string_value(prof.strip()))
-            rec = executable.call_template_returning_string("main")
-            logging.info(f"- record XML[{rec}]")
-            rec, msg = call_record_hook("create_pre",app,prof,nr,user.name,rec)
-            if rec is None:
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
+        if prof is not None and js["prof"] is not None and prof != js["prof"]:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"The profile in the path (or the app default) and the profile in the JSON differ! ({prof}!={js['prof']})")
+        if 'cmdi_version' in config["app"]:
+            json_sheet.set_parameter("vers", config["app"]["cmdi_version"])
+        if user is None:
+            user = def_user(app)
+        json_sheet.set_parameter("user", user.name)
+        json_sheet.set_parameter("self", f"unl://{nr}")
+        json_sheet.set_parameter("prof", prof.strip() if prof is not None else "")
+        rec = json_sheet.main()
+        logging.info(f"- record XML[{rec}]")
+        rec, msg = call_record_hook("create_pre",app,prof,nr,user.name,rec)
+        if rec is None:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
 
         with open(record_file, 'w') as file:
             file.write(str(rec))
@@ -112,16 +116,16 @@ async def create_record(request: Request, app: str, prof: str | None = None, red
         with PySaxonProcessor(license=False) as proc:
             rec = proc.parse_xml(xml_text=record_body)
         rec, msg = call_record_hook("create_pre",app,prof,nr,user.name,rec)
-        if rec == None:
+        if rec is None:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
         with open(record_file, 'w') as file:
             file.write(str(rec))
             # update to add the epoch
-            res, when = rec_update(app, nr, str(rec))
+            res, when = rec_update(app, prof, str(nr), str(rec))
             logging.info(f"created[XML] app[{app}] prof[{prof}] record[{nr}] msg[{res}]")
-            if (res.strip() == "404"):
+            if res.strip() == "404":
                 raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Initial record[{nr}] version was not saved!")
-            elif (res.strip() != "OK"):
+            elif res.strip() != "OK":
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=err)
 
     with PySaxonProcessor(license=False) as proc:
@@ -136,7 +140,7 @@ async def create_record(request: Request, app: str, prof: str | None = None, red
         executable.set_parameter("app", proc.make_string_value(app))
         executable.set_parameter("prof", proc.make_string_value(prof))
         executable.set_parameter("nr", proc.make_string_value(str(nr)))
-        executable.set_parameter("tweak-doc",tweak) 
+        executable.set_parameter("tweak-doc",tweak)
         null = proc.parse_xml(xml_text="<null/>")
         rec = executable.transform_to_value(xdm_node=rec)
         with open(record_file, 'w') as file:
@@ -157,6 +161,10 @@ async def create_record(request: Request, app: str, prof: str | None = None, red
 @router.put("/app/{app}/profile/{prof}/record/{nr}")
 async def modify_record(request: Request, app: str, nr: str, prof: str | None = None, when: str | None = None, user: Optional[User] = Depends(
     get_user_with_app)):
+    """
+    Endpoint to create a record for an application based on its name and the record's ID.
+    If the record already exists, it returns a message indicating that the record already exists.
+    """
     record_body = await request.body()
     trace_dir = f"{settings.URL_DATA_APPS}/{app}/trace"
     if not os.path.exists(trace_dir):
@@ -164,20 +172,16 @@ async def modify_record(request: Request, app: str, nr: str, prof: str | None = 
     epoch = time.time()
     trace_file = f"{trace_dir}/modify_record-{request.client.host}.{epoch}"
     with open(trace_file, 'wb') as file:
-            file.write(record_body)
+        file.write(record_body)
 
     config=None
     config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
     with open(config_file, 'r') as f:
         config = toml.load(f)
     if prof is None:
-        prof = config['app']['def_prof'] 
+        prof = config['app']['def_prof']
     if not allowed(user, app, 'write', 'any', prof, nr):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
-    """
-    Endpoint to create a record for an application based on its name and the record's ID.
-    If the record already exists, it returns a message indicating that the record already exists.
-    """
     logging.info(f"app[{app}] prof[{prof}] record[{nr}] modify")
     record_file = f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}/records/record-{nr}.xml"
     if not os.path.exists(record_file):
@@ -186,7 +190,7 @@ async def modify_record(request: Request, app: str, nr: str, prof: str | None = 
 
     if not('application/xml' in request.headers['Content-Type'] or 'application/json' in request.headers['Content-Type']):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Content-Type must be application/xml or application/json!")
-    
+
     if 'application/json' in request.headers['Content-Type']:
         with PySaxonProcessor(license=False) as proc:
             xsltproc = proc.new_xslt30_processor()
@@ -257,7 +261,7 @@ async def delete_record(request: Request, app: str, nr: str, prof: str | None=No
         config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
         with open(config_file, 'r') as f:
             config = toml.load(f)
-            prof = config['app']['def_prof'] 
+            prof = config['app']['def_prof']
     if not allowed(user, app, 'write', 'any', prof, nr):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
     logging.info(f"app[{app}] prof[{prof}] record[{nr}] delete")
@@ -275,7 +279,7 @@ async def delete_record(request: Request, app: str, nr: str, prof: str | None=No
         rec, msg = call_record_hook("delete_pre",app,prof,nr,user,rec)
         if rec is None:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
-        
+
     deleted = f"{history_dir}/record-{nr}.xml.deleted"
     if os.path.exists(deleted):
         os.remove(deleted)
@@ -291,11 +295,11 @@ async def delete_record(request: Request, app: str, nr: str, prof: str | None=No
 def get_version(request: Request, app: str, nr: int, epoch:str, prof: str | None=None, user: Optional[User] = Depends(
     get_user_with_app)):
     # yes it works also http://localhost:1210/app/stalling/profile/clarin.eu:cr1:p_1708423613607/record/3.xml/history/1767225600 with the same extensions to the record number for a correct format
-    
+
     # DONE specifieke versie van een record tonen
     # http://localhost:1210/app/stalling/profile/clarin.eu:cr1:p_1708423613607/record/3/history/1767225600 
     # 1-1-2026 00:00:00
-    
+
     # MPpseudocode: get a list of epochs from history folder, (it's in their name)
     #               determine the 'closest' one 
     #               get that file
@@ -306,7 +310,7 @@ def get_version(request: Request, app: str, nr: int, epoch:str, prof: str | None
         config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
         with open(config_file, 'r') as f:
             config = toml.load(f)
-            prof = config['app']['def_prof'] 
+            prof = config['app']['def_prof']
     if epoch.count('.') == 0:
         ext = None
     elif epoch.count('.') == 1:
@@ -330,12 +334,12 @@ def get_version(request: Request, app: str, nr: int, epoch:str, prof: str | None
     if not os.path.exists(record_file):
         logging.debug(f"{record_file} doesn't exist")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    
+
     with PySaxonProcessor(license=False) as proc:
         rec = proc.parse_xml(xml_file_name=record_file)
 
         (res, form, mime) = rec_form(app,prof,nr,proc,rec,ext,request.headers.get("accept"))
-                                     
+
         if form in ['json','json2']:
             return JSONResponse(content=jsonable_encoder(res))
         else:
@@ -345,8 +349,20 @@ def get_version(request: Request, app: str, nr: int, epoch:str, prof: str | None
 
 @router.get('/app/{app}/record/{nr}')
 @router.get('/app/{app}/profile/{prof}/record/{nr}')
-def get_record(request: Request, app: str, nr: str, config: ConfigDep, prof: str | None=None, user: Optional[User] = Depends(
+def get_record(request: Request, app: str, nr: str, config: ConfigDep, proc: SaxonProcessorDep,
+               prof: str | None=None, user: Optional[User] = Depends(
     get_user_with_app)):
+    """
+
+    :param request:
+    :param app: App name
+    :param nr: Record number
+    :param config: The app config from the toml file
+    :param proc: Saxon processor
+    :param prof: Profile name
+    :param user: The user, if logged in
+    :return:
+    """
     if prof is None:
         prof = config['app']['def_prof']
     if nr.count('.') == 0:
@@ -355,9 +371,10 @@ def get_record(request: Request, app: str, nr: str, config: ConfigDep, prof: str
         nr, ext = nr.rsplit('.', 1)
     else:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not supported")
-    
+
     if not allowed(user, app, 'read', 'any', prof, nr):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!",
+                            headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
 
     logging.info(f"app[{app}] prof[{prof}] record[{nr}] form[{ext}] accept[{request.headers.get("accept","")}]")
     record_file = f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}/records/record-{nr}.xml"
@@ -365,68 +382,69 @@ def get_record(request: Request, app: str, nr: str, config: ConfigDep, prof: str
     if not os.path.exists(record_file):
         logging.debug(f"{record_file} doesn't exist")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    
-    with PySaxonProcessor(license=False) as proc:
-        rec = proc.parse_xml(xml_file_name=record_file)
-        rec, msg = call_record_hook("read_pre",app,prof,nr,user,rec)
-        if rec is None:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
-        
-        (res, form, mime) = rec_form(app,prof,nr,proc,rec,ext,request.headers.get("accept"))
-                                     
-        call_record_hook("read_post",app,prof,nr,user)
 
-        if form in ['json','json2']:
-            return JSONResponse(content=jsonable_encoder(res))
-        else:
-            return Response(res, headers={'Content-Disposition': f'inline; filename="{app}-record-{nr}.{form}"'}, media_type=mime)
+    rec = proc.parse_xml(xml_file_name=record_file)
+    rec, msg = call_record_hook("read_pre",app,prof,nr,user.name,rec)
+    if rec is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
+
+    (res, form, mime) = rec_form(app,prof,nr,proc,rec,ext,request.headers.get("accept"))
+
+    call_record_hook("read_post",app,prof,nr,user.name)
+
+    if form in ['json','json2']:
+        return JSONResponse(content=jsonable_encoder(res))
+    return Response(res,
+                    headers={'Content-Disposition': f'inline; filename="{app}-record-{nr}.{form}"'},
+                    media_type=mime)
 
 
 @router.get('/app/{app}/entity/{ent}')
 @router.get('/app/{app}/profile/{prof}/entity/')
 @router.get('/app/{app}/profile/{prof}/entity/{ent}')
-async def get_refs(request: Request, app: str, prof: str | None=None, ent: str | None=None, q: str | None = "*", user: Optional[User] = Depends(
-    get_user_with_app)):
+async def get_refs(request: Request, app: str, config: ConfigDep, prof: str | None=None,
+                   ent: str | None=None, q: str = "*",
+                   stylesheet: StylesheetProcessor = Depends(StylesheetDep('listents')),
+                   user: Optional[User] = Depends(get_user_with_app)):
+    """
+    Get refs
+    :param request:
+    :param app:
+    :param config:
+    :param prof:
+    :param ent:
+    :param q:
+    :param stylesheet:
+    :param user:
+    :return:
+    """
     if not allowed(user, app, 'read', 'any'):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
-    config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
-    with open(config_file, 'r') as f:
-        if (prof == None):
-                config = toml.load(f)
-                prof = config['app']['def_prof'] 
-        if (ent == None):
-            for key in config["app"]["prof"].keys():
-                if config["app"]["prof"][key]["prof"] == prof:
-                    ent=key
-        #TODO: check that prof and ent lead somewhere
-        if q.startswith('^'):
-            q = q.removeprefix('^') + "*"
-        elif not('*' in q):
-            q = "*" + q + "*"
-        logging.info(f"app[{app}] prof[{prof}] enity[{ent}] query[{q}] user[{user}] accept[{request.headers.get("accept", "")}]")
-        with PySaxonProcessor(license=False) as proc:
-            xsltproc = proc.new_xslt30_processor()
-            xsltproc.set_cwd(os.getcwd())
-            executable = xsltproc.compile_stylesheet(stylesheet_file=f"{settings.xslt_dir}/listents.xsl")
-            executable.set_parameter("cwd", proc.make_string_value(os.getcwd()))
-            executable.set_parameter("base", proc.make_string_value(settings.url_base))
-            convert_toml_to_xml(f"{settings.URL_DATA_APPS}/{app}/config.toml",f"{settings.URL_DATA_APPS}/{app}/config.xml")
-            config = proc.parse_xml(xml_file_name=f"{settings.URL_DATA_APPS}/{app}/config.xml")
-            executable.set_parameter("config", config)
-            executable.set_parameter("app", proc.make_string_value(app))
-            executable.set_parameter("prof", proc.make_string_value(prof))
-            executable.set_parameter("ent", proc.make_string_value(ent))
-            executable.set_parameter("query", proc.make_string_value(q))
-            if user is not None:
-                executable.set_parameter("user", proc.make_string_value(user.name))
-            else:
-                executable.set_parameter("user", proc.make_string_value(def_user(app).name))
-            null = proc.parse_xml(xml_text="<null/>")
-            result = executable.transform_to_string(xdm_node=null)
-            logging.info(f"result[{result}]")
-            return JSONResponse(content=jsonable_encoder(json.loads(result)))
-   
-    
+    if prof is None:
+        prof = config['app']['def_prof']
+    if ent is None:
+        for key in config["app"]["prof"].keys():
+            if config["app"]["prof"][key]["prof"] == prof:
+                ent=key
+    #TODO: check that prof and ent lead somewhere
+    if q.startswith('^'):
+        q = q.removeprefix('^') + "*"
+    elif '*' not in q:
+        q = "*" + q + "*"
+
+    logging.info(f"app[{app}] prof[{prof}] enity[{ent}] query[{q}] user[{user}] accept[{request.headers.get("accept", "")}]")
+    stylesheet.set_parameter("prof", prof)
+    stylesheet.set_parameter("ent", ent)
+    stylesheet.set_parameter("query", q)
+    if user is not None:
+        stylesheet.set_parameter("user", user.name)
+    else:
+        stylesheet.set_parameter("user", def_user(app).name)
+    result = stylesheet.apply()
+    logging.info(f"result[{result}]")
+    return JSONResponse(content=jsonable_encoder(json.loads(result)))
+
+
 @router.get('/app/{app}/entity/{id}')
 @router.get('/app/{app}/profile/{prof}/entity/{id}')
 @router.get('/app/{app}/profile/{prof}/entity/{ent}/{id}')
@@ -437,29 +455,35 @@ async def get_ref(request: Request, app: str, id:str, prof: str | None=None, ent
     config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
     with open(config_file, 'r') as f:
         if (prof == None):
-                config = toml.load(f)
-                prof = config['app']['def_prof'] 
+            config = toml.load(f)
+            prof = config['app']['def_prof']
         if (ent == None):
             for key in config["app"]["prof"].keys():
                 if config["app"]["prof"][key]["prof"] == prof:
                     ent=key
         #TODO: check that prof and ent lead somewhere
         logging.info(f"app[{app}] prof[{prof}] enity[{ent}] id[{id}] user[{user}] accept[{request.headers.get("accept", "")}]")
-        return RedirectResponse(url=f"/app/{app}/profile/{prof}/record/{id}") 
+        return RedirectResponse(url=f"/app/{app}/profile/{prof}/record/{id}")
 
 
 @router.get('/app/{app}/action/{action}')
 @router.get('/app/{app}/action/record/{nr}/{action}')
 @router.get('/app/{app}/profile/{prof}/action/{action}')
 @router.get('/app/{app}/profile/{prof}/record/{nr}/action/{action}')
-def get_action(req: Request, app: str, action: str, prof: str | None=None, nr: str | None=None, user: Optional[User] = Depends(
-    get_user_with_app)):
+def get_action(req: Request, app: str, action: str, config: ConfigDep,
+               prof: str | None=None, nr: str | None=None, user: Optional[User] = Depends(
+            get_user_with_app)):
+    """
+    Get action
+    :param req:
+    :param app:
+    :param action:
+    :param config:
+    :param prof:
+    :param nr:
+    :param user:
+    :return:
+    """
     if nr is not None and prof is None:
-        config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
-        with open(config_file, 'r') as f:
-            config = toml.load(f)
-            prof = config['app']['def_prof'] 
-    #if (not allowed(user,app,'read','any')):
-    #    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
+        prof = config['app']['def_prof']
     return call_action_hook(req,action,app,prof,nr,user)
-

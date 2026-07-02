@@ -2,21 +2,19 @@ import logging
 import os
 import datetime
 import json
-from typing import Optional
 
 import toml
-from datetime import timezone 
+from datetime import timezone
 
+from fastapi import HTTPException
 from saxonche import PySaxonProcessor
+from starlette import status
 
-from src.auth.models import User
 from src.commons import settings, convert_toml_to_xml
 from src.auth.authentication import def_user
 from src.profiles import prof_xml, prof_json
 
 from weasyprint import HTML
-
-from fastapi.encoders import jsonable_encoder
 
 from time import strftime, localtime
 from datetime import datetime

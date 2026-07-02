@@ -1,3 +1,7 @@
+"""
+Authentication related routes
+"""
+
 from datetime import timedelta
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -24,15 +28,17 @@ class Token(BaseModel):
 
 
 @router.post("/token")
-async def login_for_access_token(session: SessionDep, form_data: OAuth2PasswordRequestForm = Depends()):
+async def login_for_access_token(session: SessionDep,
+                                 form_data: OAuth2PasswordRequestForm = Depends()):
     """
     OAuth2 flow: get JWT
     """
     try:
         user = get_user_with_password(form_data.username, form_data.password, session)
-    except InvalidCredentialsException:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect username or password",
-                            headers={"WWW-Authenticate": "Bearer"})
+    except InvalidCredentialsException as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Incorrect username or password",
+                            headers={"WWW-Authenticate": "Bearer"}) from e
 
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(data={"sub": user.name}, expires_delta=access_token_expires)

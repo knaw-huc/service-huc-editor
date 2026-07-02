@@ -1,3 +1,7 @@
+"""
+Authentication
+"""
+
 import logging
 import os
 from datetime import timedelta, datetime, timezone
@@ -44,6 +48,9 @@ class UnknownApiKeyException(Exception):
 
 
 class TokenData(BaseModel):
+    """
+    Token data
+    """
     username: str | None = None
 
 
@@ -99,7 +106,8 @@ def import_from_htpasswd(app: str, config: ConfigDep, session: SessionDep):
     Import users from a htpasswd file
     """
     users_cred_file = config['app']['access']['users']
-    users_cred_file = os.path.normpath(os.path.join(f"{settings.URL_DATA_APPS}/{app}/", users_cred_file))
+    users_cred_file = os.path.normpath(os.path.join(f"{settings.URL_DATA_APPS}/{app}/",
+                                                    users_cred_file))
     if not os.path.isfile(users_cred_file):
         logging.warning("Configured htp file is missing. Skipping import of users")
         logging.warning(f"File: {users_cred_file}")
@@ -153,8 +161,9 @@ def get_current_user_basic(
     """
     try:
         return get_user_with_password(credentials.username, credentials.password, session)
-    except InvalidCredentialsException:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
+    except InvalidCredentialsException as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials",
+                            headers={"WWW-Authenticate": f"Basic realm=\"{app}\""}) from e
 
 
 def get_user_with_app(
@@ -164,34 +173,36 @@ def get_user_with_app(
         bearer_credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_security),
 ) -> Optional[User]:
     """
-    Get the current user of this app. Uses HTTP Basic Authentication initially, and if that fails it will check if there's
-    a header token present.
+    Get the current user of this app. Uses HTTP Basic Authentication initially, and if that fails it
+    will check if there's a header token present.
     """
-    credentials_exception = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials", headers={"WWW-Authenticate": "Bearer"})
+    credentials_exception = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                                          detail="Invalid credentials",
+                                          headers={"WWW-Authenticate": "Bearer"})
     if basic_credentials:
         return get_current_user_basic(app, session, basic_credentials)
-    elif bearer_credentials:
+    if bearer_credentials:
         # Handle bearer token authentication. This can either be a fixed api key, or an OAuth2 token
         token = bearer_credentials.credentials
         try:
             return check_api_key(token, app)
         except UnknownApiKeyException:
             # Not in legacy api keys. Treat as JWT
-            try:
-                payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[ALGORITHM])
-                username = payload.get('sub')
-                if username is None:
-                    raise credentials_exception
-                token_data = TokenData(username=username)
-            except InvalidTokenError:
+            pass
+        try:
+            payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[ALGORITHM])
+            username = payload.get('sub')
+            if username is None:
                 raise credentials_exception
-            user = session.exec(select(User).where(User.name == token_data.username)).first()
-            if user is None:
-                raise credentials_exception
-            return user
+            token_data = TokenData(username=username)
+        except InvalidTokenError as e:
+            raise credentials_exception from e
+        user = session.exec(select(User).where(User.name == token_data.username)).first()
+        if user is None:
+            raise credentials_exception
+        return user
 
-    else:
-        return None
+    return None
 
 
 UserDep = Annotated[User, Depends(get_user_with_app)]
@@ -238,11 +249,13 @@ def allowed(user: Optional[User], app: str, action: str, default: str, prof=None
                     xpproc.declare_namespace('clariah','http://www.clariah.eu/')
                     xpproc.declare_namespace('cmd','http://www.clarin.eu/cmd/')
                     xpproc.set_context(xdm_item=rec)
-                    owner = xpproc.evaluate_single(f"string((/*:CMD/*:Header/*:MdCreator,'{def_user(app).name}')[1])").get_string_value()
+                    owner = xpproc.evaluate_single(
+                        f"string((/*:CMD/*:Header/*:MdCreator,'{def_user(app).name}')[1])"
+                    ).get_string_value()
                     if owner == user.name:
                         return True
         elif mode == "owner" and user is not None:
-                return True
+            return True
         elif mode == "users" and user is not None:
             return True
         elif mode == "any":
@@ -260,7 +273,7 @@ def def_user(app: str) -> User:
         config = toml.load(f)
         if 'def_user' in config["app"]:
             return User(name=config["app"]['def_user'])
-        elif 'def_user' in settings:
+        if 'def_user' in settings:
             return User(name=settings.def_user)
         return User(name="server")
 

@@ -56,7 +56,7 @@ class RecordMetadata:
 
 class StylesheetProcessor:
     """
-
+    Processor for XSLT stylesheets.
     """
     saxon: PySaxonProcessor
     xslt_processor: PyXslt30Processor
@@ -101,23 +101,29 @@ class StylesheetProcessor:
             self.stylesheet.set_parameter(key, value)
 
 
-    def apply(self, record: Optional[str] = None):
+    def apply(self, record: Optional[str] = None, profile: Optional[str] = None):
         """
-        Apply the stylesheet to a null value or a record
+        Apply the stylesheet to a null value, a record or a profile
         :return:
         """
-        if record is None:
-            null = self.saxon.parse_xml(xml_text="<null/>")
-            return self.stylesheet.transform_to_string(xdm_node=null)
-        record_file = f"{settings.URL_DATA_APPS}/{self.app}/record-{record}.xml"
-        rec = self.saxon.parse_xml(xml_uri=record_file)
-        return self.stylesheet.transform_to_string(xdm_node=rec)
+        if record is not None:
+            record_file = f"{settings.URL_DATA_APPS}/{self.app}/record-{record}.xml"
+            rec = self.saxon.parse_xml(xml_uri=record_file)
+            return self.stylesheet.transform_to_string(xdm_node=rec)
+        if profile is not None:
+            profile_path = f"{settings.URL_DATA_APPS}/{self.app}/profiles/{profile}"
+            prof = self.saxon.parse_xml(xml_file_name=f"{profile_path}/{profile}.xml")
+            return self.stylesheet.transform_to_string(xdm_node=prof)
 
-
+        null = self.saxon.parse_xml(xml_text="<null/>")
+        return self.stylesheet.transform_to_string(xdm_node=null)
 
     def main(self):
+        """
+        Call the main template of the stylesheet
+        :return:
+        """
         return self.stylesheet.call_template_returning_string("main")
-
 
 
 def get_saxon_processor():
@@ -144,6 +150,10 @@ StylesheetProcessorDep = Annotated[StylesheetProcessor, Depends(get_xslt_process
 
 
 class StylesheetDep:
+    """
+    Dependency function for getting a saxon processor. Allows specifying the name of the stylesheet
+    to load.
+    """
     stylesheet_name: str
 
     def __init__(self, stylesheet_name: str):
