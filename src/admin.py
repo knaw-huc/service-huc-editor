@@ -1,3 +1,5 @@
+import csv
+import io
 import logging
 import os.path
 import shutil
@@ -6,11 +8,14 @@ import toml
 from fastapi import APIRouter, HTTPException, Request, Response
 
 from saxonche import PySaxonProcessor
+from sqlmodel import select
 
 from starlette import status
 from starlette.responses import JSONResponse, RedirectResponse
 from starlette.staticfiles import StaticFiles
 
+from src.auth.models import User
+from src.database import SessionDep
 from src.commons import settings, convert_toml_to_xml
 from src.profiles import prof_save
 
@@ -175,6 +180,19 @@ def get_config(request: Request, app: str, form: str | None = ".toml"):
             config = file.read()
             return Response(content=config, media_type="application/xml")
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not supported")
+
+@router.get('/app/{app}/config/users.csv')
+def get_user_csv(app: str, session: SessionDep):
+    """
+    Get the users database in a csv export
+    """
+    users = session.exec(select(User)).all()
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["ID", "Name", "Password"])
+    for user in users:
+        writer.writerow([user.id, user.name, user.password_hash])
+    return Response(content=output.getvalue(), media_type="text/csv")
 
 @router.put('/app/{app}/config')
 async def modify_config(request: Request, app: str):
