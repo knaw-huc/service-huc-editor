@@ -1,10 +1,14 @@
-from sqlmodel import SQLModel, Field
+from sqlalchemy.orm import mapped_column, Mapped
+
+from src.database.models import Base
 
 
-class User(SQLModel, table=True):
+class User(Base):
     """
     The user model for authentication
     """
-    id: int | None = Field(default=None, primary_key=True)
-    name: str = Field(index=True, unique=True)
-    password_hash: str = Field(index=True)
+    __tablename__ = "user"
+
+    id: Mapped[int] = mapped_column(default=None, primary_key=True)
+    name: Mapped[str] = mapped_column(index=True, unique=True)
+    password_hash: Mapped[str]

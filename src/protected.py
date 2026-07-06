@@ -31,6 +31,7 @@ async def create_record(
         request: Request,
         app: str,
         json_sheet: StylesheetProcessor = Depends(StylesheetDep("json2rec")),
+        post_tweak_sheet: StylesheetProcessor = Depends(StylesheetDep("postTweak")),
         prof: str | None = None,
         redir: str | None = "yes",
         user: Optional[User] = Depends(get_user_with_app)):
@@ -129,20 +130,13 @@ async def create_record(
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=err)
 
     with PySaxonProcessor(license=False) as proc:
-        rec = proc.parse_xml(xml_uri=record_file)
         tweak = prof_xml(app, prof)
         tweak = proc.parse_xml(xml_text=tweak)
-        xsltproc = proc.new_xslt30_processor()
-        xsltproc.set_cwd(os.getcwd())
-        executable = xsltproc.compile_stylesheet(stylesheet_file=f"{settings.xslt_dir}/postTweak.xsl")
-        executable.set_parameter("cwd", proc.make_string_value(os.getcwd()))
-        executable.set_parameter("base", proc.make_string_value(settings.url_base))
-        executable.set_parameter("app", proc.make_string_value(app))
-        executable.set_parameter("prof", proc.make_string_value(prof))
-        executable.set_parameter("nr", proc.make_string_value(str(nr)))
-        executable.set_parameter("tweak-doc",tweak)
-        null = proc.parse_xml(xml_text="<null/>")
-        rec = executable.transform_to_value(xdm_node=rec)
+        post_tweak_sheet.set_parameter("prof", prof)
+        post_tweak_sheet.set_parameter("nr", str(nr))
+        post_tweak_sheet.set_parameter("tweak-doc", tweak)
+        rec = post_tweak_sheet.apply(record=str(nr))
+
         with open(record_file, 'w') as file:
             file.write(str(rec))
 

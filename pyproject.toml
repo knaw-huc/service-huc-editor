@@ -20,6 +20,7 @@ dependencies = [
     "pyyaml",
     "requests>=2.32.5",
     "saxonche>=12.8.0",
+    "sqlalchemy>=2.0.51",
     "sqlmodel>=0.0.38",
     "starlette>=0.47.3",
     "toml>=0.10.2",

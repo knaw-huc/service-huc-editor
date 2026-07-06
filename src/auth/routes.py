@@ -10,7 +10,7 @@ from pydantic import BaseModel
 from starlette import status
 
 from src.auth.authentication import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
-from src.database import SessionDep
+from src.database.database import SessionDep
 from src.auth.authentication import UserDep, get_user_with_password, InvalidCredentialsException
 
 

@@ -1,32 +1,27 @@
-import os
-
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from fastapi.staticfiles import StaticFiles
-from typing import Annotated
-
-from sqlmodel import SQLModel, Session
-
-from src.auth.authentication import initialize_users
-from src.config.dependencies import get_all_apps, get_app_configuration
-from src.database import get_db_eng_for_app
-from src.commons import api_keys
 import logging
+import os
 from contextlib import asynccontextmanager
+from typing import Annotated
 
 import emoji
 import uvicorn
 from fastapi import FastAPI, Request, HTTPException, Depends, status
-
-from src.commons import settings
-
-__version__ = "0.1.10"
-
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.staticfiles import StaticFiles
+from sqlalchemy.orm import Session
 from starlette.middleware.cors import CORSMiddleware
 
 from src import public, protected, admin
+from src.auth.authentication import initialize_users
 from src.auth.routes import router as auth_router
+from src.commons import api_keys
+from src.commons import settings
+from src.config.dependencies import get_all_apps, get_app_configuration
+from src.database.database import get_db_eng_for_app
+from src.database.models import Base
 from src.pages import router as pages_router
 
+__version__ = "0.1.10"
 security = HTTPBearer()
 
 
@@ -53,7 +48,7 @@ async def lifespan(application: FastAPI):
         print(f" - {a}")
         eng = get_db_eng_for_app(a)
         config = get_app_configuration(a)
-        SQLModel.metadata.create_all(eng)
+        Base.metadata.create_all(eng)
 
         with Session(eng) as session:
             print("Check if this app has users")

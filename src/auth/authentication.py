@@ -20,7 +20,7 @@ from saxonche import PySaxonProcessor
 from sqlmodel import Session, select
 from starlette import status
 
-from src.database import SessionDep
+from src.database.database import SessionDep
 from src.auth.models import User
 from src.commons import settings, api_keys
 from src.config.dependencies import ConfigDep
@@ -116,7 +116,7 @@ def import_from_htpasswd(app: str, config: ConfigDep, session: SessionDep):
     logging.info("Found htp file, importing users from it")
     ht = HtpasswdFile(users_cred_file)
     for u in ht.users():
-        user: Optional[User] = session.exec(select(User).where(User.name == u)).first()
+        user: Optional[User] = session.scalars(select(User).where(User.name == u)).first()
         if not user:
             user = User(name=u, password_hash=ht.get_hash(u))
             session.add(user)
@@ -127,10 +127,12 @@ def get_user_with_password(username: str, password: str, session: SessionDep):
     """
     Get user based on username and password
     """
-    user: Optional[User] = session.exec(select(User).where(User.name == username)).first()
+    user: Optional[User] = session.scalars(select(User).where(User.name == username)).first()
     if user:
+        print("user found")
         try:
             if not verify_password(password, user.password_hash):
+                print("Invalid password")
                 raise InvalidCredentialsException
             return user
         except UnknownHashError:
@@ -197,7 +199,7 @@ def get_user_with_app(
             token_data = TokenData(username=username)
         except InvalidTokenError as e:
             raise credentials_exception from e
-        user = session.exec(select(User).where(User.name == token_data.username)).first()
+        user = session.scalars(select(User).where(User.name == token_data.username)).first()
         if user is None:
             raise credentials_exception
         return user

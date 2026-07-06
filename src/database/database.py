@@ -4,8 +4,8 @@ Functions for dealing with the database.
 from typing import Annotated
 
 from fastapi import Depends
-from sqlalchemy import Engine
-from sqlmodel import create_engine, Session
+from sqlalchemy import Engine, create_engine
+from sqlalchemy.orm import Session
 
 from src.commons import settings
 
