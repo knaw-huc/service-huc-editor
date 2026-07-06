@@ -25,6 +25,23 @@ from src.xslt import StylesheetProcessor, StylesheetDep, SaxonProcessorDep
 router = APIRouter()
 
 
+@router.get("/app/{app}/records/")
+@router.get("/app/{app}/profile/{prof}/records/")
+async def get_records(
+    request: Request,
+    app: str,
+    prof: str | None = None,
+    user: Optional[User] = Depends(get_user_with_app)):
+    # als geen prof neem dan de default prof
+    # mag deze user er wel bij , ie allowed()
+    # if cache.db:
+    #   lees de lijst uit de database
+    # else:
+    #    loop over {settings.URL_DATA_APPS}/{app}/profiles/{prof}/records/*.xml:
+    #       per record roep rec_colums(rec XML) 
+    #        sla op cache.db   
+
+
 @router.post("/app/{app}/record/", status_code=status.HTTP_201_CREATED)
 @router.post("/app/{app}/profile/{prof}/record/", status_code=status.HTTP_201_CREATED)
 async def create_record(
