@@ -44,6 +44,7 @@ class RecordMetadata:
         filename = f"{self.records_location}/record-{record}.xml"
         self.record = record
         self.xpath_processor.set_context(file_name=filename)
+        self.xpath_processor.clear_parameters()
 
     def set_parameter(self, key: str, value: str):
         """
