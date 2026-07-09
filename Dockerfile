@@ -40,6 +40,7 @@ ADD logs ${BASE_DIR}/logs
 ADD resources ${BASE_DIR}/resources
 ADD src ${BASE_DIR}/src
 ADD tests ${BASE_DIR}/tests
+ADD entrypoint.sh ${BASE_DIR}/entrypoint.sh
 
 USER root
 RUN chown -R huc:huc ${BASE_DIR}
@@ -47,6 +48,7 @@ USER huc
 
 # ENTRYPOINT ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "1210", "--reload"]
 # ENTRYPOINT ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "1210", "--workers", "4"]
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "1210",  "--workers", "4", "--log-config", "/home/huc/huc-editor-service/conf/log-config.yaml"]
+#CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "1210",  "--workers", "4", "--log-config", "/home/huc/huc-editor-service/conf/log-config.yaml"]
+CMD ["./entrypoint.sh"]
 # CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "1210",  "--workers", "4"]
 # CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "1210",  "--reload"]

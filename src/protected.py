@@ -12,41 +12,77 @@ from saxonche import PySaxonProcessor
 from starlette import status
 from starlette.responses import JSONResponse, RedirectResponse
 
-from typing import Optional
+from typing import Optional, Annotated
 
-from src.config.dependencies import ConfigDep
+from src.config.dependencies import ConfigDep, ProfileDep
 from src.auth.models import User
 from src.auth.authentication import get_user_with_app, allowed, def_user
 from src.commons import settings, call_record_hook, call_action_hook
-from src.records import rec_update, rec_history,  rec_form
+from src.records.records import rec_update, rec_history,  rec_form
 from src.profiles import prof_xml
-from src.xslt import StylesheetProcessor, StylesheetDep, SaxonProcessorDep
+from src.records.services import RecordManagerDep
+from src.xslt import StylesheetProcessor, StylesheetDep, SaxonProcessorDep, RecordMetadataDep
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/app/{app}/profile/{prof}",
+)
 
 
-@router.get("/app/{app}/records/")
-@router.get("/app/{app}/profile/{prof}/records/")
+@router.get("/records/")
 async def get_records(
-    request: Request,
     app: str,
-    prof: str | None = None,
+    profile: ProfileDep,
+    record_manager: RecordManagerDep,
+    record_metadata: RecordMetadataDep,
+    config: ConfigDep,
+    offset: int = 0,
+    limit: int = 100,
     user: Optional[User] = Depends(get_user_with_app)):
-    # als geen prof neem dan de default prof
-    # mag deze user er wel bij , ie allowed()
-    # if cache.db:
-    #   lees de lijst uit de database
-    # else:
-    #    loop over {settings.URL_DATA_APPS}/{app}/profiles/{prof}/records/*.xml:
-    #       per record roep rec_colums(rec XML) 
-    #        sla op cache.db   
+    """
+    Get records for the given application and profile.
+    :param record_metadata:
+    :param config:
+    :param app:
+    :param profile:
+    :param record_manager:
+    :param offset:
+    :param limit:
+    :param user:
+    :return:
+    """
+    if not allowed(user, app, 'read', 'any'):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!",
+                            headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
+    records = record_manager.list(start=offset, limit=limit)
+    total = record_manager.num_records()
+
+    data = list(map(lambda x : x.table_data(user, config, record_metadata), records))
+
+    return {
+        "header": [
+            {
+                "prop": key,
+                "label": value["label"],
+                "sort": value["sort"] == "true",
+                "filter": value["filter"] == "true",
+            } for key, value in profile["list"].items()
+        ],
+        "actions": {
+            key: action for key, action in config["app"]["hooks"]["action"].items() if "rec" in action["level"].split(" ")
+        },
+        "data": data,
+        "offset": offset,
+        "limit": limit,
+        "total": total,
+    }
 
 
-@router.post("/app/{app}/record/", status_code=status.HTTP_201_CREATED)
-@router.post("/app/{app}/profile/{prof}/record/", status_code=status.HTTP_201_CREATED)
+@router.post("/record/", status_code=status.HTTP_201_CREATED)
 async def create_record(
         request: Request,
         app: str,
+        record_manager: RecordManagerDep,
+        proc: SaxonProcessorDep,
         json_sheet: StylesheetProcessor = Depends(StylesheetDep("json2rec")),
         post_tweak_sheet: StylesheetProcessor = Depends(StylesheetDep("postTweak")),
         prof: str | None = None,
@@ -117,6 +153,7 @@ async def create_record(
             json_sheet.set_parameter("vers", config["app"]["cmdi_version"])
         if user is None:
             user = def_user(app)
+        json_sheet.set_parameter("js-doc", json.dumps(rec))
         json_sheet.set_parameter("user", user.name)
         json_sheet.set_parameter("self", f"unl://{nr}")
         json_sheet.set_parameter("prof", prof.strip() if prof is not None else "")
@@ -131,8 +168,7 @@ async def create_record(
         logging.info(f"created[JSON] app[{app}] prof[{prof}] record[{nr}]")
 
     else: # XML input
-        with PySaxonProcessor(license=False) as proc:
-            rec = proc.parse_xml(xml_text=record_body)
+        rec = proc.parse_xml(xml_text=record_body)
         rec, msg = call_record_hook("create_pre",app,prof,nr,user.name,rec)
         if rec is None:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
@@ -146,32 +182,33 @@ async def create_record(
             elif res.strip() != "OK":
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=err)
 
-    with PySaxonProcessor(license=False) as proc:
-        tweak = prof_xml(app, prof)
-        tweak = proc.parse_xml(xml_text=tweak)
-        post_tweak_sheet.set_parameter("prof", prof)
-        post_tweak_sheet.set_parameter("nr", str(nr))
-        post_tweak_sheet.set_parameter("tweak-doc", tweak)
-        rec = post_tweak_sheet.apply(record=str(nr))
+    tweak = prof_xml(app, prof)
+    tweak = proc.parse_xml(xml_text=tweak)
+    post_tweak_sheet.set_parameter("prof", prof)
+    post_tweak_sheet.set_parameter("nr", str(nr))
+    post_tweak_sheet.set_parameter("tweak-doc", tweak)
+    rec = post_tweak_sheet.apply(record=str(nr), profile=prof)
 
-        with open(record_file, 'w') as file:
-            file.write(str(rec))
+    with open(record_file, 'w') as file:
+        file.write(str(rec))
+
+    record_manager.add_record(nr)
 
     call_record_hook("create_post",app,prof,nr,user)
     headers = {}
     if redir.strip() != "no":
         headers = {"Location": f"./{nr}"}
-    with PySaxonProcessor(license=False) as proc:
-        xpproc = proc.new_xpath_processor()
-        xpproc.declare_namespace('clariah','http://www.clariah.eu/')
-        xpproc.set_context(file_name=record_file)
-        when = xpproc.evaluate_single("string((/*:CMD/*:Header/*:MdCreationDate/@clariah:epoch,/*:CMD/*:Header/*:MdCreationDate,'unknown')[1])").get_string_value()
-        return JSONResponse(status_code=201,headers=headers,content={"message": f"app[{app}] prof[{prof}] record[{nr}] created","nr": nr,"when":when})
+    xpproc = proc.new_xpath_processor()
+    xpproc.declare_namespace('clariah','http://www.clariah.eu/')
+    xpproc.set_context(file_name=record_file)
+    when = xpproc.evaluate_single("string((/*:CMD/*:Header/*:MdCreationDate/@clariah:epoch,/*:CMD/*:Header/*:MdCreationDate,'unknown')[1])").get_string_value()
+    return JSONResponse(status_code=201,headers=headers,content={"message": f"app[{app}] prof[{prof}] record[{nr}] created","nr": nr,"when":when})
 
-@router.put("/app/{app}/record/{nr}")
-@router.put("/app/{app}/profile/{prof}/record/{nr}")
-async def modify_record(request: Request, app: str, nr: str, prof: str | None = None, when: str | None = None, user: Optional[User] = Depends(
-    get_user_with_app)):
+@router.put("/record/{nr}")
+async def modify_record(request: Request, app: str, nr: str,
+                        record_manager: RecordManagerDep,
+                        prof: str | None = None,
+                        when: str | None = None, user: Optional[User] = Depends(get_user_with_app)):
     """
     Endpoint to create a record for an application based on its name and the record's ID.
     If the record already exists, it returns a message indicating that the record already exists.
@@ -257,12 +294,15 @@ async def modify_record(request: Request, app: str, nr: str, prof: str | None = 
 
         call_record_hook("update_post",app,prof,nr,user)
 
+        record_manager.update_record(nr)
+
         return JSONResponse({"message": f"App[{app}] record[{nr}] modified", "when": when})
 
 
-@router.delete("/app/{app}/record/{nr}")
-@router.delete("/app/{app}/profile/{prof}/record/{nr}")
-async def delete_record(request: Request, app: str, nr: str, prof: str | None=None, user: Optional[User] = Depends(
+@router.delete("/record/{nr}")
+async def delete_record(request: Request, app: str, nr: str,
+                        record_manager: RecordManagerDep,
+                        prof: str | None=None, user: Optional[User] = Depends(
     get_user_with_app)):
     """
     Endpoint to delete a record based on its ID.
@@ -298,11 +338,12 @@ async def delete_record(request: Request, app: str, nr: str, prof: str | None=No
 
     call_record_hook("delete_post",app,prof,nr,user)
 
+    record_manager.delete_record(nr)
+
     return JSONResponse({"message": f"app[{app}] prof[{prof}] record[{nr}] deleted"})
 
 
-@router.get('/app/{app}/record/{nr}/history/{epoch}')
-@router.get('/app/{app}/profile/{prof}/record/{nr}/history/{epoch}')
+@router.get('/record/{nr}/history/{epoch}')
 def get_version(request: Request, app: str, nr: int, epoch:str, prof: str | None=None, user: Optional[User] = Depends(
     get_user_with_app)):
     # yes it works also http://localhost:1210/app/stalling/profile/clarin.eu:cr1:p_1708423613607/record/3.xml/history/1767225600 with the same extensions to the record number for a correct format
@@ -358,8 +399,7 @@ def get_version(request: Request, app: str, nr: int, epoch:str, prof: str | None
 
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not supported")
 
-@router.get('/app/{app}/record/{nr}')
-@router.get('/app/{app}/profile/{prof}/record/{nr}')
+@router.get('/record/{nr}')
 def get_record(request: Request, app: str, nr: str, config: ConfigDep, proc: SaxonProcessorDep,
                prof: str | None=None, user: Optional[User] = Depends(
     get_user_with_app)):
@@ -410,9 +450,8 @@ def get_record(request: Request, app: str, nr: str, config: ConfigDep, proc: Sax
                     media_type=mime)
 
 
-@router.get('/app/{app}/entity/{ent}')
-@router.get('/app/{app}/profile/{prof}/entity/')
-@router.get('/app/{app}/profile/{prof}/entity/{ent}')
+@router.get('/entity/')
+@router.get('/entity/{ent}')
 async def get_refs(request: Request, app: str, config: ConfigDep, prof: str | None=None,
                    ent: str | None=None, q: str = "*",
                    stylesheet: StylesheetProcessor = Depends(StylesheetDep('listents')),
@@ -456,9 +495,8 @@ async def get_refs(request: Request, app: str, config: ConfigDep, prof: str | No
     return JSONResponse(content=jsonable_encoder(json.loads(result)))
 
 
-@router.get('/app/{app}/entity/{id}')
-@router.get('/app/{app}/profile/{prof}/entity/{id}')
-@router.get('/app/{app}/profile/{prof}/entity/{ent}/{id}')
+@router.get('/entity/{id}')
+@router.get('/entity/{ent}/{id}')
 async def get_ref(request: Request, app: str, id:str, prof: str | None=None, ent: str | None=None, user: Optional[User] = Depends(
     get_user_with_app)):
     if not allowed(user, app, 'read', 'any'):
@@ -477,10 +515,8 @@ async def get_ref(request: Request, app: str, id:str, prof: str | None=None, ent
         return RedirectResponse(url=f"/app/{app}/profile/{prof}/record/{id}")
 
 
-@router.get('/app/{app}/action/{action}')
-@router.get('/app/{app}/action/record/{nr}/{action}')
-@router.get('/app/{app}/profile/{prof}/action/{action}')
-@router.get('/app/{app}/profile/{prof}/record/{nr}/action/{action}')
+@router.get('/action/{action}')
+@router.get('/record/{nr}/action/{action}')
 def get_action(req: Request, app: str, action: str, config: ConfigDep,
                prof: str | None=None, nr: str | None=None, user: Optional[User] = Depends(
             get_user_with_app)):

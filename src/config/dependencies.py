@@ -28,6 +28,27 @@ def get_app_configuration(app: str) -> Dict:
         config = toml.load(f)
         return config
 
+
 ConfigDep = Annotated[Dict, Depends(get_app_configuration)]
 
 AllAppsDep = Annotated[List[str], Depends(get_all_apps)]
+
+
+def get_profile(prof: str, config: ConfigDep):
+    """
+    Get the profile from the url.
+    :param prof:
+    :param config:
+    :return:
+    """
+    profile_config = config['app']['prof']
+
+    if prof in profile_config:
+        return profile_config[prof]
+    else:
+        for profile in profile_config.values():
+            if profile['prof'] == prof:
+                return profile
+    raise HTTPException(status_code=404, detail="Profile not found")
+
+ProfileDep = Annotated[Dict, Depends(get_profile)]

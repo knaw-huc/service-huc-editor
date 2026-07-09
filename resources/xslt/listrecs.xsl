@@ -7,8 +7,7 @@
     <xsl:param name="base" select="'http://localhost:1210'"/>
     <xsl:param name="app" select="'adoptie'"/>
     <xsl:param name="config" select="doc(concat($cwd, '/data/apps/', $app, '/config.xml'))"/>
-    <xsl:param name="user" select="'anonymous'"/>
-    
+
     <xsl:template name="main">
         <html lang="en" xsl:expand-text="yes">
             <head>
@@ -26,45 +25,65 @@
                     <script type="text/javascript" src="{$base}/app/{$app}/static/js/{$config/config/app/js/script}"/>           
                 </xsl:if>
                 <script>
-                        $('document').ready(function(){{
-                            ccfInit('list');
-                        }});
-                        
-                        function ccfInit(page) {{
-                        <xsl:if test="normalize-space($config/config/app/js/init)!=''">
-                            <xsl:text expand-text="yes">{normalize-space($config/config/app/js/init)};</xsl:text>           
-                        </xsl:if>
-                        }}
-                        
-                        function deleteRecord(rec) {{
-                            var answer = confirm('Dit record wordt verwijderd! This record will be removed! OK?');
-                            if (answer){{
-                                console.log("delete record["+rec+"]");
-                                $.ajax(
-                                    {{
-                                        type: "DELETE",
-                                        url: rec,
-                                        dataType: "json",
-                                        success: function (json) {{
-                                            obj = json;
-                                            console.log(obj);
-                                            location.reload();
-                                        }},
-                                        error: function (err) {{
-                                            obj = {{"error": err}};
-                                            console.log(obj);
-                                        }}
-                                    }}
-                                );
+
+                    async function setUser() {{
+                        const writePermissions = "{$config/config/app/access/write}"
+                        const baseUrlApp = "{concat($base, '/app/', $app)}";
+                        const response = await fetch(baseUrlApp + "/auth/me")
+                        const userData = await response.json()
+                        const userDiv = document.getElementById("user")
+                        userDiv.setHTML(userData.name)
+
+                        if ((writePermissions == "users" || writePermissions == "owner") &amp;&amp; userData.name == "anonymous") {{
+                            const buttons = document.getElementsByClassName("addButton")
+                            for (const button of buttons) {{
+                                button.removeAttribute("href")
+                                button.setAttribute("disabled", true)
+                                button.setHTML("&#160;")
                             }}
-                        }}                                                    
+                        }}
+                    }}
+
+                    $('document').ready(function(){{
+                        ccfInit('list');
+                        setUser()
+                    }});
+
+                    function ccfInit(page) {{
+                    <xsl:if test="normalize-space($config/config/app/js/init)!=''">
+                        <xsl:text expand-text="yes">{normalize-space($config/config/app/js/init)};</xsl:text>
+                    </xsl:if>
+                    }}
+
+                    function deleteRecord(rec) {{
+                        var answer = confirm('Dit record wordt verwijderd! This record will be removed! OK?');
+                        if (answer){{
+                            console.log("delete record["+rec+"]");
+                            $.ajax(
+                                {{
+                                    type: "DELETE",
+                                    url: rec,
+                                    dataType: "json",
+                                    success: function (json) {{
+                                        obj = json;
+                                        console.log(obj);
+                                        location.reload();
+                                    }},
+                                    error: function (err) {{
+                                        obj = {{"error": err}};
+                                        console.log(obj);
+                                    }}
+                                }}
+                            );
+                        }}
+                    }}
                  </script>
             </head>
             <body>
                 <iframe src="{$base}/static/status.html" style="border:none;height:3em;width:100%;"/>
                 <div id="wrapper">
                     <div id="header">{$config/config/app/title}</div>
-                    <div id="user">{$user}</div>
+                    <div id="user"></div>
                     <div id="homeBtn"/>
                     <div class="action_menu">
                         <xsl:for-each select="$config/config/app/hooks/action/*[tokenize(level)='app']">
@@ -171,30 +190,9 @@
                                         </xsl:for-each>
                                         <th>Creation date</th>
                                         <th>
-                                            <xsl:choose>
-                                                <xsl:when test="$config/config/app/access/write='owner' and $user='anonymous'">
-                                                    <xsl:text>&#160;</xsl:text>
-                                                </xsl:when>
-                                                <xsl:when test="$config/config/app/access/write='user' and $user='anonymous'">
-                                                    <xsl:text>&#160;</xsl:text>
-                                                </xsl:when>
-                                                <xsl:otherwise>
-                                                    <xsl:choose>
-                                                        <xsl:when test="$config/config/app/access/write='owner' and $user='anonymous'">
-                                                            <xsl:text>&#160;</xsl:text>
-                                                        </xsl:when>
-                                                        <xsl:when test="$config/config/app/access/write='user' and $user='anonymous'">
-                                                            <xsl:text>&#160;</xsl:text>
-                                                        </xsl:when>
-                                                        <xsl:otherwise>
-                                                            <a href="{concat($base, '/app/', $app, '/profile/', $prof, '/record/editor')}" id="addRec">
-                                                                <img src="{$base}/static/img/add.ico" height="16px" width="16px"/>
-                                                            </a>
-                                                        </xsl:otherwise>
-                                                    </xsl:choose>
-                                                    
-                                                </xsl:otherwise>
-                                            </xsl:choose>
+                                            <a class="addButton" href="{concat($base, '/app/', $app, '/profile/', $prof, '/record/editor')}" id="addRec">
+                                                <img src="{$base}/static/img/add.ico" height="16px" width="16px"/>
+                                            </a>
                                         </th>
                                         <th/>
                                         <th/>
@@ -207,176 +205,146 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <xsl:for-each select="collection(concat($recs,'?match=record-\d+\.xml&amp;on-error=warning'))">
-                                        <xsl:sort select="replace(base-uri(.), '.*/record-(\d+)\.xml', '$1')" data-type="number"/>
-                                        <xsl:variable name="rec" select="."/>
-                                        <xsl:variable name="nr" select="replace(base-uri($rec), '.*/record-(\d+)\.xml', '$1')"/>
-                                        <xsl:variable name="url" select="concat($base, '/app/', $app, '/profile/', $prof, '/record/', $nr)"/>
-                                        <xsl:variable name="owner" select="string((/*:CMD/*:Header/*:MdCreator,'server')[1])"/>
-                                        <xsl:comment>r[{($config/config/app/access/read,'any')[1]}]w[{($config/config/app/access/wtite,'any')[1]}][{$user}][{base-uri($rec)}][{$url}][{$owner}]</xsl:comment>
-    
-                                        <xsl:if test="($config/config/app/access/read,'any')[1]!='owner' or ($config/config/app/access/write,'any')[1]!='owner' or $owner=$user">
-                                            <tr>
-                                                <xsl:for-each select="$p/list/(* except ns)">
-                                                    <td>
-                                                        <xsl:variable name="xpath" select="xpath"/>
-                                                        <xsl:try>
-                                                            <xsl:evaluate xpath="$xpath" context-item="$rec" namespace-context="$NS"/>
-                                                            <xsl:catch>
-                                                                <span class="err" expand-text="yes">ERR[{$err:code}]: {$err:description}</span>
-                                                            </xsl:catch>
-                                                        </xsl:try>
-                                                    </td>
-                                                </xsl:for-each>
-                                                <td>{/*:CMD/*:Header/*:MdCreationDate}</td>
-                                                <td>
-                                                    <xsl:choose>
-                                                        <xsl:when test="($config/config/app/access/write,'any')[1]='owner' and $user!=$owner">
-                                                            <xsl:text>&#160;</xsl:text>
-                                                        </xsl:when>
-                                                        <xsl:when test="($config/config/app/access/write,'any')[1]='user' and $user='anonymous'">
-                                                            <xsl:text>&#160;</xsl:text>
-                                                        </xsl:when>
-                                                        <xsl:otherwise>
-                                                            <a href="{$url}/editor" title="Edit metadata">
-                                                                <img src="{$base}/static/img/edit.png" height="16px" width="16px"/>
-                                                            </a>
-                                                        </xsl:otherwise>
-                                                    </xsl:choose>
-                                                </td>
-                                                <!--<td>
-                                                <a href="dwnldRec('{$nr}')" title="Download">
-                                                    <img src="{$base}/static/img/download.png" height="16px" width="16px"/>
-                                                </a>
-                                            </td>-->
-                                                <td>
-                                                    <xsl:choose>
-                                                        <xsl:when test="($config/config/app/access/write,'any')[1]='owner' and $user!=$owner">
-                                                            <xsl:text>&#160;</xsl:text>
-                                                        </xsl:when>
-                                                        <xsl:when test="($config/config/app/access/write,'any')[1]='user' and $user='anonymous'">
-                                                            <xsl:text>&#160;</xsl:text>
-                                                        </xsl:when>
-                                                        <xsl:otherwise>
-                                                            <a title="Delete" class="myBtn delete" id="myBtn1" onclick="deleteRecord('{$url}');">
-                                                                <img src="{$base}/static/img/bin.png" height="16px" width="16px"/>
-                                                            </a>
-                                                        </xsl:otherwise>
-                                                    </xsl:choose>
-                                                </td>
-                                                <td>
-                                                    <xsl:choose>
-                                                        <xsl:when test="($config/config/app/access/read,'any')[1]='owner' and $user!=$owner">
-                                                            <xsl:text>&#160;</xsl:text>
-                                                        </xsl:when>
-                                                        <xsl:when test="($config/config/app/access/read,'any')[1]='user' and $user='anonymous'">
-                                                            <xsl:text>&#160;</xsl:text>
-                                                        </xsl:when>
-                                                        <xsl:otherwise>
-                                                            <a title="History" class="myBtn history" href="{$url}/history" target="_blank">
-                                                                <img src="{$base}/static/img/history.png" height="16px" width="16px"/>
-                                                            </a>
-                                                        </xsl:otherwise>
-                                                    </xsl:choose>
-                                                </td>
-                                                <td>
-                                                    <xsl:choose>
-                                                        <xsl:when test="($config/config/app/access/read,'any')[1]='owner' and $user!=$owner">
-                                                            <xsl:text>&#160;</xsl:text>
-                                                        </xsl:when>
-                                                        <xsl:when test="($config/config/app/access/read,'any')[1]='user' and $user='anonymous'">
-                                                            <xsl:text>&#160;</xsl:text>
-                                                        </xsl:when>
-                                                        <xsl:otherwise>
-                                                            <a href="{$url}.xml" title="Show CMDI" target="_blank">CMDI</a>
-                                                        </xsl:otherwise>
-                                                    </xsl:choose>
-                                                </td>
-                                                <td>
-                                                    <xsl:choose>
-                                                        <xsl:when test="($config/config/app/access/read,'any')[1]='owner' and $user!=$owner">
-                                                            <xsl:text>&#160;</xsl:text>
-                                                        </xsl:when>
-                                                        <xsl:when test="($config/config/app/access/read,'any')[1]='user' and $user='anonymous'">
-                                                            <xsl:text>&#160;</xsl:text>
-                                                        </xsl:when>
-                                                        <xsl:otherwise>
-                                                            <a href="{$url}.html" title="Show HTML" target="_blank">HTML</a>
-                                                        </xsl:otherwise>
-                                                    </xsl:choose>
-                                                </td>
-                                                <td>
-                                                    <xsl:choose>
-                                                        <xsl:when test="($config/config/app/access/read,'any')[1]='owner' and $user!=$owner">
-                                                            <xsl:text>&#160;</xsl:text>
-                                                        </xsl:when>
-                                                        <xsl:when test="($config/config/app/access/read,'any')[1]='user' and $user='anonymous'">
-                                                            <xsl:text>&#160;</xsl:text>
-                                                        </xsl:when>
-                                                        <xsl:otherwise>
-                                                            <a href="{$url}.pdf" title="Show PDF" target="_blank">PDF</a>
-                                                        </xsl:otherwise>
-                                                    </xsl:choose>
-                                                </td>
-                                                <xsl:for-each select="$config/config/app/hooks/action/*[tokenize(level)='rec'][normalize-space(prof)=('',$prof)]">
-                                                    <xsl:variable name="action" select="."/>
-                                                    <xsl:variable name="enabled" as="xs:boolean">
-                                                        <xsl:choose>
-                                                            <xsl:when test="normalize-space($action/enable)!=''">
-                                                                <xsl:message expand-text="yes">action[{local-name($action)}] DBG:eval[{$action/enable}]rec[{$rec//*:MdSelfLink}]</xsl:message>
-                                                                <xsl:try>
-                                                                    <xsl:evaluate xpath="$action/enable" context-item="$rec" namespace-context="$NS">
-                                                                        <xsl:with-param name="self" select="$rec//*:MdSelfLink"/>
-                                                                    </xsl:evaluate>
-                                                                    <xsl:catch>
-                                                                        <xsl:message expand-text="yes">action[{local-name($action)}] ERR[{$err:code}]: {$err:description}</xsl:message>
-                                                                        <xsl:sequence select="false()"/>
-                                                                    </xsl:catch>
-                                                                </xsl:try>
-                                                            </xsl:when>
-                                                            <xsl:otherwise>
-                                                                <xsl:sequence select="true()"/>
-                                                            </xsl:otherwise>
-                                                        </xsl:choose>
-                                                    </xsl:variable>
-                                                    <xsl:choose>
-                                                        <xsl:when test="$enabled">
-                                                            <td>
-                                                                <a xsl:expand-text="yes" class="rec action {local-name($action)}" id="action_{local-name($action)}" target="action_{local-name($action)}">
-                                                                    <xsl:choose>
-                                                                        <xsl:when test="starts-with(endpoint,'javascript:')">
-                                                                            <xsl:attribute name="onclick" select="endpoint"/>
-                                                                        </xsl:when>
-                                                                        <xsl:otherwise>
-                                                                            <xsl:attribute name="href" select="concat($base,'/app/',$app,'/profile/',$prof,'/record/',$nr,'/action/',(normalize-space(endpoint),local-name($action))[1])"/>
-                                                                        </xsl:otherwise>
-                                                                    </xsl:choose>
-                                                                    <xsl:value-of select="$action/label"/>
-                                                                </a>
-                                                            </td>
-                                                        </xsl:when>
-                                                        <xsl:otherwise>
-                                                            <td>
-                                                                <a xsl:expand-text="yes" class="rec action {local-name($action)} disabled" id="action_{local-name($action)}">{$action/label}</a>
-                                                            </td>
-                                                        </xsl:otherwise>
-                                                    </xsl:choose>
-                                                </xsl:for-each>                                                
-                                            </tr>
-                                        </xsl:if>    
-                                    </xsl:for-each>
                                 </tbody>
                             </table>
                             <div id="paging-records-{local-name()}"/>
                             <br/>
                             <script xsl:expand-text="yes">
-                                var datatable = new DataTable(document.querySelector('#records-{local-name()}'), {{
-                                    pageSize: 25,
-                                    sort: [{string-join(list/(* except ns)/sort,', ')}, true],
-                                    filters: [{string-join(list/(* except ns)/filter,', ')}, 'select'],
-                                    filterText: 'Type to filter... ',
-                                    pagingDivSelector: "#paging-records-{local-name()}"}}
-                                );
+
+                                (async () => {{
+                                    const baseUrl = "{concat($base, '/app/', $app, '/profile/', $prof)}";
+                                    const response = await fetch(baseUrl + "/records?limit=10000");
+                                    const data = await response.json();
+                                    const header = data.header;
+                                    const actions = data.actions;
+
+                                    var datatable = new DataTable(document.querySelector('#records-{local-name()}'), {{
+                                        pageSize: 25,
+                                        sort: [{string-join(list/(* except ns)/sort,', ')}, true],
+                                        filters: [{string-join(list/(* except ns)/filter,', ')}, 'select'],
+                                        filterText: 'Type to filter... ',
+                                        data: data.data,
+                                        lineFormat: function (id, data) {{
+                                            var res = document.createElement("tr");
+                                            // Custom properties
+                                            for (var item of header) {{
+                                                const cell = document.createElement("td")
+                                                const value = document.createTextNode(data[item.prop])
+                                                cell.appendChild(value)
+                                                res.appendChild(cell)
+                                            }}
+                                            // Default props: creation date
+                                            var creationDate = document.createElement("td")
+                                            creationDate.appendChild(document.createTextNode(data.creationDate))
+                                            res.appendChild(creationDate)
+
+                                            const editCell = document.createElement("td")
+                                            const deleteCell = document.createElement("td")
+                                            // Edit button
+                                            if (data.write) {{
+                                                const editButton = document.createElement("a")
+                                                editButton.setAttribute("href", baseUrl + "/record/" + data._id + "/editor")
+                                                editButton.setAttribute("title", "Edit record")
+                                                const editImg = document.createElement("img")
+                                                editImg.setAttribute("src", "{$base}/static/img/edit.png")
+                                                editImg.setAttribute("width", "16px")
+                                                editImg.setAttribute("height", "16px")
+                                                editButton.appendChild(editImg)
+                                                editCell.appendChild(editButton)
+
+                                                // Delete button
+                                                const deleteButton = document.createElement("a")
+                                                deleteButton.setAttribute("class", "myBtn delete")
+                                                deleteButton.setAttribute("onclick", "deleteRecord('" + baseUrl + "/record/" + data._id +"')")
+                                                const deleteImg = document.createElement("img")
+                                                deleteImg.setAttribute("src", "{$base}/static/img/bin.png")
+                                                deleteImg.setAttribute("width", "16px")
+                                                deleteImg.setAttribute("height", "16px")
+                                                deleteButton.appendChild(deleteImg)
+                                                deleteCell.appendChild(deleteButton)
+                                            }} else {{
+                                                // Add empty cells
+                                                editCell.appendChild(document.createTextNode("&#160;"))
+                                                deleteCell.appendChild(document.createTextNode("&#160;"))
+                                            }}
+                                            res.appendChild(editCell)
+                                            res.appendChild(deleteCell)
+
+
+                                            const exports = [
+                                                {{
+                                                    name: "CMDI",
+                                                    format: "xml"
+                                                }},
+                                                {{
+                                                    name: "HTML",
+                                                    format: "html"
+                                                }},
+                                                {{
+                                                    name: "PDF",
+                                                    format: "pdf"
+                                                }},
+                                            ]
+                                            const historyCell = document.createElement("td")
+                                            if (data.read) {{
+                                                // History button
+                                                const historyButton = document.createElement("a")
+                                                historyButton.setAttribute("href", baseUrl + "/record/" + data._id + "/history")
+                                                historyButton.setAttribute("class", "byBtn history")
+                                                historyButton.setAttribute("target", "_blank")
+                                                const historyImg = document.createElement("img")
+                                                historyImg.setAttribute("src", "{$base}/static/img/history.png")
+                                                historyImg.setAttribute("width", "16px")
+                                                historyImg.setAttribute("height", "16px")
+                                                historyButton.appendChild(historyImg)
+                                                historyCell.appendChild(historyButton)
+                                                res.appendChild(historyCell)
+
+                                                // Exports
+                                                for (exp of exports) {{
+                                                    const cell = document.createElement("td")
+                                                    const link = document.createElement("a")
+                                                    link.setAttribute("href", baseUrl + "/record/" + data._id + "." + exp.format)
+                                                    link.setAttribute("title", "Show " + exp.name)
+                                                    link.setAttribute("target", "_blank")
+                                                    link.appendChild(document.createTextNode(exp.name))
+                                                    cell.appendChild(link)
+                                                    res.appendChild(cell)
+                                                }}
+                                            }} else {{
+                                                historyCell.appendChild(document.createTextNode("&#160;"))
+                                                res.appendChild(historyCell)
+                                            }}
+
+                                            // Actions
+                                            for (action in actions) {{
+                                                const details = actions[action]
+
+                                                const cell = document.createElement("td")
+                                                const link = document.createElement("a")
+
+                                                if (data.actionsEnabled[action]) {{
+                                                    if (details.endpoint.startsWith("javascript:")) {{
+                                                        link.setAttribute("onclick", details.endpoint)
+                                                    }} else {{
+                                                        link.setAttribute("href", baseUrl + "/record/" + data._id + "/action/" + details.endpoint)
+                                                    }}
+                                                    link.setAttribute("class", "rec action")
+                                                }} else {{
+                                                    link.setAttribute("class", "rec action disabled")
+                                                }}
+
+                                                link.setAttribute("title", "Action " + details.label)
+                                                link.appendChild(document.createTextNode(details.label))
+                                                cell.appendChild(link)
+                                                res.appendChild(cell)
+                                            }}
+
+                                            return res;
+                                        }},
+                                        pagingDivSelector: "#paging-records-{local-name()}"}}
+                                    );
+                                }})()
                             </script>
                         </xsl:for-each>
                         <script type="text/javascript" src="{$base}/static/js/src/sorttable.js"/>

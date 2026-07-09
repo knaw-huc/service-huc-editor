@@ -286,9 +286,9 @@ def getTime(epoch):
         time = datetime.fromtimestamp(int(epoch))        
         return time
 
-def rec_colums(app,prof,rec XML,user) :
-    #laad de config
-    # bepaald of deze gebruiker
-    # - read
-    # - write
-    #for config [app.prof.{prof}.list.*]
+# def rec_colums(app,prof,rec XML,user) :
+#     #laad de config
+#     # bepaald of deze gebruiker
+#     # - read
+#     # - write
+#     #for config [app.prof.{prof}.list.*]

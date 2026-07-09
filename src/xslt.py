@@ -1,10 +1,11 @@
 import os
-from typing import Optional, Annotated
+from typing import Optional, Annotated, Dict
 
 from fastapi import Depends
 from saxonche import PySaxonProcessor, PyXPathProcessor, PyXdmNode, PyXslt30Processor, PyXsltExecutable, PyXdmValue
 
 from src.commons import settings, convert_toml_to_xml
+from src.config.dependencies import ProfileDep
 
 
 class NotInitializedException(Exception):
@@ -20,14 +21,17 @@ class RecordMetadata:
     saxon: PySaxonProcessor
     xpath_processor: PyXPathProcessor
     records_location: str
+    profile: Dict
     record: Optional[PyXdmNode]
 
-    def __init__(self, processor: PySaxonProcessor, records_location: str):
+    def __init__(self, processor: PySaxonProcessor, records_location: str, profile: Dict):
         self.saxon = processor
+        self.profile = profile
         self.xpath_processor = processor.new_xpath_processor()
         self.xpath_processor.set_cwd(os.getcwd())
         self.xpath_processor.declare_namespace('clariah', 'http://www.clariah.eu/')
-        self.xpath_processor.declare_namespace('cmd', 'http://www.clarin.eu/cmd/')
+        self.xpath_processor.declare_namespace('cmd', 'http://www.clarin.eu/cmd/1')
+        self.xpath_processor.declare_namespace('cmdp', f"http://www.clarin.eu/cmd/1/profiles/{self.profile['prof']}")
         self.records_location = records_location
 
 
@@ -37,12 +41,20 @@ class RecordMetadata:
         :param record:
         :return:
         """
-        with open(f"{self.records_location}/record-{record}.xml", "r") as f:
-            self.record = self.saxon.parse_xml(xml_text=f.read())
-            self.xpath_processor.set_context(xdm_item=self.record)
+        filename = f"{self.records_location}/record-{record}.xml"
+        self.record = record
+        self.xpath_processor.set_context(file_name=filename)
 
+    def set_parameter(self, key: str, value: str):
+        """
+        Set a parameter
+        :param key:
+        :param value:
+        :return:
+        """
+        self.xpath_processor.set_parameter(key, self.saxon.make_string_value(value))
 
-    def parse_single(self, xpath_expression: str):
+    def parse_single(self, xpath_expression: str) -> str:
         """
         Get a single value from the record
         :param xpath_expression:
@@ -51,7 +63,6 @@ class RecordMetadata:
         if self.record is None:
             raise NotInitializedException()
         return self.xpath_processor.evaluate_single(xpath_expression).get_string_value()
-
 
 
 class StylesheetProcessor:
@@ -107,7 +118,9 @@ class StylesheetProcessor:
         :return:
         """
         if record is not None:
-            record_file = f"{settings.URL_DATA_APPS}/{self.app}/record-{record}.xml"
+            if profile is None:
+                raise Exception("Profile must be provided to use record")
+            record_file = f"{settings.URL_DATA_APPS}/{self.app}/profiles/{profile}/records/record-{record}.xml"
             rec = self.saxon.parse_xml(xml_uri=record_file)
             return self.stylesheet.transform_to_string(xdm_node=rec)
         if profile is not None:
@@ -163,3 +176,11 @@ class StylesheetDep:
         processor = StylesheetProcessor(saxon, app)
         processor.set_stylesheet(self.stylesheet_name)
         return processor
+
+
+def get_metadata_processor(app: str, profile: ProfileDep, saxon: SaxonProcessorDep):
+    records_location = f"{settings.URL_DATA_APPS}/{app}/profiles/{profile['prof']}/records"
+    return RecordMetadata(saxon, records_location, profile)
+
+
+RecordMetadataDep = Annotated[RecordMetadata, Depends(get_metadata_processor)]

@@ -8,17 +8,12 @@ import uvicorn
 from fastapi import FastAPI, Request, HTTPException, Depends, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
-from sqlalchemy.orm import Session
 from starlette.middleware.cors import CORSMiddleware
 
 from src import public, protected, admin
-from src.auth.authentication import initialize_users
 from src.auth.routes import router as auth_router
 from src.commons import api_keys
 from src.commons import settings
-from src.config.dependencies import get_all_apps, get_app_configuration
-from src.database.database import get_db_eng_for_app
-from src.database.models import Base
 from src.pages import router as pages_router
 
 __version__ = "0.1.10"
@@ -41,18 +36,6 @@ def auth_header(request: Request, auth_cred: Annotated[HTTPAuthorizationCredenti
 async def lifespan(application: FastAPI):
     print('start up')
     print(emoji.emojize(':thumbs_up:'))
-
-    print("Available apps:")
-
-    for a in get_all_apps():
-        print(f" - {a}")
-        eng = get_db_eng_for_app(a)
-        config = get_app_configuration(a)
-        Base.metadata.create_all(eng)
-
-        with Session(eng) as session:
-            print("Check if this app has users")
-            initialize_users(a, config, session)
 
     yield
 
@@ -80,6 +63,10 @@ app.add_middleware(
 )
 
 app.include_router(
+    pages_router
+)
+
+app.include_router(
     public.router,
     tags=["Public"],
     prefix=""
@@ -101,9 +88,6 @@ app.include_router(
     auth_router
 )
 
-app.include_router(
-    pages_router
-)
 
 if __name__ == "__main__":
     logging.info("Start")
