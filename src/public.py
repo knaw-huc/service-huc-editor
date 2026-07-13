@@ -31,6 +31,29 @@ def info():
     logging.debug("info")
     return {"name": settings.service_name, "version": settings.service_version}
 
+@router.get('/proxy/webdav/{inst}')
+def get_proxy_webdav(inst:str,q: str | None = None):
+    logging.info(f"proxy nominatim[{inst}] vq[{q}]")
+    proxy_file = f"{settings.proxies_dir}/webdav-{inst}.toml"
+    logging.info(f"proxy config[{proxy_file}]")
+    if not os.path.isfile(proxy_file):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    
+    entries = []
+
+    if q != None or q.strip() !='':
+    
+        with open(proxy_file, 'r') as f:
+            proxy = toml.load(f)
+
+            #TODO: resolve the query against the webdav endpoint configured in proxy_file
+
+    res = {'query':"unit", 'suggestions':entries}
+         
+    return JSONResponse(jsonable_encoder(res))
+
+
+
 @router.get('/proxy/nominatim/{inst}')
 def get_proxy_nominatim(inst:str,q: str | None = None):
     logging.info(f"proxy nominatim[{inst}] vq[{q}]")
@@ -155,6 +178,7 @@ def get_proxy_skosmos(inst:str,vocab:str | None=None,label:str | None="prefLabel
         res = {'query':"unit", 'suggestions':entries}
          
         return JSONResponse(jsonable_encoder(res))
+
 
 @router.get('/app/{app}/profile/{id}')
 def get_profile(request: Request, app: str, id: str):
