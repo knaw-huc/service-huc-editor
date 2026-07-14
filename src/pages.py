@@ -78,6 +78,11 @@ def get_history(request: Request, app: str, config: ConfigDep, nr: str,
     :return:
     """
     prof = profile['prof']
+    if "text/html" in request.headers.get("accept", ""):
+        stylesheet.set_parameter("nr", nr)
+        stylesheet.set_parameter("prof", prof)
+        result = stylesheet.main()
+        return HTMLResponse(content=result)
     if not allowed(user, app, 'read', 'any', prof, nr):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!",
                             headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
@@ -86,15 +91,7 @@ def get_history(request: Request, app: str, config: ConfigDep, nr: str,
     if not os.path.exists(record_file):
         logging.debug(f"{record_file} doesn't exist")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-
-    # determine how to serve it? determination by URL? (probably not right...)
     history = rec_history(app, prof, nr)
-    if "text/html" in request.headers.get("accept", ""):
-        jsonstring = json.dumps(history) # platte json van maken
-        stylesheet.set_parameter("js-doc", jsonstring)
-        stylesheet.set_parameter("prof", prof)
-        result = stylesheet.main()
-        return HTMLResponse(content=result)
     return history
 
 

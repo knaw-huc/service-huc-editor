@@ -10,30 +10,18 @@
     <xsl:output method="html"/>
     
     <xsl:param name="base" select="'http://localhost:1210'"/>
-    
-    
+
     <xsl:param name="cwd" select="'file:/Users/menzowi/Documents/Projects/huc-cmdi-editor/service/'"/>
-<!--    <xsl:param name="base" select="'http://localhost:1210'"/>-->
     <xsl:param name="app" select="'blabla'"/>
     <xsl:param name="prof" select="'blabla'"/>
     <xsl:param name="config" select="doc(concat($cwd, '/data/apps/', $app, '/config.xml'))"/>
     <xsl:param name="user" select="'anonymous'"/>
-    
-    <xsl:param name="js-uri" select="'file:/Users/menzowi/Documents/GitHub/hi-ddb-stalling-editor/scripts/bete-record-30.json'"/>
-    <xsl:param name="js-doc" select="
-        if (unparsed-text-available($js-uri)) then
-            (unparsed-text($js-uri))
-        else
-            ()"/>
-    <xsl:param name="js-xml" select="json-to-xml($js-doc)"/> 
-    
-    <xsl:variable name="recordnumber" select="$js-xml/fn:map/fn:string[@key = 'nr']"/>
-    
+    <xsl:param name="nr" />
+
     <xsl:template name="main">
-        <xsl:for-each select="$js-xml">
-            <html>
+            <html xsl:expand-text="yes">
                 <head>                
-                    <title>history for record [{$recordnumber}] </title>
+                    <title>history for record [{$nr}] </title>
                     <link rel="stylesheet" href="{$base}/static/css/style.css" type="text/css"/>
                     <link rel="stylesheet" href="{$base}/static/css/datatable.min.css" type="text/css"/>
                     <link rel="stylesheet" href="{$base}/static/js/lib/jquery-ui/jquery-ui.css"/>
@@ -51,71 +39,96 @@
                         
                         <div id="content">
                             <div class="summary">
-                                <h2>Previous versions for record: {$recordnumber}</h2>
+                                <h2>Previous versions for record: {$nr}</h2>
                                 <p>
                                     <strong>Total versions: </strong>
-                                    {count(fn:map/fn:array[@key='history']/fn:map)} </p>
+                                    <span id="versionCount" />
+                                </p>
                             </div>
-                            <table id="records-{$recordnumber}" class="table table-bordered resultTable">
+                            <table id="records-{$nr}" class="table table-bordered resultTable">
                                 <thead>                          
-                                    <tr><th>epoch</th><th>dateTime</th><th>user</th><th></th><th></th><th></th></tr>
+                                    <tr>
+                                        <th data-sort="epoch">epoch</th>
+                                        <th data-sort="timestamp">dateTime</th>
+                                        <th data-sort="user">user</th>
+                                        <th />
+                                        <th />
+                                        <th />
+                                    </tr>
                                 </thead>
                                 <tbody>
-                                    <xsl:apply-templates select="fn:map/fn:array/fn:map"/>
-                                </tbody>    
-                                    
+                                </tbody>
+
                             </table>
-                        </div>   
+                            <div id="paging-records"/>
+                        </div>
                     </div>
+                    <script xsl:expand-text="yes">
+                        (async () => {{
+                            const recordNumber = {$nr}
+                            const url = "{concat($base, '/app/', $app, '/profile/', $prof, '/record/')}"
+
+                            const result = await fetch(url + recordNumber + "/history")
+                            const data = await result.json()
+                            console.log(data)
+                            document.getElementById("versionCount").setHTML(data.history.length)
+
+
+                            const datatable = new DataTable(document.querySelector('#records-{$nr}'), {{
+                                pageSize: 25,
+                                sort: [true, true, true, false,false,false],
+                                filters: {{
+                                    epoch: false,
+                                    dateTime: true,
+                                    user: "select"
+                                }},
+                                data: data.history,
+                                lineFormat: function (id, data) {{
+                                    var res = document.createElement("tr");
+                                    // Custom properties
+                                    // Default props: epoch, dateTime, user
+                                    for (const prop of ["epoch", "timestamp", "user"]) {{
+                                        const cell = document.createElement("td")
+                                        cell.appendChild(document.createTextNode(data[prop]))
+                                        res.appendChild(cell)
+                                    }}
+
+                                    const exports = [
+                                        {{
+                                            name: "CMDI",
+                                            format: "xml"
+                                        }},
+                                        {{
+                                            name: "HTML",
+                                            format: "html"
+                                        }},
+                                        {{
+                                            name: "PDF",
+                                            format: "pdf"
+                                        }},
+                                    ]
+
+                                    // Exports
+                                    for (exp of exports) {{
+                                        const cell = document.createElement("td")
+                                        const link = document.createElement("a")
+                                        link.setAttribute("href", url + recordNumber + "/history/" + data.epoch + "." + exp.format)
+                                        link.setAttribute("title", "Show " + exp.name)
+                                        link.setAttribute("target", "_blank")
+                                        link.appendChild(document.createTextNode(exp.name))
+                                        cell.appendChild(link)
+                                        res.appendChild(cell)
+                                    }}
+
+                                    return res;
+                                }},
+                                filterText: 'Type to filter... ',
+                                pagingDivSelector: "#paging-records"
+                            }});
+                        }})()
+                    </script>
+                    <script type="text/javascript" src="{$base}/static/js/src/sorttable.js"/>
                 </body>
             </html>
-            <script xsl:expand-text="yes">
-                var datatable = new DataTable(document.querySelector('#records-{$recordnumber}'), {{
-                pageSize: 25,
-                sort: [true, true, true, false,false,false],
-                filters: [false, true, 'select', false, false],
-                filterText: 'Type to filter... ',
-                pagingDivSelector: "#paging-records-{local-name()}"}}
-                );
-            </script>
-            
-
-       
-
-            
-            
-            
-        </xsl:for-each>
-        <script type="text/javascript" src="{$base}/static/js/src/sorttable.js"/>
-
     </xsl:template>
-    
-    
-    <xsl:template match="fn:map">
-        <xsl:variable name="tijd" select="fn:string[@key = 'timestamp']"/>
-        <xsl:variable name="user" select="fn:string[@key = 'user']"/>        
-        <xsl:variable name="formattedTijd" select="format-dateTime(xs:dateTime(translate($tijd, ' ', 'T')), 
-                '[Y0001]-[M01]-[D01] [H01]:[m01]')"/>   
-        <xsl:variable name="epoch" select="fn:number[@key = 'epoch']"/>
-        <tr>
-            <td>{$epoch}</td>
-            <td>
-                {$formattedTijd} 
-            </td>
-            <td>
-                {$user}
-            </td>
-            <td>
-                <a href="{$base}/app/{$app}/profile/{$prof}/record/{$recordnumber}/history/{$epoch}.xml" target="_blank">CMDI</a>                
-            </td>
-            <td>
-                <a href="{$base}/app/{$app}/profile/{$prof}/record/{$recordnumber}/history/{$epoch}.html" target="_blank">HTML</a>                
-            </td>
-            <td>
-                <a href="{$base}/app/{$app}/profile/{$prof}/record/{$recordnumber}/history/{$epoch}.pdf" target="_blank">PDF</a>                
-            </td>
-        </tr>
-    </xsl:template>
-    
-    
 </xsl:stylesheet>

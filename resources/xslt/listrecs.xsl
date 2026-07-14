@@ -186,9 +186,9 @@
                                 <thead>
                                     <tr>
                                         <xsl:for-each select="list/(* except ns)">
-                                            <th>{(label,label_en,local-name())[1]}</th>
+                                            <th data-sort="{local-name()}">{(label,label_en,local-name())[1]}</th>
                                         </xsl:for-each>
-                                        <th>Creation date</th>
+                                        <th data-sort="creationDate">Creation date</th>
                                         <th>
                                             <a class="addButton" href="{concat($base, '/app/', $app, '/profile/', $prof, '/record/editor')}" id="addRec">
                                                 <img src="{$base}/static/img/add.ico" height="16px" width="16px"/>
@@ -218,10 +218,23 @@
                                     const header = data.header;
                                     const actions = data.actions;
 
+                                    let filterOptions = {{}}
+
+                                    for (prop of header) {{
+                                        if (prop.filter) {{
+                                            filterOptions[prop.prop] = prop.filter
+                                        }} else {{
+                                            filterOptions[prop.prop] = false
+                                        }}
+                                    }}
+
+                                    filterOptions["creationDate"] = "select"
+
                                     var datatable = new DataTable(document.querySelector('#records-{local-name()}'), {{
                                         pageSize: 25,
                                         sort: [{string-join(list/(* except ns)/sort,', ')}, true],
-                                        filters: [{string-join(list/(* except ns)/filter,', ')}, 'select'],
+<!--                                        filters: [{string-join(list/(* except ns)/filter,', ')}, 'select'],-->
+                                        filters: filterOptions,
                                         filterText: 'Type to filter... ',
                                         data: data.data,
                                         lineFormat: function (id, data) {{

@@ -64,7 +64,7 @@ async def get_records(
                 "prop": key,
                 "label": value["label"],
                 "sort": value["sort"] == "true",
-                "filter": value["filter"] == "true",
+                "filter": value["filter"] == "true" if value["filter"] != "'select'" else "select",
             } for key, value in profile["list"].items()
         ],
         "actions": {
