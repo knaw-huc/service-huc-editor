@@ -1,0 +1,45 @@
+<html>
+    <head>
+        <title>disclaimer</title>
+    </head>
+    <body>
+<!--  hier komt de disclaimer -->
+Gij zult bla die bla
+
+<!-- <a href="./disclame?redirect=http://localhost:1210/app/tastadev1r">accept</a> -->
+<!-- <a href="http://localhost:1210/app/tastadev1">accept</a> -->
+
+
+
+        <button onclick="acceptDisclaimer()">Accept</button>
+
+        <script>
+
+        const redirect = "replace_redirect_variable"
+
+        async function acceptDisclaimer() {
+
+            //var url = '/app/tastadev1/accept-disclaimer?redirect='+document.referrer;
+            //var url = '/app/tastadev1/accept-disclaimer?redirect=http://localhost:1210/app/tastadev1';
+            // var url = '/app/tastadev1/accept-disclaimer?redirect='+redirect;
+
+            // console.log("Referrer.......:", document.referrer);
+            //
+            // var url =  "/app/tastadev1/accept-disclaimer?redirect=" + redirect;
+            //
+            // window.location = url;
+
+
+            await fetch('/app/tastadev1/accept-disclaimer?redirect=' + encodeURIComponent(redirect), {
+                method: 'POST'
+            });
+
+
+
+        window.location = redirect;
+        }
+
+        </script>
+
+    </body>
+</html>

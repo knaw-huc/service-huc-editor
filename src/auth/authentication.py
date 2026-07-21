@@ -23,6 +23,7 @@ from src.config.dependencies import ConfigDep
 
 import csv
 import time
+from dataclasses import dataclass
 
 bearer_security = HTTPBearer(auto_error=False)
 basic_auth = HTTPBasic(auto_error=False)
@@ -218,40 +219,50 @@ def allowed(user: Optional[User], app: str, action: str, default: str, prof=None
     :param prof: The profile
     :param nr: The record number/id
     """
-    disc = disclaimer_check(app, user)
+    disc = True
     config_app_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
     if not os.path.isfile(config_app_file):
         logging.error(f"config file {config_app_file} doesn't exist")
-        if default == "any":
-            return True, disc
-        return False, disc
+        #if default == "any":
+        #    return True, disc
+        # return False, disc
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!",
+                            headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
     with open(config_app_file, 'r') as f:
         config = toml.load(f)
-        mode = default
-        if 'access' in config["app"]:
-            if action in config['app']['access']:
-                mode = config['app']['access'][action]
-        if mode == "owner" and user is not None and prof is not None and nr is not None:
-            record_file = f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}/records/record-{nr}.xml"
-            with open(record_file, 'r') as file:
-                rec = file.read()
-                with PySaxonProcessor(license=False) as proc:
-                    rec = proc.parse_xml(xml_text=rec)
-                    xpproc = proc.new_xpath_processor()
-                    xpproc.set_cwd(os.getcwd())
-                    xpproc.declare_namespace('clariah','http://www.clariah.eu/')
-                    xpproc.declare_namespace('cmd','http://www.clarin.eu/cmd/')
-                    xpproc.set_context(xdm_item=rec)
-                    owner = xpproc.evaluate_single(f"string((/*:CMD/*:Header/*:MdCreator,'{def_user(app)}')[1])").get_string_value()
-                    if owner == user.name:
-                        return True, disc
-        elif mode == "owner" and user is not None:
-                return True, disc
-        elif mode == "users" and user is not None:
-            return True,disc
-        elif mode == "any":
+    if 'access' in config['app'] and 'disclaimer' in config['app']['access']:
+        disc = user.accepted_disclaimer() if user is not None else False
+    print(f"disc................: {type(disc)}")
+    mode = default
+    if 'access' in config["app"]:
+        if action in config['app']['access']:
+            mode = config['app']['access'][action]
+    if mode == "owner" and user is not None and prof is not None and nr is not None:
+        record_file = f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}/records/record-{nr}.xml"
+        with open(record_file, 'r') as file:
+            rec = file.read()
+            with PySaxonProcessor(license=False) as proc:
+                rec = proc.parse_xml(xml_text=rec)
+                xpproc = proc.new_xpath_processor()
+                xpproc.set_cwd(os.getcwd())
+                xpproc.declare_namespace('clariah','http://www.clariah.eu/')
+                xpproc.declare_namespace('cmd','http://www.clarin.eu/cmd/')
+                xpproc.set_context(xdm_item=rec)
+                owner = xpproc.evaluate_single(f"string((/*:CMD/*:Header/*:MdCreator,'{def_user(app)}')[1])").get_string_value()
+                if owner == user.name:
+                    return True, disc
+    elif mode == "owner" and user is not None:
             return True, disc
-    return False, disc
+    elif mode == "users" and user is not None:
+        return True,disc
+    elif mode == "any":
+        return True, disc
+
+
+    # return False, disc
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!",
+                        headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
+
 
 
 def def_user(app: str) -> User:
@@ -293,6 +304,7 @@ def disclaimer_check(app,user):
 
     #tijdelijke hack:
     # return False
+
 
 def disclaimer_accept(app, user):
     csv_filepath = f"{settings.URL_DATA_APPS}/{app}/users.csv"
@@ -344,3 +356,39 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
+
+
+@dataclass
+class AuthenticationDataclass:
+    user: User
+    disc: bool
+
+
+class Allow:
+    """
+    Dependency function for getting a allow decision. Allows specifying the permission to check, e.g. read or write.
+    """
+    permission: str
+    default: str
+
+    def __init__(self, permission: str, default: str):
+        self.permission = permission
+        self.default = default
+
+    def __call__(self, app: str, user: UserDep, prof: Optional[str] = None, nr: Optional[str] = None):
+        allow, disc= allowed(user, app, self.permission, self.default)
+
+        #if not disc:
+        if not allow:
+            #then throw 403 Exception met JSON body
+            # Jarno werkt dit verder uit
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!",
+                                headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
+
+        # if not disc:
+        #     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not disclaimer!")
+
+        return AuthenticationDataclass(user=user, disc=disc)
+
+# AllowDep = Annotated[Allow, Depends(get_user_with_app)]

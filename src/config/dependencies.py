@@ -28,6 +28,13 @@ def get_app_configuration(app: str) -> Dict:
         config = toml.load(f)
         return config
 
+def get_disclaimer():
+    """
+    get the disclaimer
+    """
+
 ConfigDep = Annotated[Dict, Depends(get_app_configuration)]
 
 AllAppsDep = Annotated[List[str], Depends(get_all_apps)]
+
+

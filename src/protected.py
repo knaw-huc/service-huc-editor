@@ -4,7 +4,7 @@ import time
 import json
 import toml
 
-from fastapi import APIRouter, HTTPException, Request, Response
+from fastapi import APIRouter, HTTPException, Request, Response, Form
 from fastapi.encoders import jsonable_encoder
 
 from saxonche import PySaxonProcessor
@@ -12,12 +12,13 @@ from saxonche import PySaxonProcessor
 from starlette import status
 from starlette.responses import HTMLResponse, JSONResponse, RedirectResponse
 
-from typing import Optional
+from typing import Optional, Annotated
 
 from src.config.dependencies import ConfigDep
 from src.auth.models import User
-from src.auth.authentication import get_user_with_app, allowed, def_user
+from src.auth.authentication import get_user_with_app, allowed, def_user, disclaimer_accept, Allow, AuthenticationDataclass
 from src.commons import settings, convert_toml_to_xml, call_record_hook, call_action_hook
+from src.database import SessionDep
 from src.records import rec_editor, rec_update, rec_history,  rec_form
 from src.profiles import prof_xml
 
@@ -467,9 +468,18 @@ def get_record(request: Request, app: str, nr: str, config: ConfigDep, prof: str
                             media_type=mime)
 
 
+# AllowDep = Allow(permission='read', default='any')
+#AllowDep = Depends(Allow('read', 'any'))
 
+
+#@router.get("/app/{app}", dependencies=[Depends(allowed)])
 @router.get("/app/{app}")
-async def get_app(request: Request, app: str, user: Optional[User] = Depends(get_user_with_app)):
+#async def get_app(request: Request, app: str, allowed: Annotated[tuple, Depends(allowed)], user: Optional[User] = Depends(get_user_with_app)):
+#async def get_app(request: Request, app: str, config: ConfigDep, user: Optional[User] = Depends(get_user_with_app)):
+#async def get_app(request: Request, app: str, config: ConfigDep, user: Optional[User] = Depends(Allow(permission='read', default='any'))):
+#async def get_app(request: Request, app: str, config: ConfigDep, user: Optional[User] = Depends(Allow("read", "any"))):
+async def get_app(request: Request, app: str, config: ConfigDep, auth: AuthenticationDataclass = Depends(Allow(permission="read", default= "any"))):
+
     """
     Endpoint to read an application based on its name.
     This endpoint accepts the application name as a path parameter.
@@ -477,16 +487,28 @@ async def get_app(request: Request, app: str, user: Optional[User] = Depends(get
     If the application exists but the reading functionality is not implemented yet, it returns a 501 error.
     """
 
-    allow, disc = allowed(user, app, 'read', 'any')
-    print(f"get_app: allowed[{allow}][{disc}]")
+    user = auth.user
+    disc = auth.disc
 
-    if not allow:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!",
-                            headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
 
-    # show the disclaimer if the user hasn't yet accepted the disclaimer
-    if not (disc):
-        disc_filepath = f"{settings.URL_DATA_APPS}/{app}/disclaimer.html"
+    #allow, disc = allowed(user, app, 'read', 'any')
+    # allow, disc = allowed(user, app, 'read', 'any')
+    # #allow, disc = allowed(user, app, AllowDep.permission, AllowDep.default)
+    #
+    # print(f"get_app: allowed[{allow}][{disc}]")
+    #
+    # if not allow:
+    #     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!",
+    #                         headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
+
+
+
+
+    #show the disclaimer if the user hasn't yet accepted the disclaimer
+    if not disc and 'access' in config['app'] and 'disclaimer' in config['app']['access']:
+
+    #if not Allow and 'access' in config['app'] and 'disclaimer' in config['app']['access']:
+        disc_filepath = config['app']['access']['disclaimer']
 
         with open(disc_filepath, 'r') as f:
             disclaimer = f.read()
@@ -530,38 +552,46 @@ async def get_app(request: Request, app: str, user: Optional[User] = Depends(get
     raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED)
 
 
-@router.get("/app/{app}/accept-disclaimer")
-#@router.post("accept-disclaimer")
-async def accept_disclaimer(app: str, redirect: str, user: Optional[str] = Depends(get_user_with_app)):
+@router.get("/app/{app}/disclaimer")
+async def get_disclaimer(request: Request, app: str, config: ConfigDep, redirect: str, user: Optional[str] = Depends(get_user_with_app)):
+    #TODO[Vera] geef de disclaimer.html terug
+    #see: https://github.com/knaw-huc/service-huc-editor/blob/feature-disclaimer/src/protected.py#L489
 
-    print(f"redirect....... = '{redirect}'")
+    allow, disc = allowed(user, app, 'read', 'any')
+    print(f"get_app: allowed[{allow}][{disc}]")
 
-    allow = allowed(user, app, 'read', 'any')
-
-    print(f"...........{user}.......accept_dsiclaimer")
-    print(f"...........{app}.......accept_dsiclaimer")
-
-    logging.info(f"app........[{app}]")
-    logging.info(f"user........[{user}]")
-
-
-    if (not allow):
+    if not allow:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!",
                             headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
 
+    # show the disclaimer if the user hasn't yet accepted the disclaimer
+    if not (disc):
+        # disc_filepath = f"{settings.URL_DATA_APPS}/{app}/disclaimer.html"
+        disc_filepath = config['app']['access']['disclaimer']
 
-    disclaimer_accept(app, user)
+        with open(disc_filepath, 'r') as f:
+            disclaimer = f.read()
 
-    return RedirectResponse(url = redirect)
+        # store url object in string
+        redirect = str(request.url)
+
+        html_disclaimer = disclaimer.replace("replace_redirect_variable", redirect)
+
+        return HTMLResponse(content=html_disclaimer)
 
 
+#@router.get("/app/{app}/accept-disclaimer")
+@router.post("/app/{app}/accept-disclaimer")
+# @router.post("/accept-disclaimer")
+async def accept_disclaimer(app: str, session: SessionDep, redirect: str, user: Optional[User] = Depends(get_user_with_app)):
 
 
+    #disclaimer_accept(app, user)
+    user.disclaimer_epoch = time.time()
+    session.add(user)
+    session.commit()
 
-
-
-
-
+    return RedirectResponse(url = redirect, status_code=303)
 
 
 
