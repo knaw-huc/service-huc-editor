@@ -47,7 +47,8 @@
                 <xsl:if test="normalize-space($config/config/app/js/script)!=''">
                     <script type="text/javascript" src="{$base}/app/{$app}/static/js/{$config/config/app/js/script}"/>           
                 </xsl:if>
-                
+                <script src="{$base}/static/js/auth.js"></script>
+
                 <script>
                         var inRec = null;
                         var outRec = null;
@@ -149,12 +150,16 @@
                             
                             url="{$rec-url}";
                             if (inRec.nr !==undefined) {{
+                                getToken("{$app}").then(token => {{
                                 $.ajax(
                                 {{
                                     type: "PUT",
                                     url: url,
                                     contentType: 'application/json; charset=utf-8"',
                                     dataType: "json",
+                                    headers: {{
+                                        Authorization: "Bearer " + token
+                                    }},
                                     processData: false,
                                     data: out,
                                     success: function (msg) {{
@@ -171,7 +176,9 @@
                                     }}
                                 }}
                                 );
+                                }});
                            }} else {{
+                                getToken("{$app}").then(token => {{
                                 $.ajax(
                                 {{
                                     type: "POST",
@@ -179,6 +186,9 @@
                                     contentType: 'application/json; charset=utf-8"',
                                     dataType: "json",
                                     processData: false,
+                                    headers: {{
+                                    Authorization: "Bearer " + token
+                                    }},
                                     data: out,
                                     success: function (msg) {{
                                         console.log(msg);
@@ -195,6 +205,7 @@
                                     }}
                                 }}
                                 );
+                                }});
                             }}
                         }}
 
@@ -203,26 +214,31 @@
                             <xsl:text>
                                 $('document').ready(
                                     function () {{
-                                        var url = "{$rec-url}";
-                                        $.ajax(
-                                            {{
-                                                type: "GET",
-                                                url: url,
-                                                dataType: "json",
-                                                success: function (json) {{
-                                                    inRec = json;
-                                                    console.log(inRec);
-                                                    setLanguages();
-                                                    formBuilder.start(inRec);
-                                                    bind_skos_lists();
-                                                    ccfInit('editor');
-                                                }},
-                                                error: function (err) {{
-                                                    obj = {{"error": err}};
-                                                    console.log(obj);
+                                        getToken("{$app}").then(token => {{
+                                            var url = "{$rec-url}";
+                                            $.ajax(
+                                                {{
+                                                    type: "GET",
+                                                    url: url,
+                                                    dataType: "json",
+                                                    headers: {{
+                                                        Authorization: "Bearer " + token
+                                                    }},
+                                                    success: function (json) {{
+                                                        inRec = json;
+                                                        console.log(inRec);
+                                                        setLanguages();
+                                                        formBuilder.start(inRec);
+                                                        bind_skos_lists();
+                                                        ccfInit('editor');
+                                                    }},
+                                                    error: function (err) {{
+                                                        obj = {{"error": err}};
+                                                        console.log(obj);
+                                                    }}
                                                 }}
-                                            }}
-                                        );
+                                            );
+                                        }});
                                     }}
                                 )
                             </xsl:text>
@@ -231,12 +247,16 @@
                             <xsl:text>
                                 $('document').ready(
                                     function () {{
+                                        getToken("{$app}").then(token => {{
                                         var url = "{$prof-url}";
                                         $.ajax(
                                         {{
                                             type: "GET",
                                             url: url,
                                             dataType: "json",
+                                            headers: {{
+                                                Authorization: "Bearer " + token
+                                            }},
                                             success: function (json) {{
                                                 prof = json;
                                                 inRec = {{id:"{$prof}", content: prof}}
@@ -252,6 +272,7 @@
                                             }}
                                         }}
                                         );
+                                        }});
                                     }}
                                 )
                             </xsl:text>

@@ -116,3 +116,13 @@ async def get_app(request: Request, app: str,
         return HTMLResponse(content=result)
 
     raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED)
+
+
+@router.get("/login")
+async def login_page(stylesheet = Depends(StylesheetDep('login'))):
+    """
+    Get the login page
+    :return:
+    """
+    result = stylesheet.main()
+    return HTMLResponse(content=result)

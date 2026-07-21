@@ -24,12 +24,17 @@
                 <xsl:if test="normalize-space($config/config/app/js/script)!=''">
                     <script type="text/javascript" src="{$base}/app/{$app}/static/js/{$config/config/app/js/script}"/>           
                 </xsl:if>
+                <script src="{$base}/static/js/auth.js"></script>
                 <script>
 
                     async function setUser() {{
+                        const app = "{$app}"
+                        const token = await getToken(app)
                         const writePermissions = "{$config/config/app/access/write}"
                         const baseUrlApp = "{concat($base, '/app/', $app)}";
-                        const response = await fetch(baseUrlApp + "/auth/me")
+                        const response = await fetch(baseUrlApp + "/auth/me", {{headers: {{
+                            Authorization: "Bearer " + token
+                        }}}})
                         const userData = await response.json()
                         const userDiv = document.getElementById("user")
                         userDiv.setHTML(userData.name)
@@ -213,7 +218,25 @@
 
                                 (async () => {{
                                     const baseUrl = "{concat($base, '/app/', $app, '/profile/', $prof)}";
-                                    const response = await fetch(baseUrl + "/records?limit=10000");
+                                    const app = "{$app}"
+
+                                    const headers = {{}}
+
+                                    const token = await getToken(app)
+
+                                    if (token) {{
+                                        headers.Authorization = "Bearer " + token
+                                    }}
+
+                                    const response = await fetch(baseUrl + "/records?limit=10000", {{
+                                        headers: headers
+                                    }});
+
+                                    if (response.status === 401) {{
+                                        goToLogin(app)
+                                        return;
+                                    }}
+
                                     const data = await response.json();
                                     const header = data.header;
                                     const actions = data.actions;

@@ -261,3 +261,58 @@ table.sortable tbody tr:nth-child(2n) td {
     font-weight: bold;
     color:#b00;
 }
+
+.login-form {
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 100px;
+    box-sizing: border-box;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    border-radius: 1em;
+    padding: 2em;
+    line-height: 1.4;
+
+    * {
+        box-sizing: border-box;
+    }
+
+    .form-group {
+        width: 100%;
+        margin-bottom: 1em;
+
+        .form-input {
+            width: 100%;
+            display: block;
+            border: 1px solid rgba(0,0,0,0.8);
+            border-radius: .25em;
+            padding: .4em .8em;
+            font-size: 1.6em;
+        }
+    }
+
+    button {
+        width: 100%;
+        font-size: 1.6em;
+        display: block;
+        padding: .4em .8em;
+        border-radius: .25em;
+        background: white;
+        border: 1px solid rgba(0,0,0,0.8);
+        text-align: center;
+        transition: background-color .12s;
+
+        &:hover {
+            background-color: rgba(0,0,0,0.2);
+        }
+    }
+
+    .button-submit {
+        color: white;
+        background-color: black;
+    }
+
+    #response {
+        color: red;
+    }
+}

@@ -24,19 +24,16 @@
                     <title>history for record [{$nr}] </title>
                     <link rel="stylesheet" href="{$base}/static/css/style.css" type="text/css"/>
                     <link rel="stylesheet" href="{$base}/static/css/datatable.min.css" type="text/css"/>
-                    <link rel="stylesheet" href="{$base}/static/js/lib/jquery-ui/jquery-ui.css"/>
-                    <script type="text/javascript" src="{$base}/static/js/lib/jquery-3.2.1.min.js"><xsl:comment>keep alive</xsl:comment></script>
-                    <script type="text/javascript" src="{$base}/static/js/lib/jquery-ui/jquery-ui.js"><xsl:comment>keep alive</xsl:comment></script>
                     <script type="text/javascript" src="{$base}/static/js/lib/datatable.min.js"><xsl:comment>keep alive</xsl:comment></script>
-                    
-                    
+                    <script src="{$base}/static/js/auth.js"></script>
+
                 </head>
                 <body>
                     <div id="wrapper">
                         <div id="header">{$config/config/app/title}</div>
                         <div id="user"/>
                         <div id="homeBtn" titel="back" onclick="window.history.back()" onkeydown="if(event.key==='Enter'||event.key===' '){{event.preventDefault(); window.history.back();}}" role="button" tabindex="0" />
-                        
+
                         <div id="content">
                             <div class="summary">
                                 <h2>Previous versions for record: {$nr}</h2>
@@ -68,7 +65,15 @@
                             const recordNumber = {$nr}
                             const url = "{concat($base, '/app/', $app, '/profile/', $prof, '/record/')}"
 
-                            const result = await fetch(url + recordNumber + "/history")
+                            const token = await getToken("{$app}")
+                            const result = await fetch(url + recordNumber + "/history", {{
+                                headers: {{
+                                    Authorization: "Bearer " + token
+                                }}
+                            }})
+                            if (result.status === 401) {{
+                                goToLogin("{$app}")
+                            }}
                             const data = await result.json()
                             console.log(data)
                             document.getElementById("versionCount").setHTML(data.history.length)

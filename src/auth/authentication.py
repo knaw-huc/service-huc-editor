@@ -32,6 +32,7 @@ password_hash = PasswordHash.recommended()
 DUMMY_PASSWORD = password_hash.hash("dummy")
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
+REFRESH_TOKEN_EXPIRE_MINUTES = 7 * 24 * 60
 ALGORITHM = "HS256"
 
 

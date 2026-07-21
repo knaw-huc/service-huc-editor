@@ -52,7 +52,7 @@ async def get_records(
     """
     if not allowed(user, app, 'read', 'any'):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!",
-                            headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
+                            headers={"WWW-Authenticate": "Bearer"})
     records = record_manager.list(start=offset, limit=limit)
     total = record_manager.num_records()
 
@@ -102,7 +102,7 @@ async def create_record(
         file.write(record_body)
 
     if not allowed(user, app, 'write', 'any'):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": "Bearer"})
 
     config = None
     config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
@@ -229,7 +229,7 @@ async def modify_record(request: Request, app: str, nr: str,
     if prof is None:
         prof = config['app']['def_prof']
     if not allowed(user, app, 'write', 'any', prof, nr):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": "Bearer"})
     logging.info(f"app[{app}] prof[{prof}] record[{nr}] modify")
     record_file = f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}/records/record-{nr}.xml"
     if not os.path.exists(record_file):
@@ -314,7 +314,7 @@ async def delete_record(request: Request, app: str, nr: str,
             config = toml.load(f)
             prof = config['app']['def_prof']
     if not allowed(user, app, 'write', 'any', prof, nr):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": "Bearer"})
     logging.info(f"app[{app}] prof[{prof}] record[{nr}] delete")
     record_file = f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}/records/record-{nr}.xml"
     if not os.path.exists(record_file):
@@ -371,7 +371,7 @@ def get_version(request: Request, app: str, nr: int, epoch:str, prof: str | None
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not supported")
 
     if not allowed(user, app, 'read', 'any', prof, nr):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": "Bearer"})
 
     logging.info(f"app[{app}] prof[{prof}] record[{nr}] epoc[{epoch}]form[{ext}] accept[{request.headers.get("accept", "")}]")
 
@@ -425,7 +425,7 @@ def get_record(request: Request, app: str, nr: str, config: ConfigDep, proc: Sax
 
     if not allowed(user, app, 'read', 'any', prof, nr):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!",
-                            headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
+                            headers={"WWW-Authenticate": "Bearer"})
 
     logging.info(f"app[{app}] prof[{prof}] record[{nr}] form[{ext}] accept[{request.headers.get("accept","")}]")
     record_file = f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}/records/record-{nr}.xml"
@@ -469,7 +469,7 @@ async def get_refs(request: Request, app: str, config: ConfigDep, prof: str | No
     :return:
     """
     if not allowed(user, app, 'read', 'any'):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": "Bearer"})
     if prof is None:
         prof = config['app']['def_prof']
     if ent is None:
@@ -500,7 +500,7 @@ async def get_refs(request: Request, app: str, config: ConfigDep, prof: str | No
 async def get_ref(request: Request, app: str, id:str, prof: str | None=None, ent: str | None=None, user: Optional[User] = Depends(
     get_user_with_app)):
     if not allowed(user, app, 'read', 'any'):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": "Bearer"})
     config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
     with open(config_file, 'r') as f:
         if (prof == None):
