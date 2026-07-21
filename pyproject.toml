@@ -13,15 +13,22 @@ dependencies = [
     "lxml>=6.0.1",
     "passlib>=1.7.4",
     "pwdlib[argon2]>=0.3.0",
+    "pydantic>=2.11.7",
     "pyjwt>=2.13.0",
     "pytest>=8.4.2",
     "python-multipart>=0.0.32",
     "pyyaml",
     "requests>=2.32.5",
     "saxonche>=12.8.0",
+    "sqlalchemy>=2.0.51",
     "sqlmodel>=0.0.38",
     "starlette>=0.47.3",
     "toml>=0.10.2",
     "uvicorn>=0.35.0",
     "weasyprint>=66.0",
+]
+
+[dependency-groups]
+dev = [
+    "pylint>=4.0.6",
 ]

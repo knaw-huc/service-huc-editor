@@ -8,16 +8,26 @@ from starlette import status
 from saxonche import PySaxonProcessor, PyXdmValue, PySaxonApiError
 from src.commons import settings, tweak_nr
 
-async def get_profile_from_clarin(id):
-    clarin_url = settings.URL_CLARIN_COMPONENT_REGISTRY % id
+async def get_profile_from_clarin(profile_id):
+    """
+    Get the profile from ccr
+    :param profile_id:
+    :return:
+    """
+    clarin_url = settings.URL_CLARIN_COMPONENT_REGISTRY % profile_id
     logging.debug(f"{clarin_url}")
     clarin_profile = req.get(clarin_url)
     if clarin_profile.status_code != status.HTTP_200_OK:
         return HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    else:
-        return clarin_profile.content
-    
+    return clarin_profile.content
+
 async def prof_save(app: str, id: str):
+    """
+    Save the profile
+    :param app:
+    :param id:
+    :return:
+    """
     profile_path = f"{settings.URL_DATA_APPS}/{app}/profiles/{id}"
     profile_xml = await get_profile_from_clarin(id)
     if not os.path.isdir(profile_path):
@@ -32,6 +42,12 @@ async def prof_save(app: str, id: str):
             return {"message": f"Profile[{id}] is refreshed"}
 
 def prof_xml(app: str, id: str):
+    """
+    Get the profile as XML
+    :param app:
+    :param id:
+    :return:
+    """
     logging.info(f"app[{app}] prof[{id}] get XML")
     profile_path = f"{settings.URL_DATA_APPS}/{app}/profiles/{id}"
     with open(os.path.join(profile_path, f'{id}.xml'), 'r') as file:
@@ -54,15 +70,21 @@ def prof_xml(app: str, id: str):
             pnode = proc.parse_xml(xml_text=prof)
             prof = executable.transform_to_string(xdm_node=pnode)
         return prof
-    return None
 
-def prof_json(app: str, id:str):
-    prof = prof_xml(app, id)
-    if (prof):
-            with PySaxonProcessor(license=False) as proc:
-                xsltproc = proc.new_xslt30_processor()
-                xsltproc.set_cwd(os.getcwd())
-                executable = xsltproc.compile_stylesheet(stylesheet_file=f"{settings.xslt_dir}/prof2json.xsl")
-                node = proc.parse_xml(xml_text=prof)
-                return  executable.transform_to_string(xdm_node=node)
+def prof_json(app: str, profile_id: str):
+    """
+    Get the profile as JSON
+    :param app:
+    :param profile_id:
+    :return:
+    """
+    prof = prof_xml(app, profile_id)
+    if prof:
+        with PySaxonProcessor(license=False) as proc:
+            xsltproc = proc.new_xslt30_processor()
+            xsltproc.set_cwd(os.getcwd())
+            executable = xsltproc.compile_stylesheet(
+                stylesheet_file=f"{settings.xslt_dir}/prof2json.xsl")
+            node = proc.parse_xml(xml_text=prof)
+            return  executable.transform_to_string(xdm_node=node)
     return None

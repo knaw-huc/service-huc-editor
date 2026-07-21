@@ -2,19 +2,19 @@ import logging
 import os
 import datetime
 import json
+
 import toml
-from datetime import timezone 
+from datetime import timezone
 
+from fastapi import HTTPException
 from saxonche import PySaxonProcessor
+from starlette import status
 
-from src.auth.models import User
 from src.commons import settings, convert_toml_to_xml
 from src.auth.authentication import def_user
 from src.profiles import prof_xml, prof_json
 
 from weasyprint import HTML
-
-from fastapi.encoders import jsonable_encoder
 
 from time import strftime, localtime
 from datetime import datetime
@@ -143,32 +143,32 @@ def rec_html(app,prof,nr,proc,rec):
     executable.set_parameter("config", config)
     return (executable.transform_to_string(xdm_node=rec),'html','text/html')
         
-
-def rec_editor(app,prof,nr, user: User):
-    if nr:
-        logging.info(f"app[{app}] prof[{prof}] record[{nr}] editor")
-    else:
-        logging.info(f"app[{app}] prof[{prof}] new record editor")
-    with PySaxonProcessor(license=False) as proc:
-        xsltproc = proc.new_xslt30_processor()
-        xsltproc.set_cwd(os.getcwd())
-        executable = xsltproc.compile_stylesheet(stylesheet_file=f"{settings.xslt_dir}/editor.xsl")
-        executable.set_parameter("cwd", proc.make_string_value(os.getcwd()))
-        executable.set_parameter("base", proc.make_string_value(settings.url_base))
-        executable.set_parameter("cdn", proc.make_string_value(settings.url_cdn))
-        executable.set_parameter("app", proc.make_string_value(app))
-        executable.set_parameter("prof", proc.make_string_value(prof))
-        if nr:
-            executable.set_parameter("nr", proc.make_string_value(nr))
-        if (user != None):
-            executable.set_parameter("user", proc.make_string_value(user.name))
-        else:
-            executable.set_parameter("user", proc.make_string_value(def_user(app).name))
-        convert_toml_to_xml(f"{settings.URL_DATA_APPS}/{app}/config.toml",f"{settings.URL_DATA_APPS}/{app}/config.xml")
-        config = proc.parse_xml(xml_file_name=f"{settings.URL_DATA_APPS}/{app}/config.xml")
-        executable.set_parameter("config", config)
-        null = proc.parse_xml(xml_text="<null/>")
-        return executable.transform_to_string(xdm_node=null)
+#
+# def rec_editor(app,prof,nr, user: Optional[User]):
+#     if nr:
+#         logging.info(f"app[{app}] prof[{prof}] record[{nr}] editor")
+#     else:
+#         logging.info(f"app[{app}] prof[{prof}] new record editor")
+#     with PySaxonProcessor(license=False) as proc:
+#         xsltproc = proc.new_xslt30_processor()
+#         xsltproc.set_cwd(os.getcwd())
+#         executable = xsltproc.compile_stylesheet(stylesheet_file=f"{settings.xslt_dir}/editor.xsl")
+#         executable.set_parameter("cwd", proc.make_string_value(os.getcwd()))
+#         executable.set_parameter("base", proc.make_string_value(settings.url_base))
+#         executable.set_parameter("cdn", proc.make_string_value(settings.url_cdn))
+#         executable.set_parameter("app", proc.make_string_value(app))
+#         executable.set_parameter("prof", proc.make_string_value(prof))
+#         if nr:
+#             executable.set_parameter("nr", proc.make_string_value(nr))
+#         if user is not None:
+#             executable.set_parameter("user", proc.make_string_value(user.name))
+#         else:
+#             executable.set_parameter("user", proc.make_string_value(def_user(app).name))
+#         convert_toml_to_xml(f"{settings.URL_DATA_APPS}/{app}/config.toml",f"{settings.URL_DATA_APPS}/{app}/config.xml")
+#         config = proc.parse_xml(xml_file_name=f"{settings.URL_DATA_APPS}/{app}/config.xml")
+#         executable.set_parameter("config", config)
+#         null = proc.parse_xml(xml_text="<null/>")
+#         return executable.transform_to_string(xdm_node=null)
     
 def rec_update(app: str, prof: str, nr: str, rec: str) -> str:
     logging.info(f"app[{app}] prof[{prof}] record[{nr}] update")
@@ -285,3 +285,10 @@ def version(record_file, app):
 def getTime(epoch):
         time = datetime.fromtimestamp(int(epoch))        
         return time
+
+# def rec_colums(app,prof,rec XML,user) :
+#     #laad de config
+#     # bepaald of deze gebruiker
+#     # - read
+#     # - write
+#     #for config [app.prof.{prof}.list.*]

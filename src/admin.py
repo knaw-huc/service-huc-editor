@@ -15,7 +15,7 @@ from starlette.responses import JSONResponse, RedirectResponse
 from starlette.staticfiles import StaticFiles
 
 from src.auth.models import User
-from src.database import SessionDep
+from src.database.database import SessionDep
 from src.commons import settings, convert_toml_to_xml
 from src.profiles import prof_save
 
@@ -186,7 +186,7 @@ def get_user_csv(app: str, session: SessionDep):
     """
     Get the users database in a csv export
     """
-    users = session.exec(select(User)).all()
+    users = session.scalars(select(User)).all()
     output = io.StringIO()
     writer = csv.writer(output)
     writer.writerow(["ID", "Name", "Password"])

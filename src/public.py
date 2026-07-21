@@ -6,17 +6,16 @@ import toml
 import requests
 import urllib
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from fastapi.encoders import jsonable_encoder
 
 from starlette import status
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response, RedirectResponse
 
-from saxonche import PySaxonProcessor
-
-from src.commons import data, settings
+from src.commons import settings
 from src.profiles import prof_xml, prof_json
+from src.xslt import StylesheetProcessor, StylesheetDep
 
 router = APIRouter()
 
@@ -195,21 +194,24 @@ def get_profile(request: Request, app: str, id: str):
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not supported 3")
 
 @router.get('/app/{app}/profile/{prof}/tweak/template')
-def get_profile_tweak_template(request: Request, app: str, prof: str):
+def get_profile_tweak_template(app: str, prof: str,
+                               stylesheet: StylesheetProcessor = Depends(StylesheetDep("toTweak"))):
+    """
+
+    :param app:
+    :param prof:
+    :param stylesheet:
+    :return:
+    """
     logging.info(f"app[{app}] profile[{prof}] tweak template")
     profile_path = f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}"
     if not os.path.isdir(profile_path):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)    
-    with PySaxonProcessor(license=False) as proc:
-        prof = proc.parse_xml(xml_file_name=f"{profile_path}/{prof}.xml")
-        xsltproc = proc.new_xslt30_processor()
-        xsltproc.set_cwd(os.getcwd())
-        executable = xsltproc.compile_stylesheet(stylesheet_file=f"{settings.xslt_dir}/toTweak.xsl")
-        template = executable.transform_to_string(xdm_node=prof)
-        return Response(content=template, media_type="application/xml")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    template = stylesheet.apply(profile=prof)
+    return Response(content=template, media_type="application/xml")
 
 @router.get('/app/{app}/profile/{prof}/tweak/{nr}')
-def get_profile_tweak(request: Request, app: str, prof: str, nr: str):
+def get_profile_tweak(app: str, prof: str, nr: str):
     """
     Endpoint to get a tweak of a profile based on its ID.
     This endpoint accepts the ID as a path parameter.
