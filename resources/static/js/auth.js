@@ -101,3 +101,25 @@ function goToLogin(app, message = "You need to log in to view this page.") {
 
     window.location.replace("/app/" + app + "/login")
 }
+
+async function openSigned(app, url, newTab = false) {
+    const token = await getToken(app)
+    const response = await fetch("/app/" + app + "/auth/sign", {
+        method: "POST",
+        headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token
+        },
+        body: JSON.stringify({
+            url: url
+        })
+    })
+    const jsonBody = await response.json()
+
+    if (newTab) {
+        window.open(jsonBody.url, "_blank").focus()
+    } else {
+        window.location.replace(jsonBody.url)
+    }
+}

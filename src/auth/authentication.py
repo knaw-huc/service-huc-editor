@@ -19,6 +19,7 @@ from pydantic import BaseModel
 from saxonche import PySaxonProcessor
 from sqlmodel import Session, select
 from starlette import status
+from starlette.requests import Request
 
 from src.database.database import SessionDep
 from src.auth.models import User
@@ -31,6 +32,7 @@ basic_auth = HTTPBasic(auto_error=False)
 password_hash = PasswordHash.recommended()
 DUMMY_PASSWORD = password_hash.hash("dummy")
 
+URL_EXPIRE_MINUTES = 15
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 REFRESH_TOKEN_EXPIRE_MINUTES = 7 * 24 * 60
 ALGORITHM = "HS256"
@@ -172,6 +174,8 @@ def get_current_user_basic(
 def get_user_with_app(
         app: str,
         session: SessionDep,
+        request: Request,
+        signature: Optional[str] = None,
         basic_credentials: Optional[HTTPBasicCredentials] = Depends(basic_auth),
         bearer_credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_security),
 ) -> Optional[User]:
@@ -184,6 +188,25 @@ def get_user_with_app(
                                           headers={"WWW-Authenticate": "Bearer"})
     if basic_credentials:
         return get_current_user_basic(app, session, basic_credentials)
+    if signature:
+        # Validate signed url
+        try:
+            payload = jwt.decode(signature, settings.JWT_SECRET_KEY, algorithms=[ALGORITHM])
+            username = payload.get('sub')
+            url = payload.get('url')
+            method = payload.get('method')
+            if url != request.url.path or method != request.method:
+                raise credentials_exception
+            if username is None:
+                raise credentials_exception
+            token_data = TokenData(username=username)
+        except InvalidTokenError as e:
+            raise credentials_exception from e
+        user = session.scalars(select(User).where(User.name == token_data.username)).first()
+        if user is None:
+            raise credentials_exception
+        return user
+
     if bearer_credentials:
         # Handle bearer token authentication. This can either be a fixed api key, or an OAuth2 token
         token = bearer_credentials.credentials
@@ -293,3 +316,22 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
+
+def sign_url(url: str, user: User, method: str = "GET", expires_delta: timedelta | None = None) -> str:
+    """
+    Sign a URL with a JWT token.
+    :param url:
+    :param user:
+    :param method:
+    :param expires_delta:
+    :return:
+    """
+    if expires_delta:
+        expire = datetime.now(timezone.utc) + expires_delta
+    else:
+        expire = datetime.now(timezone.utc) + timedelta(minutes=URL_EXPIRE_MINUTES)
+
+    to_encode = {"url": url, "method": method, "sub": user.name, "exp": expire}
+    encoded_jwt = jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=ALGORITHM)
+    return f"{url}?signature={encoded_jwt}"

@@ -235,6 +235,9 @@
                                                     error: function (err) {{
                                                         obj = {{"error": err}};
                                                         console.log(obj);
+                                                        if (err.status === 401) {{
+                                                            goToLogin("{$app}")
+                                                        }}
                                                     }}
                                                 }}
                                             );
@@ -269,6 +272,9 @@
                                             error: function (err) {{
                                                 obj = {{"error": err}};
                                                 console.log(obj);
+                                                if (err.status === 401) {{
+                                                    goToLogin("{$app}")
+                                                }}
                                             }}
                                         }}
                                         );

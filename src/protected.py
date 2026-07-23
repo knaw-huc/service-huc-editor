@@ -56,7 +56,7 @@ async def get_records(
     records = record_manager.list(start=offset, limit=limit)
     total = record_manager.num_records()
 
-    data = list(map(lambda x : x.table_data(user, config, record_metadata), records))
+    data = list(map(lambda x : x.table_data(user, config), records))
 
     return {
         "header": [

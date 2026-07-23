@@ -12,7 +12,7 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from starlette import status
 
-from src.auth.authentication import REFRESH_TOKEN_EXPIRE_MINUTES, ALGORITHM
+from src.auth.authentication import REFRESH_TOKEN_EXPIRE_MINUTES, ALGORITHM, sign_url
 from src.auth.models import RefreshToken
 from src.auth.authentication import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
 from src.commons import settings
@@ -97,6 +97,22 @@ async def refresh_token(data: RefreshRequest, session: SessionDep):
     refresh = create_access_token(data={"sub": username, "uuid": refresh_token_obj.id}, expires_delta=refresh_token_expires)
     return Token(access_token=access_token, token_type="bearer", refresh_token=refresh)
 
+
+class UrlSignRequest(BaseModel):
+    url: str
+    method: str = "GET"
+
+@router.post("/sign")
+async def generate_signed_url(sign_request: UrlSignRequest,  user: UserDep):
+    """
+    Generate a signed url
+    :return:
+    """
+    signed = sign_url(sign_request.url, user, sign_request.method)
+    return {
+        "url": signed,
+        "method": sign_request.method,
+    }
 
 
 @router.get("/me")

@@ -218,6 +218,7 @@
 
                                 (async () => {{
                                     const baseUrl = "{concat($base, '/app/', $app, '/profile/', $prof)}";
+                                    const baseAbsolute = "{concat('/app/', $app, '/profile/', $prof)}";
                                     const app = "{$app}"
 
                                     const headers = {{}}
@@ -340,9 +341,12 @@
                                                 for (exp of exports) {{
                                                     const cell = document.createElement("td")
                                                     const link = document.createElement("a")
-                                                    link.setAttribute("href", baseUrl + "/record/" + data._id + "." + exp.format)
+                                                    const url = baseAbsolute + "/record/" + data._id + "." + exp.format
+<!--                                                    link.setAttribute("href", data.exports[exp.format])-->
+                                                    link.setAttribute("href", "javascript:void(0)")
+                                                    link.setAttribute("onclick", "openSigned('" + app + "', '" + url + "', true)")
                                                     link.setAttribute("title", "Show " + exp.name)
-                                                    link.setAttribute("target", "_blank")
+<!--                                                    link.setAttribute("target", "_blank")-->
                                                     link.appendChild(document.createTextNode(exp.name))
                                                     cell.appendChild(link)
                                                     res.appendChild(cell)
@@ -363,7 +367,10 @@
                                                     if (details.endpoint.startsWith("javascript:")) {{
                                                         link.setAttribute("onclick", details.endpoint)
                                                     }} else {{
-                                                        link.setAttribute("href", baseUrl + "/record/" + data._id + "/action/" + details.endpoint)
+                                                        const url = baseAbsolute + "/record/" + data._id + "/action/" + details.endpoint
+<!--                                                        link.setAttribute("href", baseUrl + "/record/" + data._id + "/action/" + details.endpoint)-->
+                                                            link.setAttribute("href", "javascript:void(0)")
+                                                            link.setAttribute("onclick", "openSigned('" + app + "', '" + url + "', true)")
                                                     }}
                                                     link.setAttribute("class", "rec action")
                                                 }} else {{

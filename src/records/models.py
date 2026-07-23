@@ -4,7 +4,6 @@ from sqlalchemy.orm import mapped_column, Mapped
 
 from src.auth.models import User
 from src.database.models import CacheBase
-from src.xslt import RecordMetadata
 
 
 class Record(CacheBase):
@@ -17,7 +16,7 @@ class Record(CacheBase):
     fields: Mapped[dict[str, Any]]
     profile: Mapped[str] = mapped_column(index=True)
 
-    def table_data(self, user: Optional[User], config: Dict, record_metadata: RecordMetadata):
+    def table_data(self, user: Optional[User], config: Dict):
         """
         Return data to display in table
         :return:
