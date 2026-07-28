@@ -66,3 +66,14 @@ def prof_json(app: str, id:str):
                 node = proc.parse_xml(xml_text=prof)
                 return  executable.transform_to_string(xdm_node=node)
     return None
+
+def prof_json2(app: str, id:str):
+    prof = prof_xml(app, id)
+    if (prof):
+            with PySaxonProcessor(license=False) as proc:
+                xsltproc = proc.new_xslt30_processor()
+                xsltproc.set_cwd(os.getcwd())
+                executable = xsltproc.compile_stylesheet(stylesheet_file=f"{settings.xslt_dir}/prof2json-2.xsl")
+                node = proc.parse_xml(xml_text=prof)
+                return  executable.transform_to_string(xdm_node=node)
+    return None
