@@ -62,22 +62,32 @@
 
     <xsl:template match="clariah:explanation[normalize-space(@src) != '']">
         <xsl:choose>
-            <xsl:when test="@src= 'documentation' and normalize-space(../Documentation) != ''">
-                <clariah:explanation>
-                    <xsl:value-of select="../Documentation"/>
-                </clariah:explanation>
+            <xsl:when test="@src= 'documentation'">
+                <xsl:for-each select="../Documentation[normalize-space()!='']">
+                    <clariah:explanation>
+                        <xsl:copy-of select="@xml:lang"/>
+                        <xsl:value-of select="normalize-space(.)"/>
+                    </clariah:explanation>
+                </xsl:for-each>
             </xsl:when>
         </xsl:choose>
     </xsl:template>
 
-    <!-- add clariah:value wrapper to items from the profile -->
+    <!-- if missing add clariah:value wrapper to items from the profile -->
     <xsl:template match="item">
         <xsl:copy>
             <xsl:apply-templates select="@*"/>
-            <clariah:value>
-                <xsl:value-of select="."/>
-            </clariah:value>
+            <xsl:choose>
+                <xsl:when test="exists(clariah:value)">
+                    <xsl:copy-of select="clariah:value"/>                    
+                </xsl:when>
+                <xsl:otherwise>
+                    <clariah:value>
+                        <xsl:value-of select="."/>
+                    </clariah:value>
+                </xsl:otherwise>
+            </xsl:choose>
         </xsl:copy>
-    </xsl:template>
-
+    </xsl:template>    
+    
 </xsl:stylesheet>
