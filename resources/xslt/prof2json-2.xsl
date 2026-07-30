@@ -41,7 +41,7 @@
             <js:number key="level" xsl:expand-text="yes">{$level}</js:number>
             <js:string key="id" xsl:expand-text="yes">{generate-id()}</js:string>
             <js:string key="name" xsl:expand-text="yes">{@name}</js:string>
-            <xsl:apply-templates select="@conceptlink"/>
+            <xsl:apply-templates select="@ConceptLink"/>
             <js:array key="documentation">
                 <xsl:for-each select="Documentation[normalize-space(.)!='']">
                     <js:map>
@@ -92,7 +92,7 @@
             <js:number key="level" xsl:expand-text="yes">{$level}</js:number>
             <js:string key="id" xsl:expand-text="yes">{generate-id()}</js:string>
             <js:string key="name" xsl:expand-text="yes">{@name}</js:string>
-            <xsl:apply-templates select="@conceptlink"/>
+            <xsl:apply-templates select="@ConceptLink"/>
             <js:map key="cardinality" xsl:expand-text="yes">
                 <js:string key="min">{(@CardinalityMin,'1')[1]}</js:string>
                 <js:string key="max">{(@CardinalityMax,'1')[1]}</js:string>
@@ -191,10 +191,11 @@
 
     <xsl:template match="item">
         <js:map>
+            <xsl:apply-templates select="@ConceptLink"/>
             <xsl:choose>
                 <xsl:when test="exists(clariah:value)">
                     <xsl:for-each select="clariah:value">
-                        <js:string key="@value" xsl:expand-text="yes">{normalize-space(string-join(text()))}</js:string>
+                        <js:string key="value" xsl:expand-text="yes">{normalize-space(string-join(text()))}</js:string>
                         <js:map key="cues">
                             <js:array key="label">
                                 <xsl:for-each select="clariah:label[normalize-space(.)!='']">
@@ -208,7 +209,7 @@
                     </xsl:for-each>
                 </xsl:when>
                 <xsl:otherwise>
-                    <js:string key="@value" xsl:expand-text="yes">{normalize-space(string-join(text()))}</js:string>
+                    <js:string key="value" xsl:expand-text="yes">{normalize-space(string-join(text()))}</js:string>
                 </xsl:otherwise>
             </xsl:choose>
         </js:map>
@@ -244,6 +245,10 @@
     
     <xsl:template match="@xml:lang">
         <js:string key="@language" xsl:expand-text="yes">{string(.)}</js:string>
+    </xsl:template>
+    
+    <xsl:template match="@ConceptLink">
+        <js:string key="concept" xsl:expand-text="yes">{string(.)}</js:string>
     </xsl:template>
     
 
