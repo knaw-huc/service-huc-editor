@@ -12,6 +12,7 @@ from starlette.middleware.cors import CORSMiddleware
 
 from src import public, protected, admin
 from src.auth.routes import router as auth_router
+from src.profiles.routes import router as prof_router
 from src.commons import api_keys
 from src.commons import settings
 from src.pages import router as pages_router
@@ -85,7 +86,13 @@ app.include_router(
 )
 
 app.include_router(
-    auth_router
+    prof_router,
+    tags=["Profiles"],
+)
+
+app.include_router(
+    auth_router,
+    tags=["Authentication"],
 )
 
 

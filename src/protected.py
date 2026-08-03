@@ -19,7 +19,7 @@ from src.auth.models import User
 from src.auth.authentication import get_user_with_app, allowed, def_user
 from src.commons import settings, call_record_hook, call_action_hook
 from src.records.records import rec_update, rec_history,  rec_form
-from src.profiles import prof_xml
+from src.profiles.profiles import prof_xml
 from src.records.services import RecordManagerDep
 from src.xslt import StylesheetProcessor, StylesheetDep, SaxonProcessorDep, RecordMetadataDep
 

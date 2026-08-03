@@ -14,7 +14,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse, Response, RedirectResponse
 
 from src.commons import settings
-from src.profiles import prof_xml, prof_json
+from src.profiles.profiles import prof_xml, prof_json
 from src.xslt import StylesheetProcessor, StylesheetDep
 
 router = APIRouter()

@@ -12,7 +12,7 @@ from starlette import status
 
 from src.commons import settings, convert_toml_to_xml
 from src.auth.authentication import def_user
-from src.profiles import prof_xml, prof_json
+from src.profiles.profiles import prof_xml, prof_json
 
 from weasyprint import HTML
 

@@ -17,7 +17,7 @@ from starlette.staticfiles import StaticFiles
 from src.auth.models import User
 from src.database.database import SessionDep
 from src.commons import settings, convert_toml_to_xml
-from src.profiles import prof_save
+from src.profiles.profiles import prof_save
 
 router = APIRouter()
 
