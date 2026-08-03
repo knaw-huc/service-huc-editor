@@ -176,16 +176,6 @@
         </xsl:choose>
     </xsl:template>
        
-    <!-- add clariah:value wrapper to items from the profile -->
-    <xsl:template match="item">
-        <xsl:copy>
-            <xsl:apply-templates select="@*"/>
-            <clariah:value>
-                <xsl:value-of select="."/>
-            </clariah:value>
-        </xsl:copy>
-    </xsl:template>    
-        
     <!-- HANDLE cue attributes/elements -->
     
     <!-- cues in the PROFILE -->

@@ -13,9 +13,10 @@ from starlette import status
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response, RedirectResponse
 
-from src.commons import settings
-from src.profiles.profiles import prof_xml, prof_json
 from src.xslt import StylesheetProcessor, StylesheetDep
+
+from src.commons import settings
+from src.profiles.profiles import prof_xml, prof_json, prof_json2
 
 router = APIRouter()
 
@@ -173,7 +174,10 @@ def get_profile(request: Request, app: str, id: str):
     if id.endswith(".json"):
         form = "json"
         id = id.removesuffix(".json")
-    if form not in ["xml", "json"]:
+    if id.endswith(".json2"):
+        form = "json2"
+        id = id.removesuffix(".json2")
+    if form not in ["xml", "json", "json2"]:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not supported 2")
     logging.info(f"app[{app}] profile[{id}] form[{form}]")
     profile_path = f"{settings.URL_DATA_APPS}/{app}/profiles/{id}"
@@ -181,6 +185,12 @@ def get_profile(request: Request, app: str, id: str):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     if form == "json" or "application/json" in request.headers.get("accept", ""):
         prof = prof_json(app, id)
+        if (prof):
+            return JSONResponse(content=jsonable_encoder(json.loads(prof)))
+        else:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    elif form == "json2":
+        prof = prof_json2(app, id)
         if (prof):
             return JSONResponse(content=jsonable_encoder(json.loads(prof)))
         else:
