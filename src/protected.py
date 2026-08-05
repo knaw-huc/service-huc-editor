@@ -83,9 +83,9 @@ async def create_record(
         app: str,
         record_manager: RecordManagerDep,
         proc: SaxonProcessorDep,
+        profile: ProfileDep,
         json_sheet: StylesheetProcessor = Depends(StylesheetDep("json2rec")),
         post_tweak_sheet: StylesheetProcessor = Depends(StylesheetDep("postTweak")),
-        prof: str | None = None,
         redir: str | None = "yes",
         user: Optional[User] = Depends(get_user_with_app)):
     """
@@ -94,6 +94,7 @@ async def create_record(
     """
     record_body = await request.body()
     trace_dir = f"{settings.URL_DATA_APPS}/{app}/trace"
+    prof = profile['prof']
     if not os.path.exists(trace_dir):
         os.makedirs(trace_dir)
     epoch = time.time()
@@ -108,8 +109,6 @@ async def create_record(
     config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
     with open(config_file, 'r') as f:
         config = toml.load(f)
-    if prof is None:
-        prof = config['app']['def_prof']
 
     logging.info(f"Modifying app[{app}] prof[{prof}]: creating record")
     record_dir = f"{settings.URL_DATA_APPS}/{app}/profiles/{prof}/records"
@@ -401,7 +400,7 @@ def get_version(request: Request, app: str, nr: int, epoch:str, prof: str | None
 
 @router.get('/record/{nr}')
 def get_record(request: Request, app: str, nr: str, config: ConfigDep, proc: SaxonProcessorDep,
-               prof: str | None=None, user: Optional[User] = Depends(
+               profile: ProfileDep, user: Optional[User] = Depends(
     get_user_with_app)):
     """
 
@@ -414,8 +413,7 @@ def get_record(request: Request, app: str, nr: str, config: ConfigDep, proc: Sax
     :param user: The user, if logged in
     :return:
     """
-    if prof is None:
-        prof = config['app']['def_prof']
+    prof = profile['prof']
     if nr.count('.') == 0:
         ext = None
     elif nr.count('.') == 1:

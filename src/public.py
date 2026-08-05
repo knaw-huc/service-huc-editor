@@ -2,6 +2,8 @@ import logging
 import os
 import json
 import urllib.parse
+from typing import Optional
+
 import toml
 import requests
 import urllib
@@ -13,6 +15,7 @@ from starlette import status
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response, RedirectResponse
 
+from src.config.dependencies import ProfileDep
 from src.xslt import StylesheetProcessor, StylesheetDep
 
 from src.commons import settings
@@ -156,8 +159,9 @@ def get_proxy_skosmos(inst:str,vocab:str | None=None,label:str | None="prefLabel
          
         return JSONResponse(jsonable_encoder(res))
 
-@router.get('/app/{app}/profile/{id}')
-def get_profile(request: Request, app: str, id: str):
+@router.get('/app/{app}/profile/{prof}.{form}')
+# @router.get('/app/{app}/profile/{prof}')
+def get_profile(request: Request, app: str, prof: str, profile: ProfileDep, form: Optional[str] = "xml"):
     """
     Endpoint to get a profile based on its ID.
     This endpoint accepts the ID as a path parameter and the 'Accept' header to determine the response format.
@@ -167,18 +171,21 @@ def get_profile(request: Request, app: str, id: str):
     If the 'Accept' header is not 'application/xml' or 'application/json', it returns a 400 error.
     """
 
-    form="xml"
-    if id.endswith(".xml"):
-        form = "xml"
-        id = id.removesuffix(".xml")
-    if id.endswith(".json"):
-        form = "json"
-        id = id.removesuffix(".json")
-    if id.endswith(".json2"):
-        form = "json2"
-        id = id.removesuffix(".json2")
+    # form="xml"
+    # if id.endswith(".xml"):
+    #     form = "xml"
+    #     id = id.removesuffix(".xml")
+    # if id.endswith(".json"):
+    #     form = "json"
+    #     id = id.removesuffix(".json")
+    # if id.endswith(".json2"):
+    #     form = "json2"
+    #     id = id.removesuffix(".json2")
+
     if form not in ["xml", "json", "json2"]:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Not supported 2")
+    id = profile['prof']
+
     logging.info(f"app[{app}] profile[{id}] form[{form}]")
     profile_path = f"{settings.URL_DATA_APPS}/{app}/profiles/{id}"
     if not os.path.isdir(profile_path):

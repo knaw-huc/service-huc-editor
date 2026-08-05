@@ -3,6 +3,7 @@ Authentication related routes
 """
 
 from datetime import timedelta
+from typing import List
 
 import jwt
 from fastapi import APIRouter, Depends, HTTPException
@@ -12,8 +13,8 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from starlette import status
 
-from src.auth.authentication import REFRESH_TOKEN_EXPIRE_MINUTES, ALGORITHM, sign_url
-from src.auth.models import RefreshToken
+from src.auth.authentication import REFRESH_TOKEN_EXPIRE_MINUTES, ALGORITHM, sign_url, allowed
+from src.auth.models import RefreshToken, User
 from src.auth.authentication import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
 from src.commons import settings
 from src.database.database import SessionDep
@@ -126,3 +127,31 @@ async def me(user: UserDep):
         "id": user.id,
         "name": user.name,
     }
+
+
+class UserOutput(BaseModel):
+    id: int
+    name: str
+
+@router.get("/users", response_model=List[UserOutput])
+async def get_users(
+        user: UserDep,
+        session: SessionDep,
+        app: str,
+        offset: int = 0,
+        limit: int = 100,):
+    """
+    Get users
+    :param user:
+    :param session:
+    :param app:
+    :param offset:
+    :param limit:
+    :return:
+    """
+    if not allowed(user, app, 'write', 'any'):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!",
+                            headers={"WWW-Authenticate": "Bearer"})
+
+    users = session.scalars(select(User).offset(offset).limit(limit))
+    return users.all()

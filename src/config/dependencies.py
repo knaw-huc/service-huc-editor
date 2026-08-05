@@ -49,6 +49,6 @@ def get_profile(prof: str, config: ConfigDep):
         for profile in profile_config.values():
             if profile['prof'] == prof:
                 return profile
-    raise HTTPException(status_code=404, detail="Profile not found")
+    raise HTTPException(status_code=404, detail=f"Profile '{prof}' not found")
 
 ProfileDep = Annotated[Dict, Depends(get_profile)]

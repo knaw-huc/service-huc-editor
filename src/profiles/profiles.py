@@ -5,7 +5,7 @@ import requests as req
 
 from fastapi import HTTPException
 from starlette import status
-from saxonche import PySaxonProcessor, PyXdmValue, PySaxonApiError
+from saxonche import PySaxonProcessor
 from src.commons import settings, tweak_nr
 
 async def get_profile_from_clarin(profile_id):
