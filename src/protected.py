@@ -516,7 +516,7 @@ async def get_ref(request: Request, app: str, id:str, prof: str | None=None, ent
 @router.get('/action/{action}')
 @router.get('/record/{nr}/action/{action}')
 def get_action(req: Request, app: str, action: str, config: ConfigDep,
-               prof: str | None=None, nr: str | None=None, user: Optional[User] = Depends(
+               profile: ProfileDep, nr: str | None=None, user: Optional[User] = Depends(
             get_user_with_app)):
     """
     Get action
@@ -529,6 +529,5 @@ def get_action(req: Request, app: str, action: str, config: ConfigDep,
     :param user:
     :return:
     """
-    if nr is not None and prof is None:
-        prof = config['app']['def_prof']
+    prof = profile["prof"]
     return call_action_hook(req,action,app,prof,nr,user)
