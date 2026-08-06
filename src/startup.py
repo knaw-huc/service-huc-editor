@@ -4,6 +4,8 @@ from src.auth.authentication import initialize_users
 from src.config.dependencies import get_all_apps, get_app_configuration
 from src.database.database import get_db_eng_for_app, get_cache_eng_for_app
 from src.database.models import Base, CacheBase
+from src.records.models import Record
+from src.auth.models import User
 
 if __name__ == "__main__":
 

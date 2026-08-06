@@ -89,7 +89,7 @@ class RecordManager:
                 print("Failed parsing xpath", key, value['xpath'])
                 print(e)
 
-        actions = self.config["app"]["hooks"]["action"]
+        actions = self.config["app"]["hooks"]["action"] if "hooks" in self.config["app"] else {}
         actions_enabled = {}
         self.metadata_processor.set_parameter("self", f"unl://{record_id}")
         for name, action in actions.items():

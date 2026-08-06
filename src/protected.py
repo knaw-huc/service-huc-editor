@@ -69,7 +69,7 @@ async def get_records(
         ],
         "actions": {
             key: action for key, action in config["app"]["hooks"]["action"].items() if "rec" in action["level"].split(" ")
-        },
+        } if "hooks" in config["app"] else {},
         "data": data,
         "offset": offset,
         "limit": limit,
@@ -343,7 +343,7 @@ async def delete_record(request: Request, app: str, nr: str,
 
 
 @router.get('/record/{nr}/history/{epoch}')
-def get_version(request: Request, app: str, nr: int, epoch:str, prof: str | None=None, user: Optional[User] = Depends(
+def get_version(request: Request, app: str, nr: int, epoch:str, profile: ProfileDep, user: Optional[User] = Depends(
     get_user_with_app)):
     # yes it works also http://localhost:1210/app/stalling/profile/clarin.eu:cr1:p_1708423613607/record/3.xml/history/1767225600 with the same extensions to the record number for a correct format
 
@@ -356,12 +356,8 @@ def get_version(request: Request, app: str, nr: int, epoch:str, prof: str | None
     #               get that file
     #               server that file in a certain format?
     # 
-    # 
-    if prof is None:
-        config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
-        with open(config_file, 'r') as f:
-            config = toml.load(f)
-            prof = config['app']['def_prof']
+    #
+    prof = profile["prof"]
     if epoch.count('.') == 0:
         ext = None
     elif epoch.count('.') == 1:
