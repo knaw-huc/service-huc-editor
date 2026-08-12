@@ -3,9 +3,15 @@ import os
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
 from typing import Annotated
-import importlib.metadata
+
+from sqlmodel import SQLModel, Session, select
+
+from src.auth.authentication import initialize_users
+from src.auth.authentication import create_user
+from src.auth.models import User
+from src.config.dependencies import get_all_apps, get_app_configuration
+from src.database import get_db_eng_for_app
 from src.commons import api_keys
-import importlib.metadata
 import logging
 from contextlib import asynccontextmanager
 
@@ -20,6 +26,7 @@ __version__ = "0.1.10"
 from starlette.middleware.cors import CORSMiddleware
 
 from src import public, protected, admin
+from src.auth.routes import router as auth_router
 
 security = HTTPBearer()
 
@@ -41,9 +48,23 @@ async def lifespan(application: FastAPI):
     print('start up')
     print(emoji.emojize(':thumbs_up:'))
 
+    print("Available apps:")
+
+    for a in get_all_apps():
+        print(f" - {a}")
+        eng = get_db_eng_for_app(a)
+        config = get_app_configuration(a)
+        SQLModel.metadata.create_all(eng)
+
+        with Session(eng) as session:
+            print("Check if this app has users")
+            initialize_users(a, config, session)
+
+    yield
+
 
 app = FastAPI(title=settings.FASTAPI_TITLE, description=settings.FASTAPI_DESCRIPTION,
-              version=__version__)
+              version=__version__, lifespan=lifespan)
 
 app.mount("/static", StaticFiles(directory=settings.static_dir), name="static")
 for root, dirs, files in os.walk(settings.URL_DATA_APPS):
@@ -80,6 +101,10 @@ app.include_router(
     protected.router,
     tags=["Protected"],
     prefix=""
+)
+
+app.include_router(
+    auth_router
 )
 
 if __name__ == "__main__":
