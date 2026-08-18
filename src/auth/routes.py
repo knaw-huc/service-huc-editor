@@ -13,12 +13,14 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from starlette import status
 
-from src.auth.authentication import REFRESH_TOKEN_EXPIRE_MINUTES, ALGORITHM, sign_url, allowed
+from src.auth.authentication import REFRESH_TOKEN_EXPIRE_MINUTES, ALGORITHM, sign_url, allowed, get_password_hash
 from src.auth.models import RefreshToken, User
 from src.auth.authentication import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
 from src.commons import settings
 from src.database.database import SessionDep
 from src.auth.authentication import UserDep, get_user_with_password, InvalidCredentialsException
+
+from pwdlib import PasswordHash
 
 
 router = APIRouter(
@@ -123,6 +125,7 @@ async def me(user: UserDep):
     """
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
+
     return {
         "id": user.id,
         "name": user.name,
@@ -132,6 +135,9 @@ async def me(user: UserDep):
 class UserOutput(BaseModel):
     id: int
     name: str
+    disclaimer_epoch: float | None = None
+    # role: str | None = None
+    # eppn: str | None = None
 
 @router.get("/users", response_model=List[UserOutput])
 async def get_users(
@@ -155,3 +161,81 @@ async def get_users(
 
     users = session.scalars(select(User).offset(offset).limit(limit))
     return users.all()
+
+class addUser(BaseModel):
+    name: str
+    password_hash: str | None = None
+    disclaimer_epoch: float | None = None
+    # role: str | None = None
+    # eppn: str | None = None
+    # idp: str | None = None
+    # edupersontargetedid: str | None = None
+
+@router.post("/users")
+async def add_new_user(current_user: UserDep, session: SessionDep, app: str, user: addUser):
+    """
+    """
+
+    if not allowed(current_user, app, 'write', 'any'):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!",
+                            headers={"WWW-Authenticate": "Bearer"})
+
+
+    password = get_password_hash("random")
+
+    new_user = User(
+        name = user.name,
+        password_hash = password,
+    )
+
+    session.add(new_user)
+    session.commit()
+    session.refresh(new_user)
+
+    return new_user
+
+
+@router.delete("/users/{user_id}")
+def delete_user(user_id: int, session: SessionDep):
+    delete_user = session.query(User).filter(User.id == user_id).first()
+
+    session.delete(delete_user)
+    session.commit()
+
+    return {"message": "User deleted successfully"}
+
+class UserUpdate(BaseModel):
+    name: str | None = None
+    disclaimer_epoch: int | None = None
+    new_password: str | None = None
+
+
+
+@router.put("/users/{user_id}")
+def update_user(
+        user_id: int,
+        user_data: UserUpdate,
+        session: SessionDep,
+
+):
+    user = session.query(User).filter(User.id == user_id).first()
+
+    if user is None:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found",
+        )
+
+
+    if user_data.name is not None:
+        user.name = user_data.name
+
+    if user_data.new_password is not None:
+        print(f"changing password for user {user_id} ")
+        user.password_hash = get_password_hash(user_data.new_password)
+
+    session.commit()
+    session.refresh(user)
+
+
+

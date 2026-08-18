@@ -2,7 +2,6 @@ import logging
 import os
 from contextlib import asynccontextmanager
 from typing import Annotated
-
 import emoji
 import uvicorn
 from fastapi import FastAPI, Request, HTTPException, Depends, status
