@@ -1,7 +1,7 @@
 """
 Authentication related routes
 """
-
+import json
 from datetime import timedelta
 from typing import List
 
@@ -141,6 +141,14 @@ async def me(user: UserDep):
     }
 
 
+@router.get("/satosa_me")
+async def satosa_me(request: Request):
+    user = request.session.get('user')
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    return user
+
+
 class UserOutput(BaseModel):
     id: int
     name: str
@@ -261,26 +269,26 @@ oauth.register(
     client_id=client_id,
     client_secret=client_secret,
     server_metadata_url=well_known_url,
-    client_kwargs={'scope': 'openid profile email'},
+    client_kwargs={'scope': 'openid profile email idp'},
 
 )
 
 
 @router.get('/satosalogin')
-async def login(request: Request):
-    # redirecturi = request.url_for('auth')
+async def login(request: Request, app: str):
 
-    print(f".........server metadata url.......{well_known_url}")
-    print(f".........redirect uri......{redirect_uri}")
+    request.session['app'] = app
+
 
     satosa_redirect_uri = request.url_for("satosa_callback")
-    response = await oauth.satosa.authorize_redirect(request, redirect_uri=redirect_uri)
+    response = await oauth.satosa.authorize_redirect(request, redirect_uri=redirect_uri,
+                    claims=json.dumps({"userinfo" : {"edupersontargetedid": None, "schac_home_organisation": None,
+                     "nickname": None, "email": None, "eppn": None, "idp": None}})
+                                                     )
 
-    # print(f"..........response...........{response}")
-    # print(f".........server metadata url.......{well_known_url}")
+
     return response
 
-    # return HTMLResponse("login endpint works")
 
 
 
