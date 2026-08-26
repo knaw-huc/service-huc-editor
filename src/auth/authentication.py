@@ -19,7 +19,16 @@ from pydantic import BaseModel
 from saxonche import PySaxonProcessor
 from sqlmodel import Session, select
 from starlette import status
+# from starlette.middleware.sessions import SessionMiddleware
 from starlette.requests import Request
+import base64
+import hashlib
+import json
+import os
+import re
+import requests
+from authlib.integrations.starlette_client import OAuth
+
 
 from src.database.database import SessionDep
 from src.auth.models import User
@@ -335,3 +344,7 @@ def sign_url(url: str, user: User, method: str = "GET", expires_delta: timedelta
     to_encode = {"url": url, "method": method, "sub": user.name, "exp": expire}
     encoded_jwt = jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=ALGORITHM)
     return f"{url}?signature={encoded_jwt}"
+
+
+
+

@@ -5,10 +5,13 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "authlib>=1.7.2",
     "dynaconf>=3.2.11",
     "elasticsearch>=9.1.0",
     "emoji>=2.14.1",
     "fastapi>=0.116.1",
+    "httpx>=0.28.1",
+    "itsdangerous>=2.2.0",
     "jinja2>=3.1.6",
     "lxml>=6.0.1",
     "passlib>=1.7.4",
@@ -16,9 +19,11 @@ dependencies = [
     "pydantic>=2.11.7",
     "pyjwt>=2.13.0",
     "pytest>=8.4.2",
+    "python-dotenv>=1.2.3",
     "python-multipart>=0.0.32",
     "pyyaml",
     "requests>=2.32.5",
+    "satosa>=8.5.1",
     "saxonche>=12.8.0",
     "sqlalchemy>=2.0.51",
     "sqlmodel>=0.0.38",

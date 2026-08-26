@@ -126,3 +126,21 @@ async def login_page(stylesheet = Depends(StylesheetDep('login'))):
     """
     result = stylesheet.main()
     return HTMLResponse(content=result)
+
+
+
+    """
+    begin voor het inloggen met satosa
+    
+    redirect_uri = os.getenv("REDIRECT_URI")
+    return await oauth.oidc.authorize_redirect(request, redirect_uri)
+    
+    
+    
+    """
+
+
+
+
+
+

@@ -8,13 +8,16 @@ from fastapi import FastAPI, Request, HTTPException, Depends, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
 
 from src import public, protected, admin
 from src.auth.routes import router as auth_router
+from src.auth.satosa_routes import router as satosa_router
 from src.profiles.routes import router as prof_router
 from src.commons import api_keys
 from src.commons import settings
 from src.pages import router as pages_router
+
 
 __version__ = "0.1.10"
 security = HTTPBearer()
@@ -62,6 +65,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.add_middleware(SessionMiddleware, secret_key="dbcjshgcwhdg")
+
 app.include_router(
     pages_router
 )
@@ -93,6 +98,13 @@ app.include_router(
     auth_router,
     tags=["Authentication"],
 )
+
+app.include_router(
+    satosa_router,
+    tags=["Satosa"],
+
+)
+
 
 
 if __name__ == "__main__":

@@ -12,6 +12,7 @@ from jwt import InvalidTokenError
 from pydantic import BaseModel
 from sqlalchemy import select
 from starlette import status
+from starlette.config import Config
 
 from src.auth.authentication import REFRESH_TOKEN_EXPIRE_MINUTES, ALGORITHM, sign_url, allowed, get_password_hash
 from src.auth.models import RefreshToken, User
@@ -19,6 +20,14 @@ from src.auth.authentication import create_access_token, ACCESS_TOKEN_EXPIRE_MIN
 from src.commons import settings
 from src.database.database import SessionDep
 from src.auth.authentication import UserDep, get_user_with_password, InvalidCredentialsException
+
+import os
+from pathlib import Path
+
+from fastapi import FastAPI, Request
+from fastapi.responses import RedirectResponse, HTMLResponse
+# from starlette.middleware.sessions import SessionMiddleware
+from authlib.integrations.starlette_client import OAuth, OAuthError
 
 from pwdlib import PasswordHash
 
@@ -236,6 +245,46 @@ def update_user(
 
     session.commit()
     session.refresh(user)
+
+
+client_id = os.getenv("CLIENT_NAME")
+client_secret = os.getenv("CLIENT_SECRET")
+redirect_uri = os.getenv("REDIRECT_URI")
+well_known_url = os.getenv("WELL_KNOWN_URL")
+session_secret = os.urandom(24)
+
+
+oauth = OAuth()
+
+oauth.register(
+    name="satosa",
+    client_id=client_id,
+    client_secret=client_secret,
+    server_metadata_url=well_known_url,
+    client_kwargs={'scope': 'openid profile email'},
+
+)
+
+
+@router.get('/satosalogin')
+async def login(request: Request):
+    # redirecturi = request.url_for('auth')
+
+    print(f".........server metadata url.......{well_known_url}")
+    print(f".........redirect uri......{redirect_uri}")
+
+    satosa_redirect_uri = request.url_for("satosa_callback")
+    response = await oauth.satosa.authorize_redirect(request, redirect_uri=redirect_uri)
+
+    # print(f"..........response...........{response}")
+    # print(f".........server metadata url.......{well_known_url}")
+    return response
+
+    # return HTMLResponse("login endpint works")
+
+
+
+
 
 
 
