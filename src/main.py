@@ -3,9 +3,10 @@ import os
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
 from typing import Annotated
-import importlib.metadata
+
+from src.config.dependencies import get_all_apps
+from src.database import initialize_app_database
 from src.commons import api_keys
-import importlib.metadata
 import logging
 from contextlib import asynccontextmanager
 
@@ -14,12 +15,14 @@ import uvicorn
 from fastapi import FastAPI, Request, HTTPException, Depends, status
 
 from src.commons import settings
+from src.auth.authentication import get_jwt_secret_key
 
 __version__ = "0.1.10"
 
 from starlette.middleware.cors import CORSMiddleware
 
 from src import public, protected, admin
+from src.auth.routes import router as auth_router
 
 security = HTTPBearer()
 
@@ -38,12 +41,21 @@ def auth_header(request: Request, auth_cred: Annotated[HTTPAuthorizationCredenti
 
 @asynccontextmanager
 async def lifespan(application: FastAPI):
+    get_jwt_secret_key()
     print('start up')
     print(emoji.emojize(':thumbs_up:'))
 
+    print("Available apps:")
+
+    for a in get_all_apps():
+        print(f" - {a}")
+        initialize_app_database(a)
+
+    yield
+
 
 app = FastAPI(title=settings.FASTAPI_TITLE, description=settings.FASTAPI_DESCRIPTION,
-              version=__version__)
+              version=__version__, lifespan=lifespan)
 
 app.mount("/static", StaticFiles(directory=settings.static_dir), name="static")
 for root, dirs, files in os.walk(settings.URL_DATA_APPS):
@@ -80,6 +92,10 @@ app.include_router(
     protected.router,
     tags=["Protected"],
     prefix=""
+)
+
+app.include_router(
+    auth_router
 )
 
 if __name__ == "__main__":
