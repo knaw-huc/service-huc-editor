@@ -1,4 +1,6 @@
+import hashlib
 import fcntl
+import os
 from typing import Annotated
 
 from fastapi import Depends
@@ -20,7 +22,8 @@ def initialize_app_database(app: str):
     from src.config.dependencies import get_app_configuration
 
     engine = get_db_eng_for_app(app)
-    lock_path = f"{settings.URL_DATA_APPS}/{app}/database.db.lock"
+    lock_name = hashlib.sha256(os.path.realpath(engine.url.database).encode()).hexdigest()
+    lock_path = os.path.join(settings.URL_DATA_APPS, f".{lock_name}.lock")
     with open(lock_path, "w") as lock_file:
         fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
         SQLModel.metadata.create_all(engine)

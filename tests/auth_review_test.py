@@ -69,7 +69,7 @@ def test_app_database_initialization_is_repeatable(tmp_path, monkeypatch):
     database.initialize_app_database("app")
     database.initialize_app_database("app")
 
-    assert (app_dir / "database.db.lock").exists()
+    assert list(apps_dir.glob(".*.lock"))
 
 
 def test_token_login_is_sync_and_uses_app_audience(monkeypatch):
