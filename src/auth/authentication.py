@@ -178,7 +178,7 @@ def get_user_with_app(
         except UnknownApiKeyException:
             # Not in legacy api keys. Treat as JWT
             try:
-                payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[ALGORITHM])
+                payload = jwt.decode(token, get_jwt_secret_key(), algorithms=[ALGORITHM], audience=app)
                 username = payload.get('sub')
                 if username is None:
                     raise credentials_exception
@@ -238,7 +238,7 @@ def allowed(user: Optional[User], app: str, action: str, default: str, prof=None
                     xpproc.declare_namespace('clariah','http://www.clariah.eu/')
                     xpproc.declare_namespace('cmd','http://www.clarin.eu/cmd/')
                     xpproc.set_context(xdm_item=rec)
-                    owner = xpproc.evaluate_single(f"string((/*:CMD/*:Header/*:MdCreator,'{def_user(app)}')[1])").get_string_value()
+                    owner = xpproc.evaluate_single(f"string((/*:CMD/*:Header/*:MdCreator,'{def_user(app).name}')[1])").get_string_value()
                     if owner == user.name:
                         return True
         elif mode == "owner" and user is not None:
@@ -275,5 +275,14 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     else:
         expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=ALGORITHM)
+    encoded_jwt = jwt.encode(to_encode, get_jwt_secret_key(), algorithm=ALGORITHM)
     return encoded_jwt
+
+
+def get_jwt_secret_key() -> str:
+    secret_key = settings.get("JWT_SECRET_KEY")
+    if not isinstance(secret_key, str) or not secret_key.strip():
+        raise RuntimeError(
+            "JWT_SECRET_KEY must be configured in conf/.secrets.toml before starting the service"
+        )
+    return secret_key

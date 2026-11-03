@@ -126,24 +126,25 @@ def convert_toml_to_xml(toml_file: str, xml_file: str, root_element: str = "conf
     with open(xml_file, 'w', encoding='utf-8') as f:
         f.write(pretty_xml)
 
-def call_record_hook(crud:str,app:str,prof:str,nr:str,user:str,rec:PyXdmNode | None = None ) -> tuple[PyXdmNode, str]:
+def call_record_hook(crud:str,app:str,prof:str,nr:str,user:User | str | None,rec:PyXdmNode | None = None ) -> tuple[PyXdmNode, str]:
+    username = user.name if isinstance(user, User) else user
     config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
     with open(config_file, 'r') as f:
         config = toml.load(f)
         if "hooks" in config['app'] and "record" in config["app"]["hooks"] and crud in config["app"]["hooks"]["record"]:
             logging.info(f"call_record_hook(hook[{config['app']['hooks']['record'][crud]}],app[{app}],rec[{nr}])")
             if crud.endswith("_pre"):
-                rec, msg = call_record_pre_hook(config['app']['hooks']['record'][crud],crud.replace('_pre',''),app,prof,nr,user,rec)
+                rec, msg = call_record_pre_hook(config['app']['hooks']['record'][crud],crud.replace('_pre',''),app,prof,nr,username,rec)
                 logging.info(f"call_record_hook(hook[{config['app']['hooks']['record'][crud]}],app[{app}],rec[{nr}]) -> rec[{rec}], msg[{msg}]")
                 return rec, msg
             if crud.endswith("_post"):
-                call_record_post_hook(config['app']['hooks']['record'][crud],crud.replace('_post',''),app,prof,nr,user)
+                call_record_post_hook(config['app']['hooks']['record'][crud],crud.replace('_post',''),app,prof,nr,username)
                 return rec, None
         else:
             logging.info(f"no hook[{crud}]!")
             return rec, None
 
-def call_record_pre_hook(hook:str,crud:str,app:str,prof:str,nr:str,user:str,rec:PyXdmNode) -> tuple[PyXdmNode, str]:
+def call_record_pre_hook(hook:str,crud:str,app:str,prof:str,nr:str,user:str | None,rec:PyXdmNode) -> tuple[PyXdmNode, str]:
     # import hook from data/apps/app/src/hooks.py
     mod = importlib.import_module(f"apps.{app}.src.hooks")
     # call hook(app,rec)
@@ -151,14 +152,14 @@ def call_record_pre_hook(hook:str,crud:str,app:str,prof:str,nr:str,user:str,rec:
     rec, msg = func(crud,app,prof,nr,user,rec)
     return rec, msg
 
-def call_record_post_hook(hook:str,crud:str,app:str,prof:str,nr:str,user:str ) -> None:
+def call_record_post_hook(hook:str,crud:str,app:str,prof:str,nr:str,user:str | None ) -> None:
     # import hook from data/apps/app/src/hooks.py
     mod = importlib.import_module(f"apps.{app}.src.hooks")
     # call hook(app,rec)
     func = getattr(mod,hook)
     func(crud,app,prof,nr,user)
 
-def call_action_hook(req: Request, action: str, app: str, prof: str, rec: str, user: User):
+def call_action_hook(req: Request, action: str, app: str, prof: str, rec: str, user: User | None):
     config_file = f"{settings.URL_DATA_APPS}/{app}/config.toml"
     with open(config_file, 'r') as f:
         config = toml.load(f)
@@ -187,7 +188,7 @@ def call_action_hook(req: Request, action: str, app: str, prof: str, rec: str, u
                             # call hook(app,rec)
                             func = getattr(mod,config["app"]["hooks"]["action"][action]["hook"])
                             logging.info(f' calling hook[{config["app"]["hooks"]["action"][action]["hook"]}]!')
-                            return func(req,action,app,prof,rec,user.name)
+                            return func(req,action,app,prof,rec,user.name if user is not None else None)
                     else:
                         logging.info(f"no action hook[{action}]!")
                 else:
@@ -197,5 +198,4 @@ def call_action_hook(req: Request, action: str, app: str, prof: str, rec: str, u
         else:
             logging.info(f"no hooks!")
             return None
-
 

@@ -13,7 +13,10 @@ def get_all_apps():
     """
     Get all apps
     """
-    return next(os.walk(settings.URL_DATA_APPS))[1]
+    return [
+        app for app in next(os.walk(settings.URL_DATA_APPS))[1]
+        if os.path.isfile(os.path.join(settings.URL_DATA_APPS, app, "config.toml"))
+    ]
 
 
 def get_app_configuration(app: str) -> Dict:

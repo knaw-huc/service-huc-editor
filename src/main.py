@@ -4,13 +4,8 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
 from typing import Annotated
 
-from sqlmodel import SQLModel, Session, select
-
-from src.auth.authentication import initialize_users
-from src.auth.authentication import create_user
-from src.auth.models import User
-from src.config.dependencies import get_all_apps, get_app_configuration
-from src.database import get_db_eng_for_app
+from src.config.dependencies import get_all_apps
+from src.database import initialize_app_database
 from src.commons import api_keys
 import logging
 from contextlib import asynccontextmanager
@@ -20,6 +15,7 @@ import uvicorn
 from fastapi import FastAPI, Request, HTTPException, Depends, status
 
 from src.commons import settings
+from src.auth.authentication import get_jwt_secret_key
 
 __version__ = "0.1.10"
 
@@ -45,6 +41,7 @@ def auth_header(request: Request, auth_cred: Annotated[HTTPAuthorizationCredenti
 
 @asynccontextmanager
 async def lifespan(application: FastAPI):
+    get_jwt_secret_key()
     print('start up')
     print(emoji.emojize(':thumbs_up:'))
 
@@ -52,13 +49,7 @@ async def lifespan(application: FastAPI):
 
     for a in get_all_apps():
         print(f" - {a}")
-        eng = get_db_eng_for_app(a)
-        config = get_app_configuration(a)
-        SQLModel.metadata.create_all(eng)
-
-        with Session(eng) as session:
-            print("Check if this app has users")
-            initialize_users(a, config, session)
+        initialize_app_database(a)
 
     yield
 

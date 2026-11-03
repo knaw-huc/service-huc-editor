@@ -16,6 +16,7 @@ from starlette.staticfiles import StaticFiles
 
 from src.auth.models import User
 from src.database import SessionDep
+from src.database import initialize_app_database
 from src.commons import settings, convert_toml_to_xml
 from src.profiles import prof_save
 
@@ -145,6 +146,7 @@ async def create_app(request: Request, app: str, descr: str | None = None, prof:
                 file.write(config_content)
             with open(config_file, 'r') as f:
                 config = toml.load(f)
+                initialize_app_database(app)
                 await prof_save(app,config['app']['def_prof'])
             if config['app']['def_prof'] == 'clarin.eu:cr1:p_1721373444008':
                 shutil.copyfile(f"{settings.templates_dir}/HelloWorldTweak.xml",f"{settings.URL_DATA_APPS}/{app}/profiles/{config['app']['def_prof']}/tweaks/tweak-1.xml")

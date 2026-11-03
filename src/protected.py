@@ -100,7 +100,7 @@ async def create_record(request: Request, app: str, prof: str | None = None, red
             executable.set_parameter("prof", proc.make_string_value(prof.strip()))
             rec = executable.call_template_returning_string("main")
             logging.info(f"- record XML[{rec}]")
-            rec, msg = call_record_hook("create_pre",app,prof,nr,user.name,rec)
+            rec, msg = call_record_hook("create_pre",app,prof,nr,user,rec)
             if rec is None:
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
 
@@ -111,7 +111,7 @@ async def create_record(request: Request, app: str, prof: str | None = None, red
     else: # XML input
         with PySaxonProcessor(license=False) as proc:
             rec = proc.parse_xml(xml_text=record_body)
-        rec, msg = call_record_hook("create_pre",app,prof,nr,user.name,rec)
+        rec, msg = call_record_hook("create_pre",app,prof,nr,user,rec)
         if rec == None:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
         with open(record_file, 'w') as file:
@@ -569,4 +569,3 @@ def get_action(req: Request, app: str, action: str, prof: str | None=None, nr: s
     #if (not allowed(user,app,'read','any')):
     #    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="not allowed!", headers={"WWW-Authenticate": f"Basic realm=\"{app}\""})
     return call_action_hook(req,action,app,prof,nr,user)
-

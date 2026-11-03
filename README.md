@@ -51,6 +51,8 @@ Remember the ID of your profile, which can be seen in its XML representation, e.
 
 ## Start the service
 
+JWT authentication requires a persistent signing key. Generate one with `openssl rand -hex 32` and set it as `JWT_SECRET_KEY` under `[default]` in `conf/.secrets.toml`. Keep the same secret across restarts and do not commit it. The service will fail at startup with a clear error if it is missing.
+
 With release image:
 ```sh
 docker run -v ./conf:/home/huc/huc-editor-service/conf -v ./data:/home/huc/huc-editor-service/data -p 1210:1210 --name=ccf --rm -it ghcr.io/knaw-huc/service-huc-editor:2.0-RC9
